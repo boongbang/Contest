@@ -1,0 +1,34 @@
+name: Deploy to Cloudtype
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: Deploy to Cloudtype
+      env:
+        CLOUDTYPE_TOKEN: ${{ secrets.CLOUDTYPE_TOKEN }}
+        CLOUDTYPE_PROJECT: ${{ secrets.CLOUDTYPE_PROJECT }}
+      run: |
+        npm install -g @cloudtype/cli
+        cloudtype deploy \
+          --token $CLOUDTYPE_TOKEN \
+          --project $CLOUDTYPE_PROJECT \
+          --stage production \
+          --app ir-sensor-server
