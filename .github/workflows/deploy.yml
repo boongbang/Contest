@@ -32,3 +32,4 @@ jobs:
           --project $CLOUDTYPE_PROJECT \
           --stage production \
           --app ir-sensor-server
+ 
