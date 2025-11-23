@@ -1,0 +1,30 @@
+name: ir-sensor-server
+type: node
+
+build:
+  buildCommand: npm install
+  runCommand: npm start
+  installCommand: npm install
+  
+ports:
+  - port: 3000
+    protocol: http
+
+env:
+  NODE_ENV: production
+  PORT: 3000
+
+resources:
+  memory: 512
+  cpu: 0.5
+
+healthcheck:
+  path: /
+  interval: 30
+
+node:
+  version: 18
+  
+files:
+  - package.json
+  - server.js
