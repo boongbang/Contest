@@ -858,17 +858,35 @@
         async function checkSensorStatus() {
             try {
                 const response = await fetch(`${API_URL}/value`);
-                const data = await response.json();
+                const sensors = await response.json(); // 전체 센서 목록 {1:{...}, 2:{...}} 받기
                 
+                // 1. 표시할 타겟 센서 선정 로직
+                // (현재 약통이 빠진(value=1) 센서가 있으면 그걸 보여주고, 없으면 1번 센서를 기본으로 표시)
+                let targetData = sensors[1]; 
+                for (let id in sensors) {
+                    if (sensors[id].value === 1) {
+                        targetData = sensors[id];
+                        break;
+                    }
+                }
+
                 const statusDot = document.getElementById('sensorStatusDot');
                 const statusText = document.getElementById('sensorStatusText');
-                
-                if (data.timestamp) {
-                    // 센서 데이터가 있음
-                    const lastUpdate = new Date(data.timestamp);
+
+                // 2. 데이터 매핑 (서버 변수명 -> 대시보드 변수명)
+                // 서버는 lastOpened를 주지만, 기존 코드는 timestamp를 원함
+                const displayData = {
+                    value: targetData.value,
+                    timestamp: targetData.lastOpened, 
+                    id: targetData.id,
+                    name: targetData.name
+                };
+
+                if (displayData.timestamp) {
+                    const lastUpdate = new Date(displayData.timestamp);
                     const now = new Date();
                     const diffMinutes = Math.floor((now - lastUpdate) / 60000);
-                    
+
                     if (diffMinutes < 1) {
                         statusDot.className = 'status-dot active';
                         statusText.textContent = '실시간';
@@ -877,14 +895,15 @@
                         statusText.textContent = `${diffMinutes}분 전`;
                     } else {
                         statusDot.className = 'status-dot inactive';
-                        statusText.textContent = '오프라인';
+                        statusText.textContent = '대기중';
                     }
                     
-                    // 센서 데이터 표시
-                    updateSensorDisplay(data);
+                    updateSensorDisplay(displayData);
                 } else {
+                    // 데이터는 있지만 한 번도 열린 적이 없는 경우
                     statusDot.className = 'status-dot inactive';
                     statusText.textContent = '대기중';
+                    updateSensorDisplay(displayData);
                 }
             } catch (error) {
                 console.error('Sensor check failed:', error);
@@ -893,28 +912,29 @@
             }
         }
 
-        // 센서 데이터 표시
+        // [수정됨] 센서 데이터 표시 함수
         function updateSensorDisplay(data) {
             const sensorArea = document.getElementById('sensorDataArea');
             
-            if (!data.timestamp) {
-                return;
-            }
-            
+            // 상태에 따른 텍스트 및 스타일 설정
             const stateClass = data.value === 1 ? 'detected' : 'clear';
-            const stateText = data.value === 1 ? '약통 제거됨' : '약통 있음';
+            const stateText = data.value === 1 ? `${data.name} 복용 중` : '모든 약통 보관됨';
             const iconClass = data.value === 1 ? 'fa-box-open' : 'fa-box';
             
+            // 시간 텍스트 처리
+            const timeText = data.timestamp 
+                ? new Date(data.timestamp).toLocaleTimeString() 
+                : "기록 없음";
+
             sensorArea.innerHTML = `
                 <div class="sensor-value-display">
-                    <div class="sensor-big-value">${data.count || 0}</div>
-                    <div class="sensor-unit">회</div>
+                    <div class="sensor-big-value">${data.value === 1 ? "ON" : "OFF"}</div>
                 </div>
                 <div class="sensor-state ${stateClass}">
                     <i class="fa-solid ${iconClass}"></i> ${stateText}
                 </div>
                 <div style="margin-top: 15px; font-size: 0.85rem; opacity: 0.7;">
-                    마지막 업데이트: ${new Date(data.timestamp).toLocaleTimeString()}
+                    마지막 감지: ${timeText}
                 </div>
             `;
         }
