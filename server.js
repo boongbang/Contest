@@ -198,7 +198,22 @@ app.get('/api/medications', authenticateToken, async (req, res) => {
     const userId = req.user.id;
     
     if (!pool) {
-        return res.json({ success: true, data: [] });
+        // 테스트용 샘플 데이터
+        return res.json({ 
+            success: true, 
+            data: [
+                {
+                    id: 1,
+                    name: '아스피린',
+                    type: 'pill',
+                    dosage: '100mg',
+                    frequency: 1,
+                    schedule: ['08:00'],
+                    start_date: '2024-01-01',
+                    is_active: true
+                }
+            ] 
+        });
     }
     
     let conn;
@@ -235,7 +250,7 @@ app.post('/api/medications', authenticateToken, async (req, res) => {
     const { name, type, dosage, frequency, schedule, start_date, end_date, notes } = req.body;
     
     if (!pool) {
-        return res.json({ success: true, message: 'Medication added (no DB)' });
+        return res.json({ success: true, message: 'Medication added (no DB)', id: Math.random() });
     }
     
     let conn;
@@ -263,7 +278,14 @@ app.post('/api/medications', authenticateToken, async (req, res) => {
         }
         
         // 알림 생성
-        await createReminders(conn, medicationId, userId, schedule, start_date, end_date);
+        for (const time of (schedule || [])) {
+            await conn.query(
+                `INSERT INTO reminders 
+                 (user_id, medication_id, time, is_active, created_at) 
+                 VALUES (?, ?, ?, 1, NOW())`,
+                [userId, medicationId, time]
+            );
+        }
         
         res.json({ success: true, message: '약물이 추가되었습니다', id: medicationId });
     } catch (error) {
@@ -321,8 +343,8 @@ app.get('/api/reports', authenticateToken, async (req, res) => {
             consistency: 78,
             predictions: {
                 next_week_adherence: 88,
-                risk_factors: ['주말 패턴', '저녁 시간 변동'],
-                recommendations: ['알림 강화', '시간 고정']
+                risk_factors: ['주말 패턴 불규칙', '저녁 시간 변동성'],
+                recommendations: ['주말 알림 강화', '저녁 복약 시간 고정']
             }
         });
     }
@@ -331,15 +353,18 @@ app.get('/api/reports', authenticateToken, async (req, res) => {
     try {
         conn = await pool.getConnection();
         
+        const startDateParam = start_date || '2024-01-01';
+        const endDateParam = end_date || new Date().toISOString().split('T')[0];
+        
         // PDC (Proportion of Days Covered) 계산
         const pdcResult = await conn.query(
             `SELECT 
                 COUNT(DISTINCT DATE(timestamp)) as covered_days,
-                DATEDIFF(CURDATE(), MIN(DATE(timestamp))) + 1 as total_days
+                DATEDIFF(?, ?) + 1 as total_days
              FROM medication_logs 
              WHERE user_id = ? 
-             AND timestamp BETWEEN ? AND ?`,
-            [userId, start_date || '2024-01-01', end_date || new Date()]
+             AND DATE(timestamp) BETWEEN ? AND ?`,
+            [endDateParam, startDateParam, userId, startDateParam, endDateParam]
         );
         
         const pdc = pdcResult[0].total_days > 0 
@@ -349,33 +374,42 @@ app.get('/api/reports', authenticateToken, async (req, res) => {
         // MPR (Medication Possession Ratio) 계산
         const mprResult = await conn.query(
             `SELECT 
-                COUNT(*) as doses_taken,
-                (SELECT SUM(frequency) FROM medications WHERE user_id = ?) * 
-                DATEDIFF(?, ?) as expected_doses
+                COUNT(*) as doses_taken
              FROM medication_logs 
              WHERE user_id = ? 
-             AND timestamp BETWEEN ? AND ?`,
-            [userId, end_date || new Date(), start_date || '2024-01-01', 
-             userId, start_date || '2024-01-01', end_date || new Date()]
+             AND DATE(timestamp) BETWEEN ? AND ?`,
+            [userId, startDateParam, endDateParam]
         );
         
-        const mpr = mprResult[0].expected_doses > 0
-            ? Math.round((mprResult[0].doses_taken / mprResult[0].expected_doses) * 100)
+        // 예상 복용 횟수 계산
+        const expectedResult = await conn.query(
+            `SELECT COALESCE(SUM(frequency), 0) as daily_frequency
+             FROM medications 
+             WHERE user_id = ? 
+             AND is_active = 1`,
+            [userId]
+        );
+        
+        const daysDiff = Math.ceil((new Date(endDateParam) - new Date(startDateParam)) / (1000 * 60 * 60 * 24)) + 1;
+        const expectedDoses = expectedResult[0].daily_frequency * daysDiff;
+        
+        const mpr = expectedDoses > 0
+            ? Math.round((mprResult[0].doses_taken / expectedDoses) * 100)
             : 0;
         
         // CMG (Continuous Measure Gap) 계산
         const gapResult = await conn.query(
-            `SELECT MAX(gap_days) as max_gap FROM (
-                SELECT 
+            `SELECT 
+                COALESCE(MAX(
                     DATEDIFF(
                         DATE(timestamp), 
                         LAG(DATE(timestamp)) OVER (ORDER BY timestamp)
-                    ) - 1 as gap_days
-                FROM medication_logs 
-                WHERE user_id = ?
-                AND timestamp BETWEEN ? AND ?
-            ) as gaps`,
-            [userId, start_date || '2024-01-01', end_date || new Date()]
+                    ) - 1
+                ), 0) as max_gap
+             FROM medication_logs 
+             WHERE user_id = ?
+             AND DATE(timestamp) BETWEEN ? AND ?`,
+            [userId, startDateParam, endDateParam]
         );
         
         const cmg = gapResult[0].max_gap || 0;
@@ -387,24 +421,51 @@ app.get('/api/reports', authenticateToken, async (req, res) => {
                 AVG(HOUR(timestamp)) as hour_avg
              FROM medication_logs 
              WHERE user_id = ?
-             AND timestamp BETWEEN ? AND ?`,
-            [userId, start_date || '2024-01-01', end_date || new Date()]
+             AND DATE(timestamp) BETWEEN ? AND ?`,
+            [userId, startDateParam, endDateParam]
         );
         
         const consistency = consistencyResult[0].hour_std 
-            ? Math.max(0, 100 - (consistencyResult[0].hour_std * 10))
+            ? Math.max(0, Math.round(100 - (consistencyResult[0].hour_std * 10)))
             : 100;
+        
+        // 위험 요인 분석
+        const riskFactors = [];
+        if (consistencyResult[0].hour_std > 2) {
+            riskFactors.push('복약 시간 변동성 높음');
+        }
+        if (pdc < 80) {
+            riskFactors.push('전반적 순응도 부족');
+        }
+        if (cmg > 3) {
+            riskFactors.push('장기 미복약 기간 존재');
+        }
+        
+        // 개선 권장사항 생성
+        const recommendations = [];
+        if (pdc < 80) {
+            recommendations.push('일일 알림 횟수 증가 권장');
+        }
+        if (consistency < 70) {
+            recommendations.push('복약 시간 고정 필요');
+        }
+        if (mpr < 90) {
+            recommendations.push('약물 재처방 일정 확인 필요');
+        }
+        if (cmg > 3) {
+            recommendations.push('연속 복약 습관 형성 프로그램 참여');
+        }
         
         res.json({
             success: true,
-            pdc: Math.round(pdc),
-            mpr: Math.round(mpr),
-            cmg: Math.round(cmg),
-            consistency: Math.round(consistency),
+            pdc: pdc,
+            mpr: mpr,
+            cmg: cmg,
+            consistency: consistency,
             predictions: {
-                next_week_adherence: Math.round(pdc * 1.03), // 간단한 예측
-                risk_factors: analyzeRiskFactors(consistencyResult[0]),
-                recommendations: generateRecommendations(pdc, mpr, consistency)
+                next_week_adherence: Math.min(100, Math.round(pdc * 1.03)),
+                risk_factors: riskFactors,
+                recommendations: recommendations
             }
         });
         
@@ -416,44 +477,6 @@ app.get('/api/reports', authenticateToken, async (req, res) => {
     }
 });
 
-// 위험 요인 분석 함수
-function analyzeRiskFactors(stats) {
-    const factors = [];
-    if (stats.hour_std > 2) {
-        factors.push('복약시간 변동성 높음');
-    }
-    if (stats.hour_avg < 8 || stats.hour_avg > 22) {
-        factors.push('비정상적인 복약 시간대');
-    }
-    return factors;
-}
-
-// 개선 권장사항 생성 함수
-function generateRecommendations(pdc, mpr, consistency) {
-    const recommendations = [];
-    if (pdc < 80) {
-        recommendations.push('일일 알림 횟수 증가 권장');
-    }
-    if (consistency < 70) {
-        recommendations.push('복약 시간 고정 필요');
-    }
-    if (mpr < 90) {
-        recommendations.push('약물 재처방 일정 확인 필요');
-    }
-    return recommendations;
-}
-
-// 알림 생성 함수
-async function createReminders(conn, medicationId, userId, schedule, startDate, endDate) {
-    // 알림 생성 로직
-    for (const time of schedule) {
-        await conn.query(
-`INSERT INTO reminders               (user_id, medication_id, time, is_active, created_at)               VALUES (?, ?, ?, 1, NOW())`,
-            [userId, medicationId, time]
-        );
-    }
-}
-
 // ===== 복약 로그 엔드포인트 =====
 
 // 복약 로그 조회
@@ -464,7 +487,7 @@ app.get('/api/medication-logs', authenticateToken, async (req, res) => {
     if (!pool) {
         return res.json({ success: true, data: [] });
     }
-
+    
     let conn;
     try {
         conn = await pool.getConnection();
@@ -514,7 +537,7 @@ app.get('/api/medication-stats', authenticateToken, async (req, res) => {
             }
         });
     }
-
+    
     let conn;
     try {
         conn = await pool.getConnection();
@@ -595,9 +618,33 @@ app.get('/api/medication-stats', authenticateToken, async (req, res) => {
     }
 });
 
-// ===== IR 센서 엔드포인트 =====
+// 복약 로그 리셋
+app.delete('/api/medication-logs/reset', authenticateToken, async (req, res) => {
+    const userId = req.user.id;
+    
+    if (!pool) {
+        return res.json({ success: true, message: 'Logs reset (no DB)' });
+    }
+    
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        await conn.query(
+            'DELETE FROM medication_logs WHERE user_id = ?',
+            [userId]
+        );
+        
+        res.json({ success: true, message: 'Medication logs reset' });
+    } catch (error) {
+        console.error('Error resetting logs:', error);
+        res.status(500).json({ success: false, error: error.message });
+    } finally {
+        if (conn) conn.release();
+    }
+});
 
-let currentSensorValue = {
+// ===== IR 센서 엔드포인트 =====
+let currentSensorValue = { 
     a: 0,
     timestamp: new Date().toISOString(),
     count: 0
@@ -605,6 +652,7 @@ let currentSensorValue = {
 
 // 센서값 조회
 app.get('/value', (req, res) => {
+    console.log('GET /value - 현재값:', currentSensorValue);
     res.json(currentSensorValue);
 });
 
@@ -622,7 +670,7 @@ app.post('/value', async (req, res) => {
             let conn;
             try {
                 conn = await pool.getConnection();
-                // 현재는 모든 활성 사용자에게 기록
+                // 현재는 테스트용으로 user_id=1에 기록
                 await conn.query(
                     'INSERT INTO medication_logs (user_id, timestamp, event_type) VALUES (?, ?, ?)',
                     [1, now, 'SENSOR_DETECTED']
@@ -634,10 +682,12 @@ app.post('/value', async (req, res) => {
             }
         }
     }
-
+    
     currentSensorValue.a = a;
     currentSensorValue.timestamp = now.toISOString();
-
+    
+    console.log('POST /value - 업데이트:', currentSensorValue);
+    
     res.json({ 
         success: true, 
         data: currentSensorValue,
@@ -645,26 +695,98 @@ app.post('/value', async (req, res) => {
     });
 });
 
+// Arduino용 기존 센서 데이터 엔드포인트 (호환성 유지)
+app.post('/api/sensor-data', async (req, res) => {
+    console.log('Received sensor data:', req.body);
+    
+    if (!pool) {
+        const { sensorValue } = req.body;
+        
+        if (sensorValue !== undefined) {
+            currentSensorValue.a = sensorValue;
+            currentSensorValue.timestamp = new Date().toISOString();
+        }
+        
+        res.json({ 
+            success: true, 
+            message: 'Data received (no DB)',
+            data: req.body 
+        });
+        return;
+    }
+    
+    let conn;
+    try {
+        const { boxId, temperature, humidity, compartmentStatus, sensorValue } = req.body;
+        
+        if (sensorValue !== undefined) {
+            currentSensorValue.a = sensorValue;
+            currentSensorValue.timestamp = new Date().toISOString();
+        }
+        
+        conn = await pool.getConnection();
+        
+        if (temperature !== undefined && humidity !== undefined) {
+            await conn.query(
+                'INSERT INTO sensor_logs (box_id, temperature, humidity, timestamp) VALUES (?, ?, ?, NOW())',
+                [boxId, temperature, humidity]
+            );
+        }
+
+        if (compartmentStatus && Array.isArray(compartmentStatus)) {
+            for (const compartment of compartmentStatus) {
+                await conn.query(
+                    'INSERT INTO compartment_status (box_id, compartment_id, is_open, timestamp) VALUES (?, ?, ?, NOW())',
+                    [boxId, compartment.id, compartment.isOpen ? 1 : 0]
+                );
+            }
+        }
+
+        res.json({ success: true, message: 'Data saved to database' });
+    } catch (error) {
+        console.error('Error saving sensor data:', error);
+        res.status(500).json({ success: false, error: error.message });
+    } finally {
+        if (conn) conn.release();
+    }
+});
+
 // ===== 기본 엔드포인트 =====
 
-// 정적 파일 서빙
+// 루트 경로
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
+// 대시보드
 app.get('/dashboard.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
+
+// 복약 관리
 app.get('/medication.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'medication.html'));
 });
+
+// 리포트
 app.get('/reports.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'reports.html'));
 });
 
+// 알림 설정
+app.get('/reminder.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'reminder.html'));
+});
+
+// 프로필
+app.get('/profile.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'profile.html'));
+});
+
 // 건강 체크
 app.get('/health', (req, res) => {
-    res.json({
-        status: 'ok',
+    res.json({ 
+        status: 'ok', 
         timestamp: new Date().toISOString(),
         sensorStatus: currentSensorValue,
         dbStatus: pool ? 'connected' : 'not configured'
@@ -673,19 +795,20 @@ app.get('/health', (req, res) => {
 
 // 404 처리
 app.use((req, res) => {
-    res.status(404).json({
-        error: 'Not Found',
+    console.log('404 - Not Found:', req.method, req.url);
+    res.status(404).json({ 
+        error: 'Not Found', 
         path: req.url,
-        method: req.method
+        method: req.method 
     });
 });
 
 // 에러 처리
 app.use((err, req, res, next) => {
     console.error('Error:', err.stack);
-    res.status(500).json({
+    res.status(500).json({ 
         error: 'Internal Server Error',
-        message: err.message
+        message: err.message 
     });
 });
 
@@ -695,6 +818,7 @@ async function initDatabase() {
         console.log('Database not configured - running in memory mode');
         return;
     }
+    
     let conn;
     try {
         conn = await pool.getConnection();
@@ -783,6 +907,17 @@ async function initDatabase() {
             )
         `);
         
+        // compartment_status 테이블 (기존)
+        await conn.query(`
+            CREATE TABLE IF NOT EXISTS compartment_status (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                box_id VARCHAR(50),
+                compartment_id INT,
+                is_open BOOLEAN,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+        
         console.log('✅ Database tables initialized successfully');
         
     } catch (error) {
@@ -794,8 +929,47 @@ async function initDatabase() {
 
 // 서버 시작
 app.listen(PORT, async () => {
-console.log(╔════════════════════════════════════════╗ ║   🚀 COSS Server Started Successfully   ║ ╠════════════════════════════════════════╣ ║   Port: ${PORT}                           ║ ║   Environment: ${process.env.NODE_ENV || 'development'}         ║ ║   Time: ${new Date().toLocaleString()}     ║ ╠════════════════════════════════════════╣ ║   Enhanced Features:                   ║ ║   ✅ Advanced Analytics (PDC, MPR)     ║ ║   ✅ Medication Management             ║ ║   ❱ Detailed Reports                  ║ ║   ❱ Reminder System                   ║ ║   ❱ Pattern Recognition               ║ ║   ❱ Predictive Analysis               ║ ╚════════════════════════════════════════╝    );
-
+    console.log(`
+╔════════════════════════════════════════╗
+║   🚀 COSS Server Started Successfully   ║
+╠════════════════════════════════════════╣
+║   Port: ${PORT}                           ║
+║   Environment: ${process.env.NODE_ENV || 'development'}         ║
+║   Time: ${new Date().toLocaleString()}     ║
+╠════════════════════════════════════════╣
+║   Enhanced Features:                   ║
+║   ✅ Advanced Analytics (PDC, MPR)     ║
+║   ✅ Medication Management             ║
+║   ✅ Detailed Reports                  ║
+║   ✅ Reminder System                   ║
+║   ✅ Pattern Recognition               ║
+║   ✅ Predictive Analysis               ║
+╠════════════════════════════════════════╣
+║   API Endpoints:                       ║
+║   Auth: /api/auth/*                    ║
+║   Medications: /api/medications/*      ║
+║   Reports: /api/reports                ║
+║   Stats: /api/medication-stats         ║
+║   Sensor: /value, /api/sensor-data     ║
+╚════════════════════════════════════════╝
+    `);
+    
     // 데이터베이스 초기화
     await initDatabase();
+    
+    if (!pool) {
+        console.log('⚠️  Warning: No database configured. Using memory storage only.');
+        console.log('📝 Test account: test@test.com / test1234');
+    }
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received: closing HTTP server');
+    app.close(() => {
+        console.log('HTTP server closed');
+        if (pool) {
+            pool.end();
+        }
+    });
 });
