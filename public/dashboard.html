@@ -2,542 +2,959 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>COSS - 스마트 약통 관리</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COSS - 대시보드</title>
     <style>
-        /* --- 1. 디자인 시스템 변수 (Florest 테마) --- */
-        :root {
-            --app-bg: #6B8E6B;       /* 메인 녹색 배경 */
-            --app-bg-dark: #556b57;  /* 어두운 녹색 */
-            --sidebar-bg: #f5f6fa;   /* 사이드바 배경 (밝은 회색) */
-            --card-bg: #ffffff;      /* 카드 배경 */
-            --text-light: #F1F5EF;   /* 어두운 배경 위 텍스트 */
-            --text-dark: #333333;    /* 밝은 배경 위 텍스트 */
-            --accent-color: #E8F5E9; /* 강조 색상 */
-            --curve-radius: 40px;    /* 사이드바 곡률 */
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #eef1f4; /* PC 전체 배경 */
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f6fa;
             min-height: 100vh;
         }
 
-        /* --- 2. 앱 래퍼 (반응형 컨테이너) --- */
-        .app-wrapper {
-            width: 100%;
-            height: 100vh;
-            background-color: var(--app-bg);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transition: background-color 0.3s;
+        /* 사이드바 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 250px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+            transition: transform 0.3s ease;
         }
 
-        /* PC 화면: 모바일 앱처럼 중앙 정렬 */
-        @media (min-width: 481px) {
-            .app-wrapper {
-                width: 414px; /* iPhone Max 폭 */
-                height: 880px;
-                border-radius: 40px;
-                box-shadow: 0 30px 60px rgba(0,0,0,0.2);
-            }
+        .sidebar-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
         }
 
-        /* --- 3. 헤더 영역 --- */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 40px 30px 20px 30px;
-            z-index: 20;
-            color: var(--text-light);
-        }
-
-        .header-title {
-            font-family: 'Merriweather', serif;
-            font-size: 1.5rem;
+        .sidebar-logo {
             display: flex;
             align-items: center;
             gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
         }
 
-        .user-profile-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
             display: flex;
             align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(5px);
+            gap: 15px;
+            padding: 15px 20px;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            background: #f5f6fa;
+            color: #667eea;
+        }
+
+        .menu-item.active {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .menu-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #667eea;
+        }
+
+        .menu-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* 메인 콘텐츠 */
+        .main-content {
+            margin-left: 250px;
+            min-height: 100vh;
+        }
+
+        .top-header {
+            background: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .notification-icon {
+            font-size: 20px;
+            color: #666;
             cursor: pointer;
             position: relative;
         }
 
         .notification-badge {
             position: absolute;
-            top: 0;
-            right: 0;
-            width: 12px;
-            height: 12px;
-            background-color: #ff6b6b;
-            border-radius: 50%;
-            border: 2px solid var(--app-bg);
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 10px;
         }
 
-        /* --- 4. 메인 레이아웃 (사이드바 + 콘텐츠) --- */
-        .content-body {
-            display: flex;
-            flex: 1;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        /* === 사이드바 (Liquid Effect) === */
-        .sidebar-container {
-            width: 90px;
-            background-color: transparent;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            padding-bottom: 20px;
-            padding-top: 10px;
-        }
-
-        .sidebar-item {
-            height: 90px;
-            background-color: var(--sidebar-bg);
+        .user-profile {
             display: flex;
             align-items: center;
-            justify-content: center;
-            position: relative;
+            gap: 10px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: #999;
         }
 
-        .icon-box {
-            width: 45px;
-            height: 45px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            transition: all 0.3s;
-            background: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-
-        /* Active 상태 로직 (Florest 스타일) */
-        .sidebar-item.active {
-            background-color: transparent; /* 배경 투명 -> 뒤의 녹색 보임 */
-            color: var(--text-light);
-            cursor: default;
-        }
-
-        .sidebar-item.active .icon-box {
-            background: var(--text-light);
-            color: var(--app-bg);
-            transform: scale(1.1);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-
-        /* 모서리 깎기 효과 */
-        .sidebar-item.prev-active { border-bottom-right-radius: var(--curve-radius); }
-        .sidebar-item.next-active { border-top-right-radius: var(--curve-radius); }
-
-        .sidebar-filler {
-            flex: 1;
-            background-color: var(--sidebar-bg);
-        }
-        .sidebar-filler.next-active { border-top-right-radius: var(--curve-radius); }
-
-        /* === 메인 콘텐츠 영역 === */
-        .main-content {
-            flex: 1;
-            padding: 0 25px 30px 10px;
-            overflow-y: auto;
-            -ms-overflow-style: none; /* 스크롤바 숨김 */
-            scrollbar-width: none;
-        }
-        .main-content::-webkit-scrollbar { display: none; }
-
-        /* 대시보드 위젯 스타일 */
-        .welcome-text {
-            color: var(--text-light);
-            margin-bottom: 25px;
-            animation: fadeInUp 0.5s forwards;
-        }
-        .welcome-text h2 { font-family: 'Merriweather', serif; font-size: 1.8rem; }
-        .welcome-text p { font-size: 0.9rem; opacity: 0.8; }
-
-        /* 요약 카드 그리드 */
-        .summary-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .stat-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 25px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 140px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
-        .stat-card:hover { transform: translateY(-3px); }
-
-        .stat-icon {
+        .user-avatar {
             width: 40px;
             height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* 대시보드 콘텐츠 */
+        .dashboard-content {
+            padding: 30px;
+        }
+
+        /* 요약 카드들 */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .summary-icon {
+            width: 50px;
+            height: 50px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-        }
-        .stat-icon.green { background: #E8F5E9; color: #2E7D32; }
-        .stat-icon.orange { background: #FFF3E0; color: #EF6C00; }
-
-        .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--text-dark); }
-        .stat-label { font-size: 0.8rem; color: #666; font-weight: 500; }
-
-        /* 긴 카드 (다음 복약) */
-        .next-dose-card {
-            background: var(--app-bg-dark);
-            border-radius: 25px;
-            padding: 25px;
-            color: white;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        /* 배경 장식 원 */
-        .next-dose-card::after {
-            content: '';
-            position: absolute;
-            right: -20px;
-            bottom: -20px;
-            width: 100px;
-            height: 100px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
+            font-size: 24px;
         }
 
-        .dose-info h3 { font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px; font-weight: 400; }
-        .dose-info .time { font-size: 2rem; font-weight: 700; font-family: 'Merriweather', serif; }
-        .dose-info .med-name { font-size: 0.9rem; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
-        
-        .dose-action {
-            background: white;
-            color: var(--app-bg-dark);
-            width: 50px;
-            height: 50px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            cursor: pointer;
-            z-index: 2;
+        .summary-icon.primary {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .summary-icon.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .summary-icon.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .summary-icon.danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .summary-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .summary-change {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .summary-change.positive {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .summary-change.negative {
+            background: #fee2e2;
+            color: #991b1b;
         }
 
         /* 차트 섹션 */
-        .chart-section {
-            background: white;
-            border-radius: 30px 30px 0 0; /* 위쪽만 둥글게 */
-            padding: 25px;
-            margin: 0 -10px -30px -10px; /* 좌우 하단 여백 제거하여 꽉 채우기 */
-            min-height: 250px;
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
-        
-        .section-header {
+
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-        .section-title { font-size: 1.1rem; font-weight: 600; color: var(--text-dark); }
-        
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
         }
 
+        .chart-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-option {
+            padding: 6px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: white;
+            color: #666;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chart-option.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* 복약 순응도 게이지 */
+        .adherence-gauge {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .gauge-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+
+        .gauge-bg {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 180deg,
+                #10b981 0deg,
+                #10b981 var(--percentage),
+                #e5e7eb var(--percentage),
+                #e5e7eb 360deg
+            );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s ease;
+        }
+
+        .gauge-center {
+            width: 160px;
+            height: 160px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gauge-value {
+            font-size: 42px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .gauge-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* 복약 히트맵 */
+        .heatmap-container {
+            padding: 20px 0;
+        }
+
+        .heatmap-months {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-left: 30px;
+        }
+
+        .heatmap-month {
+            flex: 1;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .heatmap-grid {
+            display: flex;
+            gap: 3px;
+        }
+
+        .heatmap-weekdays {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            margin-right: 10px;
+        }
+
+        .heatmap-weekday {
+            height: 12px;
+            font-size: 10px;
+            color: #666;
+            display: flex;
+            align-items: center;
+        }
+
+        .heatmap-weeks {
+            display: flex;
+            gap: 3px;
+        }
+
+        .heatmap-week {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .heatmap-day {
+            width: 12px;
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .heatmap-day.level-0 { background: #e5e7eb; }
+        .heatmap-day.level-1 { background: #86efac; }
+        .heatmap-day.level-2 { background: #4ade80; }
+        .heatmap-day.level-3 { background: #22c55e; }
+        .heatmap-day.level-4 { background: #16a34a; }
+
+        .heatmap-day:hover {
+            transform: scale(1.5);
+            border: 2px solid #333;
+        }
+
+        /* 시간대별 분포 차트 */
+        .time-distribution {
+            padding: 20px 0;
+        }
+
+        .hour-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+
+        .hour-bar {
+            flex: 1;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            margin: 0 1px;
+            border-radius: 3px 3px 0 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-height: 3px;
+        }
+
+        .hour-bar:hover {
+            opacity: 0.8;
+        }
+
+        .hour-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #666;
+        }
+
+        /* 모바일 반응형 */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 로딩 애니메이션 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 툴팁 */
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .tooltip.show {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
 
-    <div class="app-wrapper">
-        <div class="header">
-            <div class="header-title">
-                <i class="fa-solid fa-pills"></i> COSS
-            </div>
-            <div class="user-profile-icon" onclick="location.href='/profile.html'">
-                <i class="fa-regular fa-user"></i>
-                <div class="notification-badge" id="notiBadge"></div>
+    <!-- 사이드바 -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <span>💊</span>
+                <span>COSS</span>
             </div>
         </div>
+        <div class="sidebar-menu">
+            <a href="/dashboard.html" class="menu-item active">
+                <span class="menu-icon">📊</span>
+                <span>대시보드</span>
+            </a>
+            <a href="/medication.html" class="menu-item">
+                <span class="menu-icon">💊</span>
+                <span>복약 관리</span>
+            </a>
+            <a href="/reports.html" class="menu-item">
+                <span class="menu-icon">📈</span>
+                <span>상세 리포트</span>
+            </a>
+            <a href="/reminder.html" class="menu-item">
+                <span class="menu-icon">⏰</span>
+                <span>알림 설정</span>
+            </a>
+            <a href="/profile.html" class="menu-item">
+                <span class="menu-icon">👤</span>
+                <span>프로필</span>
+            </a>
+            <a href="#" class="menu-item" onclick="logout()">
+                <span class="menu-icon">🚪</span>
+                <span>로그아웃</span>
+            </a>
+        </div>
+    </nav>
 
-        <div class="content-body">
-            <div class="sidebar-container" id="sidebar">
-                <a href="/dashboard.html" class="sidebar-item active" data-index="0">
-                    <div class="icon-box"><i class="fa-solid fa-chart-pie"></i></div>
-                </a>
-                <a href="/medication.html" class="sidebar-item" data-index="1">
-                    <div class="icon-box"><i class="fa-solid fa-capsules"></i></div>
-                </a>
-                <a href="/reports.html" class="sidebar-item" data-index="2">
-                    <div class="icon-box"><i class="fa-solid fa-clipboard-list"></i></div>
-                </a>
-                <a href="/reminder.html" class="sidebar-item" data-index="3">
-                    <div class="icon-box"><i class="fa-regular fa-bell"></i></div>
-                </a>
-                <div class="sidebar-filler"></div>
+    <!-- 메인 콘텐츠 -->
+    <div class="main-content">
+        <header class="top-header">
+            <h1 class="page-title">대시보드</h1>
+            <div class="user-info">
+                <div class="notification-icon">
+                    🔔
+                    <span class="notification-badge" id="notificationCount">3</span>
+                </div>
+                <div class="user-profile">
+                    <div class="user-avatar" id="userAvatar">김</div>
+                    <span id="userName">김철수님</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <!-- 요약 카드들 -->
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="summary-card-header">
+                        <div>
+                            <div class="summary-value" id="todayCount">0회</div>
+                            <div class="summary-label">오늘의 복약</div>
+                        </div>
+                        <div class="summary-icon primary">💊</div>
+                    </div>
+                    <span class="summary-change positive">+100% 달성</span>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-card-header">
+                        <div>
+                            <div class="summary-value" id="adherenceRate">0%</div>
+                            <div class="summary-label">주간 순응도</div>
+                        </div>
+                        <div class="summary-icon success">📈</div>
+                    </div>
+                    <span class="summary-change positive" id="adherenceChange">+5%</span>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-card-header">
+                        <div>
+                            <div class="summary-value" id="streakDays">0일</div>
+                            <div class="summary-label">연속 복약일</div>
+                        </div>
+                        <div class="summary-icon warning">🔥</div>
+                    </div>
+                    <span class="summary-change positive">최고 기록!</span>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-card-header">
+                        <div>
+                            <div class="summary-value" id="nextDose">--:--</div>
+                            <div class="summary-label">다음 복약시간</div>
+                        </div>
+                        <div class="summary-icon danger">⏰</div>
+                    </div>
+                    <span class="summary-change" id="timeRemaining">2시간 30분 후</span>
+                </div>
             </div>
 
-            <div class="main-content">
-                
-                <div class="welcome-text">
-                    <h2>Hello, <span id="userName">User</span></h2>
-                    <p>오늘의 건강 상태를 확인하세요.</p>
-                </div>
-
-                <div class="next-dose-card">
-                    <div class="dose-info">
-                        <h3>Next Medication</h3>
-                        <div class="time" id="nextDoseTime">--:--</div>
-                        <div class="med-name">
-                            <i class="fa-solid fa-pills"></i> 
-                            <span id="nextMedName">일정이 없습니다</span>
+            <!-- 차트 섹션 -->
+            <div class="charts-grid">
+                <!-- 순응도 게이지 -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">월간 복약 순응도</h3>
+                        <div class="chart-options">
+                            <button class="chart-option active">PDC</button>
+                            <button class="chart-option">MPR</button>
                         </div>
                     </div>
-                    <div class="dose-action" onclick="checkMedication()">
-                        <i class="fa-solid fa-check"></i>
-                    </div>
-                </div>
-
-                <div class="summary-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon green"><i class="fa-solid fa-check"></i></div>
-                        <div>
-                            <div class="stat-value" id="todayCount">0</div>
-                            <div class="stat-label">오늘 복용</div>
+                    <div class="adherence-gauge">
+                        <div class="gauge-container">
+                            <div class="gauge-bg" id="adherenceGauge" style="--percentage: 0deg;">
+                                <div class="gauge-center">
+                                    <div class="gauge-value" id="monthlyAdherence">0%</div>
+                                    <div class="gauge-label">최근 30일</div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon orange"><i class="fa-solid fa-fire"></i></div>
-                        <div>
-                            <div class="stat-value" id="adherenceRate">0%</div>
-                            <div class="stat-label">순응도</div>
+                        <div style="margin-top: 20px; display: flex; justify-content: space-around;">
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold;" id="totalDays">0</div>
+                                <div style="font-size: 12px; color: #666;">복약일</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 24px; font-weight: bold;" id="missedDays">0</div>
+                                <div style="font-size: 12px; color: #666;">누락일</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="chart-section">
-                    <div class="section-header">
-                        <div class="section-title">Weekly Activity</div>
-                        <i class="fa-solid fa-ellipsis" style="color: #ccc;"></i>
+                <!-- 시간대별 분포 -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">시간대별 복약 패턴</h3>
+                        <div class="chart-options">
+                            <button class="chart-option active">24시간</button>
+                            <button class="chart-option">오전/오후</button>
+                        </div>
                     </div>
-                    <canvas id="weeklyChart" height="150"></canvas>
+                    <div class="time-distribution">
+                        <div class="hour-bars" id="hourBars"></div>
+                        <div class="hour-labels">
+                            <span>0시</span>
+                            <span>6시</span>
+                            <span>12시</span>
+                            <span>18시</span>
+                            <span>24시</span>
+                        </div>
+                    </div>
                 </div>
+            </div>
 
+            <!-- 복약 히트맵 -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3 class="chart-title">연간 복약 활동</h3>
+                    <div class="chart-options">
+                        <button class="chart-option active">2024</button>
+                        <button class="chart-option">전체</button>
+                    </div>
+                </div>
+                <div class="heatmap-container">
+                    <div class="heatmap-months">
+                        <span class="heatmap-month">1월</span>
+                        <span class="heatmap-month">2월</span>
+                        <span class="heatmap-month">3월</span>
+                        <span class="heatmap-month">4월</span>
+                        <span class="heatmap-month">5월</span>
+                        <span class="heatmap-month">6월</span>
+                        <span class="heatmap-month">7월</span>
+                        <span class="heatmap-month">8월</span>
+                        <span class="heatmap-month">9월</span>
+                        <span class="heatmap-month">10월</span>
+                        <span class="heatmap-month">11월</span>
+                        <span class="heatmap-month">12월</span>
+                    </div>
+                    <div class="heatmap-grid">
+                        <div class="heatmap-weekdays">
+                            <div class="heatmap-weekday">일</div>
+                            <div class="heatmap-weekday">월</div>
+                            <div class="heatmap-weekday">화</div>
+                            <div class="heatmap-weekday">수</div>
+                            <div class="heatmap-weekday">목</div>
+                            <div class="heatmap-weekday">금</div>
+                            <div class="heatmap-weekday">토</div>
+                        </div>
+                        <div class="heatmap-weeks" id="heatmapWeeks"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <div class="tooltip" id="tooltip"></div>
+
     <script>
-        // --- 1. 사이드바 곡선 효과 로직 (Design 2 핵심) ---
-        const sidebarItems = document.querySelectorAll('.sidebar-item');
-        const sidebarFiller = document.querySelector('.sidebar-filler');
-
-        function updateSidebarCurves() {
-            // 모든 곡선 클래스 초기화
-            sidebarItems.forEach(item => {
-                item.classList.remove('prev-active', 'next-active');
-            });
-            sidebarFiller.classList.remove('next-active');
-
-            // 현재 active 아이템 찾기
-            let activeIndex = -1;
-            sidebarItems.forEach((item, index) => {
-                if (item.classList.contains('active')) {
-                    activeIndex = index;
-                }
-            });
-
-            // 곡선 클래스 적용
-            if (activeIndex !== -1) {
-                // 바로 위 아이템
-                if (activeIndex > 0) {
-                    sidebarItems[activeIndex - 1].classList.add('prev-active');
-                }
-                
-                // 바로 아래 아이템 (혹은 filler)
-                if (activeIndex < sidebarItems.length - 1) {
-                    sidebarItems[activeIndex + 1].classList.add('next-active');
-                } else {
-                    // 마지막 아이템이 활성 상태면 filler가 둥글게 처리
-                    sidebarFiller.classList.add('next-active');
-                }
-            }
-        }
-
-        // 초기 실행
-        updateSidebarCurves();
-
-        // --- 2. 데이터 연동 (기존 로직 이식) ---
         const SERVER_URL = 'https://port-0-coss-mi0kk25df8c7e306.sel3.cloudtype.app';
         let authToken = null;
         let userInfo = null;
+        let medicationHistory = [];
+        let currentSensorValue = 0;
 
+        // 초기화
         window.addEventListener('load', () => {
-            // 로컬 스토리지에서 토큰 확인
+            checkAuth();
+        });
+
+        async function checkAuth() {
             authToken = localStorage.getItem('authToken');
             const userInfoStr = localStorage.getItem('userInfo');
-
-            if (authToken && userInfoStr) {
-                userInfo = JSON.parse(userInfoStr);
-                document.getElementById('userName').textContent = userInfo.name;
-                
-                // 데이터 로드
-                loadDashboardStats();
-            } else {
-                // 로그인 안된 경우 (데모 모드 or 리다이렉트)
-                // window.location.href = '/index.html'; // 실제 구동 시 주석 해제
-                
-                // 데모 데이터 표시
-                document.getElementById('userName').textContent = "Guest";
-                document.getElementById('nextDoseTime').textContent = "13:00";
-                document.getElementById('nextMedName').textContent = "비타민 C";
-                document.getElementById('todayCount').textContent = "2";
-                document.getElementById('adherenceRate').textContent = "85%";
-                initChart([65, 59, 80, 81, 56, 55, 40]);
-            }
-        });
-
-        async function loadDashboardStats() {
-            try {
-                // 실제 API 호출 (예시)
-                /* const response = await fetch(`${SERVER_URL}/api/medication-stats`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-                const data = await response.json(); 
-                */
-                
-                // 더미 데이터 업데이트 (API 연동 시 교체)
-                document.getElementById('nextDoseTime').textContent = "18:30";
-                document.getElementById('nextMedName').textContent = "마그네슘";
-                document.getElementById('todayCount').textContent = "2/3";
-                document.getElementById('adherenceRate').textContent = "92%";
-                
-                initChart([80, 85, 90, 85, 92, 95, 92]);
-
-            } catch (error) {
-                console.error("Data load failed", error);
-            }
-        }
-
-        function initChart(dataPoints) {
-            const ctx = document.getElementById('weeklyChart').getContext('2d');
             
-            // 그라데이션 생성
-            let gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, 'rgba(107, 142, 107, 0.2)'); // --app-bg color
-            gradient.addColorStop(1, 'rgba(107, 142, 107, 0)');
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'Adherence',
-                        data: dataPoints,
-                        borderColor: '#6B8E6B', // 테마 색상
-                        backgroundColor: gradient,
-                        borderWidth: 3,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#6B8E6B',
-                        pointRadius: 4,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { borderDash: [5, 5], color: '#f0f0f0' },
-                            ticks: { display: false }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#999', font: { family: 'Poppins' } }
-                        }
+            if (!authToken) {
+                window.location.href = '/';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${SERVER_URL}/api/auth/verify`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
                     }
+                });
+
+                if (!response.ok) {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userInfo');
+                    window.location.href = '/';
+                    return;
                 }
+
+                userInfo = JSON.parse(userInfoStr);
+                initializeDashboard();
+                
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                window.location.href = '/';
+            }
+        }
+
+        function initializeDashboard() {
+            // 사용자 정보 표시
+            document.getElementById('userName').textContent = `${userInfo.name}님`;
+            document.getElementById('userAvatar').textContent = userInfo.name.charAt(0);
+            
+            // 데이터 로드 및 차트 초기화
+            loadDashboardData();
+            initializeCharts();
+            
+            // 실시간 업데이트 시작
+            setInterval(updateRealTimeData, 5000);
+        }
+
+        async function loadDashboardData() {
+            try {
+                // 복약 로그 가져오기
+                const logsResponse = await fetch(`${SERVER_URL}/api/medication-logs`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (logsResponse.ok) {
+                    const logsData = await logsResponse.json();
+                    medicationHistory = logsData.data;
+                }
+
+                // 통계 가져오기
+                const statsResponse = await fetch(`${SERVER_URL}/api/medication-stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (statsResponse.ok) {
+                    const statsData = await statsResponse.json();
+                    updateStats(statsData.data);
+                }
+
+                // 센서값 가져오기
+                const sensorResponse = await fetch(`${SERVER_URL}/value`);
+                if (sensorResponse.ok) {
+                    const sensorData = await sensorResponse.json();
+                    currentSensorValue = sensorData.a;
+                }
+
+                updateCharts();
+                
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+            }
+        }
+
+        function updateStats(stats) {
+            // 오늘의 복약
+            document.getElementById('todayCount').textContent = `${stats.today_count}회`;
+            
+            // 주간 순응도
+            document.getElementById('adherenceRate').textContent = `${stats.adherence_rate}%`;
+            
+            // 연속 복약일
+            document.getElementById('streakDays').textContent = `${stats.streak_days}일`;
+            
+            // 월간 순응도 게이지
+            const monthlyAdherence = Math.round((stats.month_count / 30) * 100);
+            document.getElementById('monthlyAdherence').textContent = `${monthlyAdherence}%`;
+            document.getElementById('adherenceGauge').style.setProperty('--percentage', `${monthlyAdherence * 3.6}deg`);
+            
+            // 복약/누락일
+            document.getElementById('totalDays').textContent = stats.month_count;
+            document.getElementById('missedDays').textContent = 30 - stats.month_count;
+        }
+
+        function initializeCharts() {
+            // 시간대별 분포 차트 초기화
+            const hourBars = document.getElementById('hourBars');
+            for (let i = 0; i < 24; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'hour-bar';
+                bar.dataset.hour = i;
+                bar.style.height = '5%';
+                hourBars.appendChild(bar);
+            }
+
+            // 히트맵 초기화
+            initializeHeatmap();
+        }
+
+        function initializeHeatmap() {
+            const weeksContainer = document.getElementById('heatmapWeeks');
+            const year = new Date().getFullYear();
+            const today = new Date();
+            
+            for (let week = 0; week < 53; week++) {
+                const weekDiv = document.createElement('div');
+                weekDiv.className = 'heatmap-week';
+                
+                for (let day = 0; day < 7; day++) {
+                    const dayDiv = document.createElement('div');
+                    dayDiv.className = 'heatmap-day';
+                    
+                    const currentDate = new Date(year, 0, 1);
+                    currentDate.setDate(currentDate.getDate() + (week * 7) + day);
+                    
+                    if (currentDate <= today) {
+                        const level = Math.floor(Math.random() * 5); // 임시 데이터
+                        dayDiv.classList.add(`level-${level}`);
+                        dayDiv.dataset.date = currentDate.toISOString().split('T')[0];
+                        dayDiv.addEventListener('mouseover', showTooltip);
+                        dayDiv.addEventListener('mouseout', hideTooltip);
+                    }
+                    
+                    weekDiv.appendChild(dayDiv);
+                }
+                
+                weeksContainer.appendChild(weekDiv);
+            }
+        }
+
+        function updateCharts() {
+            // 시간대별 분포 업데이트
+            const hourCounts = new Array(24).fill(0);
+            medicationHistory.forEach(log => {
+                const hour = new Date(log.timestamp).getHours();
+                hourCounts[hour]++;
+            });
+            
+            const maxCount = Math.max(...hourCounts, 1);
+            const bars = document.querySelectorAll('.hour-bar');
+            
+            bars.forEach((bar, index) => {
+                const percentage = (hourCounts[index] / maxCount) * 100;
+                bar.style.height = `${Math.max(percentage, 5)}%`;
             });
         }
 
-        function checkMedication() {
-            // 복약 완료 버튼 동작
-            const btn = document.querySelector('.dose-action');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            setTimeout(() => {
-                alert("복약이 완료되었습니다!");
-                btn.innerHTML = '<i class="fa-solid fa-check"></i>';
-                btn.style.backgroundColor = "#E8F5E9";
-                btn.style.color = "#2E7D32";
-            }, 1000);
+        async function updateRealTimeData() {
+            try {
+                const response = await fetch(`${SERVER_URL}/value`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.a !== currentSensorValue && data.a === 1) {
+                        // 새로운 복약 감지
+                        showNotification('복약이 감지되었습니다!');
+                        await loadDashboardData();
+                    }
+                    currentSensorValue = data.a;
+                }
+            } catch (error) {
+                console.error('Failed to update real-time data:', error);
+            }
         }
 
-        // 사이드바 메뉴 클릭 시 active 상태 변경 (SPA 느낌)
-        /* 페이지 이동 방식이므로 실제로는 각 페이지 HTML마다 해당 sidebar-item에 active 클래스를 미리 지정해야 함.
-           여기서는 클릭 시 UI 반응만 테스트 */
-        sidebarItems.forEach((item, index) => {
-            item.addEventListener('click', function(e) {
-                // e.preventDefault(); // 페이지 이동 방지 테스트용
-                sidebarItems.forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-                updateSidebarCurves();
-            });
-        });
+        function showTooltip(event) {
+            const tooltip = document.getElementById('tooltip');
+            const date = event.target.dataset.date;
+            if (date) {
+                tooltip.textContent = `${date}: 3회 복약`;
+                tooltip.style.left = `${event.pageX + 10}px`;
+                tooltip.style.top = `${event.pageY - 30}px`;
+                tooltip.classList.add('show');
+            }
+        }
 
+        function hideTooltip() {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.classList.remove('show');
+        }
+
+        function showNotification(message) {
+            // 간단한 알림 표시
+            console.log(message);
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function logout() {
+            if (confirm('로그아웃 하시겠습니까?')) {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userInfo');
+                window.location.href = '/';
+            }
+        }
     </script>
 </body>
 </html>
