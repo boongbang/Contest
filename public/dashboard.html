@@ -5,178 +5,572 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>COSS Dashboard - 스마트 약통 관리</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Poppins:wght@300;400;500;600&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* [수정 전] dashboard.txt 기반 디자인 복원 */
         :root {
-            --app-bg: #6B8E6B; /* 오리지널 녹색 */
+            --app-bg: #6B8E6B;
             --app-bg-dark: #556b57;
             --sidebar-bg: #f5f6fa;
             --text-light: #F1F5EF;
             --text-dark: #333333;
             --accent-color: #E8F5E9;
-            --curve-radius: 35px; /* 오리지널 곡률 복원 */
-            --success-green: #4CAF50;
-            --warning-orange: #FF9800;
-            --error-red: #F44336;
+            --curve-radius: 35px; /* [수정] 곡률을 사진처럼 더 둥글게 조정 */
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            background-color: #eef1f4; 
-            display: flex; justify-content: center; align-items: center; 
-            min-height: 100vh; 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #eef1f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
 
         .app-wrapper {
-            width: 100%; height: 100vh; 
-            background-color: var(--app-bg); /* 녹색 배경 유지 */
-            position: relative; display: flex; flex-direction: column; overflow: hidden;
+            width: 100%;
+            height: 100vh;
+            background-color: var(--app-bg);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background-color 0.3s;
         }
 
         @media (min-width: 481px) {
-            .app-wrapper { width: 414px; height: 880px; border-radius: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.2); }
+            .app-wrapper {
+                width: 414px;
+                height: 880px;
+                border-radius: 40px;
+                box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+            }
         }
 
-        /* 헤더 스타일 (오리지널 복원) */
-        .header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 40px 30px 20px 30px; z-index: 20; color: var(--text-light); 
+        /* 헤더 스타일 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 40px 30px 20px 30px;
+            z-index: 20;
+            color: var(--text-light);
         }
-        .header-title { font-family: 'Merriweather', serif; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
-        .header-actions { display: flex; gap: 15px; align-items: center; }
 
-        /* [요청사항 복원] 우측 상단 센서 상태 표시 */
+        .header-title {
+            font-family: 'Merriweather', serif;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        /* 센서 상태 표시 */
         .sensor-status {
-            display: flex; align-items: center; gap: 8px;
-            background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
         }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s infinite; }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
         .status-dot.active { background-color: #4CAF50; }
         .status-dot.inactive { background-color: #F44336; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
 
         /* 사용자 메뉴 */
         .user-menu { position: relative; }
         .user-profile-icon {
-            width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            cursor: pointer;
         }
-        .dropdown-menu { display: none; position: absolute; top: 50px; right: 0; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); min-width: 200px; z-index: 100; }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-width: 200px;
+            overflow: hidden;
+            z-index: 100;
+        }
         .dropdown-menu.show { display: block; }
-        .dropdown-item { padding: 12px 20px; color: var(--text-dark); display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .dropdown-item {
+            padding: 12px 20px;
+            color: var(--text-dark);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.3s;
+            cursor: pointer;
+        }
         .dropdown-item:hover { background: var(--accent-color); }
+        .dropdown-divider { height: 1px; background: #e0e0e0; }
 
-        .content-body { display: flex; flex: 1; height: 100%; overflow: hidden; }
-
-        /* [요청사항 복원] 사이드바 곡선 및 녹색 배경 유지 */
-        .sidebar-container { 
-            width: 90px; background-color: transparent; /* 투명 유지 -> 뒤의 app-bg(녹색)이 보임 */
-            display: flex; flex-direction: column; height: 100%; padding: 20px 0; position: relative; 
+        .content-body {
+            display: flex;
+            flex: 1;
+            height: 100%;
+            overflow: hidden;
         }
-        
-        /* 곡선 효과를 위한 Active Indicator (오리지널 코드) */
-        .active-indicator { position: absolute; left: 0; width: 100%; height: 90px; background: transparent; z-index: 0; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
-        .active-indicator::before { content: ''; position: absolute; bottom: 100%; right: 0; width: 100%; height: 120vh; background-color: var(--sidebar-bg); border-bottom-right-radius: var(--curve-radius); }
-        .active-indicator::after { content: ''; position: absolute; top: 100%; right: 0; width: 100%; height: 120vh; background-color: var(--sidebar-bg); border-top-right-radius: var(--curve-radius); }
-        .active-indicator.is-first::before { opacity: 0; }
 
-        .sidebar-item { height: 90px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; color: #999; z-index: 1; transition: color 0.3s; }
-        .sidebar-item.active { color: var(--text-dark); /* 활성 아이콘 색상 */ }
-        
-        .icon-box { 
-            width: 45px; height: 45px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; 
-            background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); /* 비활성 상태 */
-            transition: all 0.3s; 
+        /* ==========================================================================
+           [사이드바 스타일 수정 - 애니메이션 및 디자인 개선]
+           ========================================================================== */
+        .sidebar-container {
+            width: 90px;
+            background-color: transparent;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding-bottom: 20px;
+            /* 중요: 맨 위 아이템이 선택되었을 때 자연스럽게 하기 위해 패딩 조정 */
+            padding-top: 20px; 
+            position: relative;
         }
-        /* 활성화되면 아이콘 박스가 진해짐 */
-        .sidebar-item.active .icon-box { background: var(--text-dark); color: var(--app-bg); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
 
-        .sidebar-filler { flex: 1; }
+        /* 움직이는 커브 배경 (Active Indicator) */
+        .active-indicator {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 90px; /* 아이템 높이 */
+            background: transparent;
+            z-index: 0;
+            /* [수정됨] 애니메이션 속도감 개선: 끝부분을 더 빠르게 정착시킴 */
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
 
-        /* 메인 컨텐츠 영역 */
-        .main-content { 
-            flex: 1; padding: 0 25px 30px 10px; overflow-y: auto; 
-            background-color: var(--sidebar-bg); /* 흰색/회색 배경 */
-            /* [중요] 사이드바와 연결되는 곡선 처리를 위해 필요 */
-            border-top-left-radius: var(--curve-radius); 
+        /* 인디케이터 위쪽 덮개 (하얀색 배경) */
+        .active-indicator::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            width: 100%;
+            height: 120vh; /* 위쪽을 넉넉하게 덮음 */
+            background-color: var(--sidebar-bg);
+            /* 사진과 같은 둥근 모서리 처리 */
+            border-bottom-right-radius: var(--curve-radius);
+            transition: opacity 0.3s;
+        }
+
+        /* 인디케이터 아래쪽 덮개 (하얀색 배경) */
+        .active-indicator::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 100%;
+            height: 120vh; /* 아래쪽을 넉넉하게 덮음 */
+            background-color: var(--sidebar-bg);
+            /* 사진과 같은 둥근 모서리 처리 */
+            border-top-right-radius: var(--curve-radius);
+        }
+
+        /* [수정됨] 맨 위 아이템이 선택되었을 때 위쪽 바 숨기기 */
+        .active-indicator.is-first::before {
+            opacity: 0; /* 투명하게 처리하여 녹색 배경 노출 */
+        }
+
+        .sidebar-item {
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            color: #999;
+            z-index: 1;
+            transition: color 0.3s;
+        }
+
+        .sidebar-item.active {
+            color: var(--text-light);
+            background-color: transparent;
+        }
+
+        .icon-box {
+            width: 45px;
+            height: 45px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+        }
+
+        .sidebar-item.active .icon-box {
+            background: var(--text-light);
+            color: var(--app-bg);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            /* 튀어오르는 효과 제거됨 (제자리 색상 변경) */
+        }
+
+        .sidebar-filler {
+            flex: 1;
+            background: transparent;
+        }
+        /* ========================================================================== */
+
+        .main-content {
+            flex: 1;
+            padding: 0 25px 30px 10px;
+            overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
         .main-content::-webkit-scrollbar { display: none; }
 
-        .page-section { display: none; animation: fadeInUp 0.5s forwards; }
+        .page-section {
+            display: none;
+            animation: fadeInUp 0.5s forwards;
+        }
         .page-section.active { display: block; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .welcome-text { color: var(--text-dark); margin: 30px 0 25px 5px; }
-        .welcome-text h2 { font-family: 'Merriweather', serif; font-size: 1.8rem; color: var(--app-bg); }
-        .welcome-text p { font-size: 0.9rem; opacity: 0.8; color: #666; }
-
-        /* [기능 A] 디지털 시계 카드 (디자인은 오리지널 느낌으로 통합) */
-        .digital-clock-section {
-            background: linear-gradient(135deg, var(--app-bg) 0%, var(--app-bg-dark) 100%);
-            border-radius: 25px; padding: 25px; color: white; margin-bottom: 25px;
-            box-shadow: 0 10px 20px rgba(107, 142, 107, 0.3); text-align: center; position: relative; overflow: hidden;
+        .welcome-text {
+            color: var(--text-light);
+            margin-bottom: 25px;
+            padding-left: 15px;
         }
-        .digital-clock-section::before {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-            animation: rotate 20s linear infinite;
-        }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        
-        .clock-time { font-family: 'Orbitron', monospace; font-size: 3.2rem; font-weight: 700; position: relative; text-shadow: 0 4px 10px rgba(0,0,0,0.2); margin: 10px 0; }
-        .clock-message { position: relative; font-size: 1rem; background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px; display: inline-block; backdrop-filter: blur(5px); }
-        .clock-message.alert { background: rgba(255, 152, 0, 0.9); color: white; animation: pulse 1s infinite; font-weight: bold; }
-        .clock-message.warning { background: rgba(244, 67, 54, 0.9); color: white; }
-        .clock-message.success { background: rgba(76, 175, 80, 0.9); color: white; }
+        .welcome-text h2 { font-family: 'Merriweather', serif; font-size: 1.8rem; }
+        .welcome-text p { font-size: 0.9rem; opacity: 0.8; }
 
-        /* [기능 B] 4단계 복약 타임라인 (카드형) */
-        .timeline-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
-        .timeline-card {
-            background: white; border-radius: 20px; padding: 20px;
-            display: flex; flex-direction: column; justify-content: space-between; height: 140px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s;
-            border: 2px solid transparent; position: relative;
+        .sensor-card {
+            background: var(--app-bg-dark);
+            border-radius: 25px;
+            padding: 25px;
+            color: white;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
-        .timeline-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        
-        /* 상태별 스타일 */
-        .timeline-card.completed { border-color: var(--success-green); background: #F1F8E9; }
-        .timeline-card.pending { border-color: var(--warning-orange); }
-        .timeline-card.missed { border-color: var(--error-red); background: #FFEBEE; }
-        
-        .timeline-icon { 
-            width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 10px; 
-            background: #f0f0f0; color: #999; transition: all 0.3s;
+
+        .sensor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
-        .timeline-card.completed .timeline-icon { background: var(--success-green); color: white; }
-        .timeline-card.pending .timeline-icon { background: var(--warning-orange); color: white; }
-        .timeline-card.missed .timeline-icon { background: var(--error-red); color: white; }
-
-        .timeline-title { font-size: 1rem; font-weight: 700; color: var(--text-dark); }
-        .timeline-time { font-size: 0.8rem; color: #666; margin-top: 2px; }
-        .timeline-check { position: absolute; top: 15px; right: 15px; font-size: 1.2rem; color: #ddd; }
-        .timeline-card.completed .timeline-check { color: var(--success-green); }
-
-        /* [기능 C] 하단 통계 탭 */
-        .chart-section { background: white; border-radius: 25px; padding: 25px; margin-bottom: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: #f0f0f0; padding: 5px; border-radius: 15px; }
-        .tab-btn { flex: 1; padding: 10px; text-align: center; border-radius: 12px; cursor: pointer; font-size: 0.9rem; color: #666; transition: all 0.3s; }
-        .tab-btn.active { background: var(--app-bg); color: white; font-weight: 600; shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .sensor-title { font-size: 1.1rem; opacity: 0.9; }
+        .sensor-value-display {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .sensor-big-value {
+            font-size: 3rem;
+            font-weight: 700;
+            font-family: 'Merriweather', serif;
+        }
+        .sensor-unit { font-size: 1rem; opacity: 0.8; }
         
-        .insight-box { margin-top: 15px; padding: 15px; background: #E8F5E9; border-radius: 15px; color: var(--app-bg-dark); font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
+        .sensor-state {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+        .sensor-state.detected { background: rgba(244, 67, 54, 0.2); color: #ffcdd2; }
+        .sensor-state.clear { background: rgba(76, 175, 80, 0.2); color: #c8e6c9; }
+
+        .no-data-message {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 140px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-3px); }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        .stat-icon.green { background: #E8F5E9; color: #2E7D32; }
+        .stat-icon.orange { background: #FFF3E0; color: #EF6C00; }
+        .stat-icon.blue { background: #E3F2FD; color: #1976D2; }
+
+        .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--text-dark); }
+        .stat-label { font-size: 0.8rem; color: #666; font-weight: 500; }
+
+        .chart-section {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .chart-container {
+            position: relative;
+            height: 200px;
+            width: 100%;
+            overflow: hidden;
+        }
         
-        /* 로딩 오버레이 */
-        .loading-overlay { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(107, 142, 107, 0.9); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; color: white; }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .section-title { font-size: 1.1rem; font-weight: 600; color: var(--text-dark); }
+
+        /* 약물 관리 섹션 */
+        .medication-list {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .med-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: var(--accent-color);
+            border-radius: 15px;
+            transition: transform 0.2s;
+        }
+        .med-item:hover { transform: translateX(5px); }
+        .med-info { display: flex; align-items: center; gap: 15px; }
+        .med-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--app-bg);
+        }
+        .med-details h4 { font-size: 1rem; color: var(--text-dark); margin-bottom: 3px; }
+        .med-details p { font-size: 0.85rem; color: #666; }
+        
+        .med-action {
+            padding: 8px 16px;
+            background: var(--app-bg);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .med-action:hover { background: var(--app-bg-dark); }
+
+        /* 알림 섹션 */
+        .reminder-list {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .reminder-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--app-bg);
+            background: var(--accent-color);
+            border-radius: 8px;
+        }
+        .reminder-time { font-size: 1.2rem; font-weight: 600; color: var(--app-bg); }
+        .reminder-details { flex: 1; }
+        .reminder-title { font-size: 0.95rem; color: var(--text-dark); margin-bottom: 3px; }
+        .reminder-desc { font-size: 0.85rem; color: #666; }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 25px;
+        }
+        .toggle-switch input { display: none; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 25px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 3.5px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .toggle-slider { background-color: var(--app-bg); }
+        input:checked + .toggle-slider:before { transform: translateX(25px); }
+
+        /* 프로필 섹션 */
+        .profile-card {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 25px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--app-bg);
+        }
+        .profile-name { font-size: 1.5rem; color: var(--text-dark); margin-bottom: 5px; font-weight: 600; }
+        .profile-email { color: #666; margin-bottom: 20px; }
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px 0;
+            border-top: 1px solid #e0e0e0;
+        }
+        .profile-stat { text-align: center; }
+        .profile-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--app-bg); }
+        .profile-stat-label { font-size: 0.85rem; color: #666; margin-top: 5px; }
+
+        .action-button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: var(--app-bg);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .action-button:hover { background: var(--app-bg-dark); }
+        .action-button.secondary {
+            background: white;
+            color: var(--app-bg);
+            border: 2px solid var(--app-bg);
+        }
+        .action-button.secondary:hover { background: var(--accent-color); }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(107, 142, 107, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+        }
         .loading-overlay.show { display: flex; }
-        .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -193,16 +587,21 @@
             <div class="header-actions">
                 <div class="sensor-status">
                     <div class="status-dot" id="sensorStatusDot"></div>
-                    <span id="sensorStatusText">연결 대기</span>
+                    <span id="sensorStatusText">연결 확인중</span>
                 </div>
-                
                 <div class="user-menu">
                     <div class="user-profile-icon" onclick="toggleUserMenu()">
                         <i class="fa-regular fa-user"></i>
                     </div>
                     <div class="dropdown-menu" id="userDropdown">
+                        <div class="dropdown-item" onclick="switchSection('profile')">
+                            <i class="fa-solid fa-user"></i>
+                            <span>프로필</span>
+                        </div>
+                        <div class="dropdown-divider"></div>
                         <div class="dropdown-item" onclick="logout()">
-                            <i class="fa-solid fa-sign-out-alt"></i> <span>로그아웃</span>
+                            <i class="fa-solid fa-sign-out-alt"></i>
+                            <span>로그아웃</span>
                         </div>
                     </div>
                 </div>
@@ -210,46 +609,203 @@
         </div>
 
         <div class="content-body">
-            <div class="sidebar-container">
+            <div class="sidebar-container" id="sidebar">
                 <div class="active-indicator"></div>
-                <div class="sidebar-item active" data-section="dashboard" onclick="switchSection('dashboard', 0)">
+
+                <div class="sidebar-item active" data-section="dashboard" onclick="switchSection('dashboard')">
                     <div class="icon-box"><i class="fa-solid fa-chart-pie"></i></div>
                 </div>
-                <div class="sidebar-item" data-section="reports" onclick="window.location.href='/reports.html'">
-                    <div class="icon-box"><i class="fa-solid fa-file-contract"></i></div>
+                <div class="sidebar-item" data-section="medication" onclick="switchSection('medication')">
+                    <div class="icon-box"><i class="fa-solid fa-capsules"></i></div>
+                </div>
+                <div class="sidebar-item" data-section="reminder" onclick="switchSection('reminder')">
+                    <div class="icon-box"><i class="fa-regular fa-bell"></i></div>
+                </div>
+                <div class="sidebar-item" data-section="profile" onclick="switchSection('profile')">
+                    <div class="icon-box"><i class="fa-solid fa-user"></i></div>
                 </div>
                 <div class="sidebar-filler"></div>
             </div>
 
             <div class="main-content">
-                <section id="dashboardSection" class="page-section active">
+                <section class="page-section active" id="dashboardSection">
                     <div class="welcome-text">
                         <h2>Hello, <span id="userName">User</span></h2>
-                        <p>오늘의 복약 스케줄을 확인하세요.</p>
+                        <p>오늘의 복약 상태를 확인하세요.</p>
                     </div>
 
-                    <div class="digital-clock-section">
-                        <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px;">CURRENT TIME</div>
-                        <div class="clock-time" id="digitalClock">00:00</div>
-                        <div class="clock-message" id="medicationMessage">시스템 분석 중...</div>
-                    </div>
-
-                    <div style="margin-bottom: 15px; font-weight: 600; color: #333; padding-left: 5px;">오늘의 복약 (4단계)</div>
-                    <div class="timeline-grid" id="timelineGrid">
+                    <div class="sensor-card">
+                        <div class="sensor-header">
+                            <div class="sensor-title">IR 센서 상태</div>
+                            <i class="fa-solid fa-wifi"></i>
                         </div>
+                        <div id="sensorDataArea">
+                            <div class="no-data-message">
+                                <i class="fa-solid fa-satellite-dish" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                                <p>아직 데이터가 없습니다.</p>
+                                <p style="font-size: 0.8rem; margin-top: 10px;">Arduino가 연결되면 자동으로 표시됩니다.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon green"><i class="fa-solid fa-check"></i></div>
+                            <div>
+                                <div class="stat-value" id="todayCount">-</div>
+                                <div class="stat-label">오늘 복용</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon orange"><i class="fa-solid fa-fire"></i></div>
+                            <div>
+                                <div class="stat-value" id="adherenceRate">-%</div>
+                                <div class="stat-label">순응도</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon blue"><i class="fa-solid fa-calendar-check"></i></div>
+                            <div>
+                                <div class="stat-value" id="streakDays">-</div>
+                                <div class="stat-label">연속 일수</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green"><i class="fa-solid fa-pills"></i></div>
+                            <div>
+                                <div class="stat-value" id="totalCount">-</div>
+                                <div class="stat-label">총 복용</div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="chart-section">
-                        <div class="tabs">
-                            <div class="tab-btn active" onclick="updateChart('weekly')">주간</div>
-                            <div class="tab-btn" onclick="updateChart('daily')">일간</div>
+                        <div class="section-header">
+                            <div class="section-title">주간 활동</div>
+                            <i class="fa-solid fa-ellipsis" style="color: #ccc;"></i>
                         </div>
-                        <div style="height: 200px;">
-                            <canvas id="statsChart"></canvas>
+                        <div class="chart-container">
+                            <canvas id="weeklyChart"></canvas>
                         </div>
-                        <div class="insight-box" id="chartInsight">
-                            <i class="fa-solid fa-lightbulb"></i>
-                            <span>데이터 분석 중...</span>
+                    </div>
+                </section>
+
+                <section class="page-section" id="medicationSection">
+                    <div class="welcome-text">
+                        <h2>약물 관리</h2>
+                        <p>복약 일정과 약물 정보를 관리하세요.</p>
+                    </div>
+
+                    <div class="medication-list">
+                        <div class="section-header">
+                            <div class="section-title">등록된 약물</div>
+                            <button class="med-action">+ 추가</button>
                         </div>
+                        
+                        <div id="medicationListArea">
+                            <div class="med-item">
+                                <div class="med-info">
+                                    <div class="med-icon">
+                                        <i class="fa-solid fa-tablets"></i>
+                                    </div>
+                                    <div class="med-details">
+                                        <h4>비타민 C</h4>
+                                        <p>1일 1회, 아침 식후</p>
+                                    </div>
+                                </div>
+                                <button class="med-action">수정</button>
+                            </div>
+                            <div class="med-item">
+                                <div class="med-info">
+                                    <div class="med-icon">
+                                        <i class="fa-solid fa-capsules"></i>
+                                    </div>
+                                    <div class="med-details">
+                                        <h4>오메가-3</h4>
+                                        <p>1일 1회, 저녁 식후</p>
+                                    </div>
+                                </div>
+                                <button class="med-action">수정</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-section">
+                        <div class="section-header">
+                            <div class="section-title">복약 시간 분포</div>
+                        </div>
+                        <canvas id="timeDistributionChart" height="150"></canvas>
+                    </div>
+                </section>
+
+                <section class="page-section" id="reminderSection">
+                    <div class="welcome-text">
+                        <h2>알림 설정</h2>
+                        <p>복약 알림을 관리하세요.</p>
+                    </div>
+
+                    <div class="reminder-list">
+                        <div class="section-header">
+                            <div class="section-title">알림 일정</div>
+                            <button class="med-action">+ 추가</button>
+                        </div>
+                        
+                        <div id="reminderListArea">
+                            <div class="reminder-item">
+                                <div class="reminder-time">08:00</div>
+                                <div class="reminder-details">
+                                    <div class="reminder-title">아침 복약</div>
+                                    <div class="reminder-desc">비타민 C</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="reminder-item">
+                                <div class="reminder-time">20:00</div>
+                                <div class="reminder-details">
+                                    <div class="reminder-title">저녁 복약</div>
+                                    <div class="reminder-desc">오메가-3</div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="page-section" id="profileSection">
+                    <div class="profile-card">
+                        <div class="profile-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <h3 class="profile-name" id="profileName">사용자</h3>
+                        <p class="profile-email" id="profileEmail">user@coss.com</p>
+                        
+                        <div class="profile-stats">
+                            <div class="profile-stat">
+                                <div class="profile-stat-value" id="profileTotalDays">0</div>
+                                <div class="profile-stat-label">사용 일수</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value" id="profileAverage">0</div>
+                                <div class="profile-stat-label">일 평균</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value" id="profileStreak">0</div>
+                                <div class="profile-stat-label">최대 연속</div>
+                            </div>
+                        </div>
+                        
+                        <button class="action-button" onclick="window.location.href='/reports.html'">
+                            <i class="fa-solid fa-chart-line"></i> 상세 통계 보기
+                        </button>
+                        <button class="action-button secondary" onclick="exportData()">
+                            <i class="fa-solid fa-download"></i> 데이터 내보내기
+                        </button>
                     </div>
                 </section>
             </div>
@@ -257,223 +813,319 @@
     </div>
 
     <script>
+        // API 설정
         const API_URL = window.location.origin;
-        let authToken = localStorage.getItem('authToken');
-        let statsChart = null;
+        let authToken = null;
+        let userInfo = null;
+        let currentSection = 'dashboard';
+        let weeklyChart = null;
+        let timeChart = null;
+        let sensorCheckInterval = null;
 
-        // 초기화
+        // 페이지 로드
         window.addEventListener('load', () => {
-            if (!authToken) { window.location.href = '/index.html'; return; }
-            const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-            document.getElementById('userName').textContent = userInfo.name || 'User';
-
-            // 사이드바 초기 위치 설정
-            moveIndicator(0);
+            // 인증 확인
+            authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            const userInfoStr = localStorage.getItem('userInfo') || sessionStorage.getItem('userInfo');
             
-            // 시계 시작
-            startClock();
+            if (!authToken || !userInfoStr) {
+                window.location.href = '/index.html';
+                return;
+            }
+            
+            userInfo = JSON.parse(userInfoStr);
+            document.getElementById('userName').textContent = userInfo.name;
+            document.getElementById('profileName').textContent = userInfo.name;
+            document.getElementById('profileEmail').textContent = userInfo.email;
             
             // 데이터 로드
             loadDashboardData();
             
-            // 주기적 업데이트 (센서 상태 등)
-            setInterval(loadDashboardData, 5000); // 5초마다
+            // 센서 상태 주기적 확인 (5초마다)
+            sensorCheckInterval = setInterval(checkSensorStatus, 5000);
+            checkSensorStatus(); // 즉시 한번 실행
+            
+            // 사이드바 인디케이터 위치 초기화
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            let activeIndex = 0;
+            sidebarItems.forEach((item, index) => {
+                if (item.classList.contains('active')) activeIndex = index;
+            });
+            moveIndicator(activeIndex); // 초기 위치 설정
         });
 
-        // [기능 A] 디지털 시계 로직
-        function startClock() {
-            function update() {
-                const now = new Date();
-                document.getElementById('digitalClock').textContent = 
-                    `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-            }
-            update();
-            setInterval(update, 1000);
-        }
-
-        // 데이터 로드 및 UI 업데이트
-        async function loadDashboardData() {
+        // 센서 상태 확인
+        async function checkSensorStatus() {
             try {
-                // 상단 우측 상태 표시 업데이트 (오리지널 기능 복원)
-                updateSensorStatus(true); // 임시: 성공으로 가정 (실제로는 fetch 성공 여부 따름)
-
-                const res = await fetch(`${API_URL}/api/dashboard/stats`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-                if(!res.ok) throw new Error("API Error");
-                const data = await res.json();
-
-                // 1. 메시지 업데이트
-                updateMedicationMessage(data.nextMedication, data.sensors);
-
-                // 2. 타임라인 업데이트 (센서 1~4 매핑)
-                updateTimeline(data.sensors);
-
-                // 3. 차트 업데이트 (처음 로드 시 주간)
-                if(!statsChart) updateChart('weekly', data);
-
-            } catch (e) {
-                console.error(e);
-                updateSensorStatus(false);
+                const response = await fetch(`${API_URL}/value`);
+                const data = await response.json();
+                
+                const statusDot = document.getElementById('sensorStatusDot');
+                const statusText = document.getElementById('sensorStatusText');
+                
+                if (data.timestamp) {
+                    // 센서 데이터가 있음
+                    const lastUpdate = new Date(data.timestamp);
+                    const now = new Date();
+                    const diffMinutes = Math.floor((now - lastUpdate) / 60000);
+                    
+                    if (diffMinutes < 1) {
+                        statusDot.className = 'status-dot active';
+                        statusText.textContent = '실시간';
+                    } else if (diffMinutes < 5) {
+                        statusDot.className = 'status-dot active';
+                        statusText.textContent = `${diffMinutes}분 전`;
+                    } else {
+                        statusDot.className = 'status-dot inactive';
+                        statusText.textContent = '오프라인';
+                    }
+                    
+                    // 센서 데이터 표시
+                    updateSensorDisplay(data);
+                } else {
+                    statusDot.className = 'status-dot inactive';
+                    statusText.textContent = '대기중';
+                }
+            } catch (error) {
+                console.error('Sensor check failed:', error);
+                document.getElementById('sensorStatusDot').className = 'status-dot inactive';
+                document.getElementById('sensorStatusText').textContent = '오류';
             }
         }
 
-        // [기능 A 상세] 메시지 업데이트 로직
-        function updateMedicationMessage(nextMed, sensors) {
-            const msgEl = document.getElementById('medicationMessage');
+        // 센서 데이터 표시
+        function updateSensorDisplay(data) {
+            const sensorArea = document.getElementById('sensorDataArea');
             
-            // 경고 체크 (아침 약(1번)을 점심(13시)까지 안 먹었을 때 등)
-            const now = new Date();
-            const currentHour = now.getHours();
-            
-            // 예시: 12시가 지났는데 아침약(1번)을 안 먹었다면 경고
-            if (currentHour >= 12 && !sensors[1].todayOpened) {
-                msgEl.innerHTML = "⚠️ <strong>아침 약통(1번)</strong>이 아직 열리지 않았습니다.";
-                msgEl.className = "clock-message warning";
+            if (!data.timestamp) {
                 return;
             }
+            
+            const stateClass = data.value === 1 ? 'detected' : 'clear';
+            const stateText = data.value === 1 ? '약통 제거됨' : '약통 있음';
+            const iconClass = data.value === 1 ? 'fa-box-open' : 'fa-box';
+            
+            sensorArea.innerHTML = `
+                <div class="sensor-value-display">
+                    <div class="sensor-big-value">${data.count || 0}</div>
+                    <div class="sensor-unit">회</div>
+                </div>
+                <div class="sensor-state ${stateClass}">
+                    <i class="fa-solid ${iconClass}"></i> ${stateText}
+                </div>
+                <div style="margin-top: 15px; font-size: 0.85rem; opacity: 0.7;">
+                    마지막 업데이트: ${new Date(data.timestamp).toLocaleTimeString()}
+                </div>
+            `;
+        }
 
-            // 알림/평상시/완료 로직
-            let allDone = true;
-            for(let id in sensors) { if(!sensors[id].todayOpened) allDone = false; }
-
-            if (allDone) {
-                msgEl.textContent = "✅ 오늘의 모든 약 복용 완료!";
-                msgEl.className = "clock-message success";
-            } else if (nextMed) {
-                if (nextMed.timeRemaining <= 30) {
-                    // 알림 (주목도 높은 주황색)
-                    msgEl.innerHTML = `🔔 <strong>${nextMed.sensor.name}(${nextMed.sensor.id}번)</strong>을 열어 약을 드세요!`;
-                    msgEl.className = "clock-message alert";
-                } else {
-                    // 평상시
-                    const h = Math.floor(nextMed.timeRemaining/60);
-                    const m = nextMed.timeRemaining%60;
-                    msgEl.textContent = `${nextMed.sensor.name} 복용까지 ${h}시간 ${m}분 남았습니다.`;
-                    msgEl.className = "clock-message";
-                }
-            } else {
-                msgEl.textContent = "현재 예정된 복약이 없습니다.";
-                msgEl.className = "clock-message";
+        // 대시보드 데이터 로드
+        async function loadDashboardData() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.add('show');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/dashboard/stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load data');
+                
+                const data = await response.json();
+                
+                // 통계 업데이트
+                document.getElementById('todayCount').textContent = data.today.count || '0';
+                document.getElementById('adherenceRate').textContent = `${data.adherenceRate || 0}%`;
+                document.getElementById('streakDays').textContent = data.adherenceMetrics?.currentStreak || '0';
+                document.getElementById('totalCount').textContent = data.totalCount || '0';
+                
+                // 프로필 통계 업데이트
+                document.getElementById('profileTotalDays').textContent = data.adherenceMetrics?.totalDays || '0';
+                document.getElementById('profileAverage').textContent = 
+                    (data.adherenceMetrics?.averagePerDay || 0).toFixed(1);
+                document.getElementById('profileStreak').textContent = data.adherenceMetrics?.maxStreak || '0';
+                
+                // 차트 업데이트
+                updateWeeklyChart(data.weekly);
+                
+            } catch (error) {
+                console.error('Failed to load dashboard data:', error);
+                showNotification('데이터를 불러오는데 실패했습니다.', 'error');
+            } finally {
+                overlay.classList.remove('show');
             }
         }
 
-        // [기능 B 상세] 4단계 타임라인 생성
-        function updateTimeline(sensors) {
-            const container = document.getElementById('timelineGrid');
-            const sensorIds = [1, 2, 3, 4];
-            const icons = ['fa-sun', 'fa-cloud-sun', 'fa-moon', 'fa-bed']; // 아이콘 매핑
+        // 주간 차트 업데이트
+        function updateWeeklyChart(weeklyData) {
+            const ctx = document.getElementById('weeklyChart').getContext('2d');
             
-            let html = '';
-            
-            sensorIds.forEach((id, idx) => {
-                const s = sensors[id];
-                // 상태 결정 로직
-                let statusClass = 'pending';
-                if (s.todayOpened) statusClass = 'completed';
-                else {
-                    // 시간 지났는지 체크 (간단히 문자열 비교)
-                    const nowStr = new Date().toTimeString().slice(0, 5);
-                    if (s.targetTime < nowStr) statusClass = 'missed';
-                }
-
-                html += `
-                    <div class="timeline-card ${statusClass}">
-                        <i class="fa-solid fa-circle-check timeline-check"></i>
-                        <div class="timeline-icon">
-                            <i class="fa-solid ${icons[idx]}"></i>
-                        </div>
-                        <div>
-                            <div class="timeline-title">${s.name}</div>
-                            <div class="timeline-time">${s.targetTime}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        // [기능 C 상세] 차트 및 인사이트
-        async function updateChart(period, preloadedData) {
-            // 탭 스타일 활성화
-            document.querySelectorAll('.tab-btn').forEach(b => {
-                b.classList.remove('active');
-                if(b.textContent.includes(period === 'weekly' ? '주간' : '일간')) b.classList.add('active');
-            });
-
-            // 데이터 준비 (실제로는 API 호출 필요할 수 있음)
-            let labels, dataPoints, insight;
-            
-            // 더미 데이터/로직 예시 (실제 API 데이터와 연동 권장)
-            if(period === 'weekly') {
-                labels = ['월', '화', '수', '목', '금', '토', '일'];
-                dataPoints = [3, 4, 2, 4, 3, 4, 4]; // 예시 데이터
-                insight = "수요일에 복약 달성률이 가장 낮습니다.";
-            } else {
-                labels = ['아침', '점심', '저녁', '취침'];
-                dataPoints = [1, 1, 0, 1]; // 오늘 데이터 예시
-                insight = "저녁 약통(3번)의 개봉 빈도가 낮습니다.";
+            if (weeklyChart) {
+                weeklyChart.destroy();
             }
-
-            document.getElementById('chartInsight').innerHTML = `<i class="fa-solid fa-lightbulb"></i> <span>${insight}</span>`;
-
-            // 차트 그리기
-            const ctx = document.getElementById('statsChart').getContext('2d');
-            if (statsChart) statsChart.destroy();
-
-            statsChart = new Chart(ctx, {
-                type: 'bar',
+            
+            const labels = weeklyData ? weeklyData.map(d => d.day) : 
+                          ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const values = weeklyData ? weeklyData.map(d => d.count) :
+                          [0, 0, 0, 0, 0, 0, 0];
+            
+            let gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(107, 142, 107, 0.2)');
+            gradient.addColorStop(1, 'rgba(107, 142, 107, 0)');
+            
+            weeklyChart = new Chart(ctx, {
+                type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: '복약 완료',
-                        data: dataPoints,
-                        backgroundColor: period === 'weekly' ? '#6B8E6B' : ['#FF9800', '#FF9800', '#F44336', '#4CAF50'],
-                        borderRadius: 5
+                        label: '복약 횟수',
+                        data: values,
+                        borderColor: '#6B8E6B',
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#6B8E6B',
+                        pointRadius: 4,
+                        fill: true,
+                        tension: 0.4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: {
+                        legend: { display: false }
+                    },
                     scales: {
-                        y: { beginAtZero: true, max: 4, grid: { borderDash: [5, 5] } },
-                        x: { grid: { display: false } }
+                        y: {
+                            beginAtZero: true,
+                            grid: { borderDash: [5, 5], color: '#f0f0f0' },
+                            ticks: { 
+                                stepSize: 1,
+                                color: '#999' 
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#999' }
+                        }
                     }
                 }
             });
         }
 
-        // 상단 우측 센서 상태 표시 (오리지널 기능)
-        function updateSensorStatus(isOnline) {
-            const dot = document.getElementById('sensorStatusDot');
-            const text = document.getElementById('sensorStatusText');
-            if(isOnline) {
-                dot.className = 'status-dot active';
-                text.textContent = '실시간';
+        // [수정됨] 인디케이터 이동 함수 (중복 제거)
+        function moveIndicator(index) {
+            const indicator = document.querySelector('.active-indicator');
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            
+            // 인디케이터 이동 (top padding 20px 고려하지 않고 item height만 계산)
+            // sidebar-container padding-top: 20px, indicator top: 10px (css 보정필요 없음, relative 이동)
+            // 정확한 위치를 위해 인덱스 * 90px
+            indicator.style.transform = `translateY(${index * 90}px)`;
+            
+            // [핵심] 맨 위 아이템(index 0) 선택 시, 위쪽 덮개(::before) 숨기기 클래스 추가
+            if (index === 0) {
+                indicator.classList.add('is-first');
             } else {
-                dot.className = 'status-dot inactive';
-                text.textContent = '연결 끊김';
+                indicator.classList.remove('is-first');
             }
         }
 
-        // 사이드바 인디케이터 이동 (곡선 효과)
-        function switchSection(id, index) {
-            moveIndicator(index);
-        }
-        function moveIndicator(index) {
-            const ind = document.querySelector('.active-indicator');
-            ind.style.transform = `translateY(${index * 90}px)`; // 아이템 높이 90px
-            if (index === 0) ind.classList.add('is-first'); else ind.classList.remove('is-first');
+        // 섹션 전환 함수
+        function switchSection(section) {
+            // 현재 섹션 비활성화
+            document.querySelectorAll('.page-section').forEach(s => {
+                s.classList.remove('active');
+            });
+            
+            // 새 섹션 활성화
+            document.getElementById(`${section}Section`).classList.add('active');
+            
+            // 사이드바 아이템 활성 상태 업데이트 및 인덱스 찾기
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            let activeIndex = 0;
+            
+            sidebarItems.forEach((item, index) => {
+                item.classList.remove('active');
+                if (item.dataset.section === section) {
+                    item.classList.add('active');
+                    activeIndex = index;
+                }
+            });
+            
+            // 인디케이터 이동
+            moveIndicator(activeIndex);
+
+            currentSection = section;
+            
+            // 드롭다운 닫기
+            document.getElementById('userDropdown').classList.remove('show');
         }
 
+        // 사용자 메뉴 토글
         function toggleUserMenu() {
-            document.getElementById('userDropdown').classList.toggle('show');
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
         }
+
+        // 클릭 외부 감지
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.user-menu')) {
+                document.getElementById('userDropdown').classList.remove('show');
+            }
+        });
+
+        // 로그아웃
         function logout() {
             localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+            sessionStorage.removeItem('authToken');
+            sessionStorage.removeItem('userInfo');
             window.location.href = '/index.html';
         }
+
+        // 데이터 내보내기
+        async function exportData() {
+            try {
+                const response = await fetch(`${API_URL}/api/reports/detailed`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                // JSON으로 다운로드
+                const blob = new Blob([JSON.stringify(data, null, 2)], 
+                                     { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `coss-data-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                
+                showNotification('데이터가 다운로드되었습니다.', 'success');
+            } catch (error) {
+                console.error('Export failed:', error);
+                showNotification('데이터 내보내기 실패', 'error');
+            }
+        }
+
+        // 알림 표시
+        function showNotification(message, type = 'info') {
+            // 간단한 알림 구현 (토스트)
+            console.log(`[${type}] ${message}`);
+        }
+
+        // 페이지 언로드 시 정리
+        window.addEventListener('beforeunload', () => {
+            if (sensorCheckInterval) {
+                clearInterval(sensorCheckInterval);
+            }
+        });
     </script>
 </body>
 </html>
