@@ -10,13 +10,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
+        /* --- 1. 기본 설정 및 리셋 --- */
         :root {
-            --app-bg: #6B8E6B;
-            --app-bg-dark: #556b57;
-            --card-bg: #ffffff;
-            --text-light: #F1F5EF;
-            --text-dark: #333333;
-            --accent-color: #E8F5E9;
+            --app-bg-white: #ffffff;
+            --app-green: #6B8E6B;
+            --app-dark-green: #556b57;
+            --app-light-green: #7A987D;
+            --app-lighter-green: #8fae92;
+            --app-text-cream: #F1F5EF;
+            --app-radius: 70px;
             --success-green: #4CAF50;
             --warning-orange: #FF9800;
             --error-red: #F44336;
@@ -27,98 +29,205 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, var(--app-bg) 0%, var(--app-bg-dark) 100%);
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
             min-height: 100vh;
-            padding: 20px;
+            padding: 20px 0;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 30px;
+        /* --- 2. 반응형 컨테이너 --- */
+        .app-wrapper {
+            width: 100%;
+            max-width: 100%;
+            background-color: var(--app-bg-white);
+            position: relative;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+            min-height: 100vh;
+        }
+
+        @media (min-width: 481px) {
+            .app-wrapper {
+                width: 414px;
+                min-height: auto;
+                border-radius: 40px;
+                box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+                margin: 20px auto;
+            }
+        }
+
+        /* --- 3. 상단 녹색 영역 --- */
+        .top-section {
+            background-color: var(--app-green);
+            position: relative;
+            padding: 20px 25px 60px 25px;
+            color: var(--app-text-cream);
+            border-bottom-right-radius: var(--app-radius);
+            z-index: 10;
         }
 
         .header {
-            background: var(--app-bg);
-            padding: 30px;
-            color: white;
-        }
-
-        .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
+            margin-top: 10px;
+            height: 50px;
         }
 
-        .header-title {
+        .logo {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #fff;
             display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .header-title h1 {
-            font-family: 'Merriweather', serif;
-            font-size: 2rem;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-flex;
             align-items: center;
             gap: 8px;
         }
 
-        .btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: translateY(-2px);
+        .header-icons {
+            display: flex;
+            gap: 12px;
         }
 
-        .btn-primary {
-            background: white;
-            color: var(--app-bg);
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: #fff;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            text-decoration: none;
         }
 
-        .btn-primary:hover {
-            background: var(--accent-color);
+        .icon-btn:hover {
+            background-color: rgba(255,255,255,0.25);
         }
 
-        .content {
-            padding: 30px;
+        .main-title {
+            font-family: 'Merriweather', serif;
+            font-size: 2.8rem;
+            line-height: 1.1;
+            margin-top: 30px;
+            color: #f1f5ef;
         }
 
-        .stats-overview {
+        .subtitle {
+            font-size: 0.9rem;
+            opacity: 0.85;
+            margin-top: 8px;
+        }
+
+        /* --- 4. 경계선 배지 --- */
+        .badges-container {
+            position: absolute;
+            bottom: -15px;
+            left: 25px;
+            display: flex;
+            gap: 15px;
+            z-index: 20;
+        }
+
+        .badge {
+            min-width: 50px;
+            height: 30px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 0 12px;
+        }
+
+        .badge.black {
+            background-color: #0d0d0d;
+            color: #fff;
+        }
+
+        .badge.gray {
+            background-color: #b0b0b0;
+            color: #fff;
+        }
+
+        .badge.green {
+            background-color: var(--success-green);
+            color: #fff;
+        }
+
+        /* --- 5. 하단 콘텐츠 영역 --- */
+        .bottom-section {
+            flex: 1;
+            background-color: var(--app-bg-white);
+            padding: 40px 25px 25px 25px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 탭 메뉴 */
+        .tabs {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-item {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #d1d1d1;
+            cursor: pointer;
+            position: relative;
+            white-space: nowrap;
+            padding-bottom: 5px;
+            transition: color 0.3s;
+        }
+
+        .tab-item.active {
+            color: #000;
+        }
+
+        .tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--app-green);
+            border-radius: 1px;
+        }
+
+        /* --- 6. 통계 카드 그리드 --- */
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
         }
 
         .stat-card {
-            background: linear-gradient(135deg, var(--app-bg) 0%, var(--app-bg-dark) 100%);
+            background: linear-gradient(135deg, var(--app-green) 0%, var(--app-dark-green) 100%);
             border-radius: 20px;
-            padding: 25px;
+            padding: 18px;
             color: white;
             position: relative;
             overflow: hidden;
@@ -127,131 +236,170 @@
         .stat-card::after {
             content: '';
             position: absolute;
-            right: -20px;
-            bottom: -20px;
-            width: 80px;
-            height: 80px;
+            right: -15px;
+            bottom: -15px;
+            width: 50px;
+            height: 50px;
             background: rgba(255,255,255,0.1);
             border-radius: 50%;
         }
 
         .stat-label {
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             opacity: 0.9;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .stat-value {
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             font-weight: 700;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
 
         .stat-change {
-            font-size: 0.85rem;
-            opacity: 0.8;
+            font-size: 0.7rem;
+            opacity: 0.7;
         }
 
-        .section {
-            margin-bottom: 40px;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* --- 7. 필터 영역 --- */
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 15px;
             margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--border-color);
         }
 
-        .section-title {
-            font-size: 1.3rem;
+        .filter-title {
+            font-size: 0.8rem;
             font-weight: 600;
-            color: var(--text-dark);
+            color: #666;
+            margin-bottom: 10px;
         }
 
-        .chart-container {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-
-        .report-card {
-            background: white;
-            border: 2px solid var(--border-color);
-            border-radius: 20px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            transition: all 0.3s;
-        }
-
-        .report-card:hover {
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
-
-        .report-header {
-            padding: 20px;
-            background: var(--accent-color);
-            cursor: pointer;
+        .filter-row {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
-        .report-title {
+        .filter-input {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s;
+            background: white;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--app-green);
+        }
+
+        /* --- 8. 카드 디자인 --- */
+        .content-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .card {
+            background-color: var(--app-light-green);
+            border-radius: 24px;
+            padding: 18px;
+            color: #fff;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: scale(0.98);
+        }
+
+        .card.expanded {
+            background-color: var(--app-dark-green);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-left {
             display: flex;
             align-items: center;
             gap: 15px;
         }
 
-        .report-icon {
-            width: 40px;
-            height: 40px;
-            background: white;
-            border-radius: 10px;
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: rgba(255,255,255,0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--app-bg);
+            font-size: 1.2rem;
         }
 
-        .report-info h3 {
-            margin: 0;
-            color: var(--text-dark);
+        .card-info h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 3px;
         }
 
-        .report-info p {
-            margin: 5px 0 0;
-            color: #666;
-            font-size: 0.9rem;
+        .card-info p {
+            font-size: 0.75rem;
+            opacity: 0.8;
         }
 
-        .report-actions {
+        .card-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 0.9rem;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: rgba(255,255,255,0.25);
         }
 
         .expand-icon {
             transition: transform 0.3s;
         }
 
-        .report-card.expanded .expand-icon {
+        .card.expanded .expand-icon {
             transform: rotate(180deg);
         }
 
-        .report-content {
+        /* 카드 내용 (확장 시) */
+        .card-content {
             display: none;
-            padding: 20px;
-            background: white;
-            border-top: 2px solid var(--border-color);
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.2);
         }
 
-        .report-card.expanded .report-content {
+        .card.expanded .card-content {
             display: block;
             animation: slideDown 0.3s ease;
         }
@@ -259,7 +407,7 @@
         @keyframes slideDown {
             from {
                 opacity: 0;
-                transform: translateY(-20px);
+                transform: translateY(-10px);
             }
             to {
                 opacity: 1;
@@ -267,131 +415,74 @@
             }
         }
 
+        /* --- 9. 테이블 스타일 --- */
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            overflow: hidden;
         }
 
         .data-table th {
-            background: var(--accent-color);
-            color: var(--text-dark);
-            padding: 12px;
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            padding: 10px 8px;
             text-align: left;
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
         }
 
         .data-table td {
-            padding: 12px;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.9rem;
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.8rem;
         }
 
-        .data-table tr:hover {
-            background: #f9f9f9;
+        .data-table tr:last-child td {
+            border-bottom: none;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
-
-        .empty-state i {
-            font-size: 4rem;
+        /* --- 10. 차트 컨테이너 --- */
+        .chart-section {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
             margin-bottom: 20px;
-            color: #ddd;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 2px solid #f0f0f0;
         }
 
-        .empty-state h3 {
-            margin-bottom: 10px;
-            color: #666;
-        }
-
-        .download-btn {
-            padding: 8px 16px;
-            background: var(--app-bg);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s;
-        }
-
-        .download-btn:hover {
-            background: var(--app-bg-dark);
-        }
-
-        .filter-bar {
+        .chart-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
             display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .filter-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .filter-label {
-            font-size: 0.85rem;
-            color: #666;
-            font-weight: 500;
-        }
-
-        .filter-input {
-            padding: 8px 12px;
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
-            font-size: 0.9rem;
-            transition: border-color 0.3s;
-        }
-
-        .filter-input:focus {
-            outline: none;
-            border-color: var(--app-bg);
-        }
-
-        .loading-spinner {
-            display: flex;
-            justify-content: center;
             align-items: center;
-            padding: 40px;
+            gap: 8px;
         }
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(107, 142, 107, 0.2);
-            border-top: 4px solid var(--app-bg);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .chart-title i {
+            color: var(--app-green);
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
+        /* --- 11. 히트맵 --- */
         .heatmap-container {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            margin-top: 20px;
+            gap: 4px;
+            margin-top: 10px;
         }
 
         .heatmap-cell {
             aspect-ratio: 1;
-            background: var(--accent-color);
-            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.85rem;
+            font-size: 0.7rem;
             font-weight: 600;
             position: relative;
             cursor: pointer;
@@ -405,235 +496,322 @@
             transform: translateX(-50%);
             background: #333;
             color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
+            padding: 4px 8px;
+            border-radius: 4px;
             white-space: nowrap;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             z-index: 10;
+            margin-bottom: 5px;
         }
 
-        @media (max-width: 768px) {
-            .header-title h1 {
+        /* --- 12. 로딩 & Empty 상태 --- */
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 15px;
+            opacity: 0.8;
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        /* --- 13. 섹션 구분 --- */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 25px 0 15px 0;
+        }
+
+        .section-divider-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .section-divider-line {
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .section-action {
+            font-size: 0.8rem;
+            color: var(--app-green);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* --- 14. 반응형 --- */
+        @media (max-width: 480px) {
+            .main-title {
+                font-size: 2.2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat-value {
                 font-size: 1.5rem;
-            }
-            
-            .stats-overview {
-                grid-template-columns: 1fr;
-            }
-            
-            .filter-bar {
-                flex-direction: column;
-            }
-            
-            .data-table {
-                font-size: 0.85rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="header-content">
-                <div class="header-title">
-                    <i class="fa-solid fa-chart-line" style="font-size: 2rem;"></i>
-                    <h1>상세 통계 및 분석</h1>
+
+    <div class="app-wrapper">
+        
+        <!-- 상단 녹색 영역 -->
+        <div class="top-section">
+            <div class="header">
+                <div class="logo">
+                    <i class="fa-solid fa-pills"></i>
+                    COSS
                 </div>
-                <div class="header-actions">
-                    <button class="btn" onclick="refreshData()">
-                        <i class="fa-solid fa-refresh"></i> 새로고침
+                <div class="header-icons">
+                    <button class="icon-btn" onclick="refreshData()" title="새로고침">
+                        <i class="fa-solid fa-refresh"></i>
                     </button>
-                    <a href="/dashboard.html" class="btn btn-primary">
-                        <i class="fa-solid fa-arrow-left"></i> 대시보드로
+                    <a href="/dashboard.html" class="icon-btn" title="대시보드로">
+                        <i class="fa-solid fa-home"></i>
                     </a>
                 </div>
             </div>
+
+            <h1 class="main-title">상세<br>통계</h1>
+            <p class="subtitle">복약 분석 및 리포트</p>
+
+            <div class="badges-container">
+                <div class="badge black" id="badgeTotal">0회</div>
+                <div class="badge gray" id="badgeAvg">0/일</div>
+                <div class="badge green" id="badgeRate">0%</div>
+            </div>
         </div>
 
-        <div class="content">
-            <!-- 통계 개요 -->
-            <div class="stats-overview" id="statsOverview">
-                <div class="stat-card">
-                    <div class="stat-label">총 복용 횟수</div>
-                    <div class="stat-value" id="totalCount">-</div>
-                    <div class="stat-change">센서 감지 기준</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">평균 일일 복용</div>
-                    <div class="stat-value" id="avgDaily">-</div>
-                    <div class="stat-change">목표: 3회/일</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">최대 연속 일수</div>
-                    <div class="stat-value" id="maxStreak">-</div>
-                    <div class="stat-change">일</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">전체 순응도</div>
-                    <div class="stat-value" id="adherenceRate">-%</div>
-                    <div class="stat-change">목표 대비</div>
-                </div>
+        <!-- 하단 콘텐츠 영역 -->
+        <div class="bottom-section">
+            
+            <!-- 탭 메뉴 -->
+            <div class="tabs">
+                <div class="tab-item active" onclick="switchTab('overview')">개요</div>
+                <div class="tab-item" onclick="switchTab('charts')">차트</div>
+                <div class="tab-item" onclick="switchTab('reports')">리포트</div>
             </div>
 
-            <!-- 필터 바 -->
-            <div class="filter-bar">
-                <div class="filter-item">
-                    <label class="filter-label">기간 선택</label>
-                    <select class="filter-input" id="periodFilter" onchange="filterData()">
-                        <option value="all">전체</option>
-                        <option value="7">최근 7일</option>
-                        <option value="30">최근 30일</option>
-                        <option value="90">최근 90일</option>
-                    </select>
-                </div>
-                <div class="filter-item">
-                    <label class="filter-label">시작 날짜</label>
-                    <input type="date" class="filter-input" id="startDate" onchange="filterData()">
-                </div>
-                <div class="filter-item">
-                    <label class="filter-label">종료 날짜</label>
-                    <input type="date" class="filter-input" id="endDate" onchange="filterData()">
-                </div>
-            </div>
-
-            <!-- 차트 섹션 -->
-            <div class="section">
-                <div class="section-header">
-                    <h2 class="section-title">시각화 분석</h2>
-                </div>
+            <!-- 탭 컨텐츠: 개요 -->
+            <div id="tab-overview" class="tab-content">
                 
-                <div class="chart-container">
-                    <h3 style="margin-bottom: 15px;">시간대별 복약 패턴</h3>
-                    <canvas id="hourlyChart" height="80"></canvas>
+                <!-- 통계 카드 -->
+                <div class="stats-grid" id="statsOverview">
+                    <div class="stat-card">
+                        <div class="stat-label">총 복용 횟수</div>
+                        <div class="stat-value" id="totalCount">-</div>
+                        <div class="stat-change">센서 감지 기준</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">평균 일일 복용</div>
+                        <div class="stat-value" id="avgDaily">-</div>
+                        <div class="stat-change">목표: 3회/일</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">최대 연속 일수</div>
+                        <div class="stat-value" id="maxStreak">-</div>
+                        <div class="stat-change">일</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">전체 순응도</div>
+                        <div class="stat-value" id="adherenceRate">-%</div>
+                        <div class="stat-change">목표 대비</div>
+                    </div>
                 </div>
-                
-                <div class="chart-container">
-                    <h3 style="margin-bottom: 15px;">요일별 복약 현황</h3>
-                    <canvas id="weekdayChart" height="80"></canvas>
+
+                <!-- 필터 -->
+                <div class="filter-section">
+                    <div class="filter-title"><i class="fa-solid fa-filter"></i> 기간 필터</div>
+                    <div class="filter-row">
+                        <select class="filter-input" id="periodFilter" onchange="filterData()">
+                            <option value="all">전체</option>
+                            <option value="7">최근 7일</option>
+                            <option value="30">최근 30일</option>
+                            <option value="90">최근 90일</option>
+                        </select>
+                        <input type="date" class="filter-input" id="startDate" onchange="filterData()">
+                        <input type="date" class="filter-input" id="endDate" onchange="filterData()">
+                    </div>
                 </div>
+
             </div>
 
-            <!-- 상세 리포트 카드들 -->
-            <div class="section">
-                <div class="section-header">
-                    <h2 class="section-title">상세 리포트</h2>
-                    <button class="download-btn" onclick="downloadAllReports()">
+            <!-- 탭 컨텐츠: 차트 -->
+            <div id="tab-charts" class="tab-content" style="display: none;">
+                
+                <div class="chart-section">
+                    <div class="chart-title"><i class="fa-solid fa-clock"></i> 시간대별 복약 패턴</div>
+                    <canvas id="hourlyChart" height="150"></canvas>
+                </div>
+
+                <div class="chart-section">
+                    <div class="chart-title"><i class="fa-solid fa-calendar-week"></i> 요일별 복약 현황</div>
+                    <canvas id="weekdayChart" height="150"></canvas>
+                </div>
+
+            </div>
+
+            <!-- 탭 컨텐츠: 리포트 -->
+            <div id="tab-reports" class="tab-content" style="display: none;">
+                
+                <div class="section-divider">
+                    <span class="section-divider-text">상세 리포트</span>
+                    <div class="section-divider-line"></div>
+                    <span class="section-action" onclick="downloadAllReports()">
                         <i class="fa-solid fa-download"></i> 전체 다운로드
-                    </button>
+                    </span>
                 </div>
 
-                <!-- 일일 복약 기록 -->
-                <div class="report-card" id="dailyReport">
-                    <div class="report-header" onclick="toggleReport('dailyReport')">
-                        <div class="report-title">
-                            <div class="report-icon">
-                                <i class="fa-solid fa-calendar-days"></i>
+                <div class="content-list">
+                    
+                    <!-- 일일 복약 기록 -->
+                    <div class="card" id="dailyReport">
+                        <div class="card-header" onclick="toggleReport('dailyReport')">
+                            <div class="card-left">
+                                <div class="card-icon">
+                                    <i class="fa-solid fa-calendar-days"></i>
+                                </div>
+                                <div class="card-info">
+                                    <h3>일일 복약 기록</h3>
+                                    <p>날짜별 상세 복약 내역</p>
+                                </div>
                             </div>
-                            <div class="report-info">
-                                <h3>일일 복약 기록</h3>
-                                <p>날짜별 상세 복약 내역</p>
+                            <div class="card-actions">
+                                <button class="action-btn" onclick="event.stopPropagation(); downloadReport('daily')">
+                                    <i class="fa-solid fa-download"></i>
+                                </button>
+                                <i class="fa-solid fa-chevron-down expand-icon"></i>
                             </div>
                         </div>
-                        <div class="report-actions">
-                            <button class="download-btn" onclick="event.stopPropagation(); downloadReport('daily')">
-                                <i class="fa-solid fa-download"></i>
-                            </button>
-                            <i class="fa-solid fa-chevron-down expand-icon"></i>
+                        <div class="card-content">
+                            <div id="dailyTableContainer">
+                                <div class="loading-spinner">
+                                    <div class="spinner"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="report-content">
-                        <div id="dailyTableContainer">
-                            <div class="loading-spinner">
-                                <div class="spinner"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- 복약 패턴 분석 -->
-                <div class="report-card" id="patternReport">
-                    <div class="report-header" onclick="toggleReport('patternReport')">
-                        <div class="report-title">
-                            <div class="report-icon">
-                                <i class="fa-solid fa-brain"></i>
+                    <!-- 복약 패턴 분석 -->
+                    <div class="card" id="patternReport">
+                        <div class="card-header" onclick="toggleReport('patternReport')">
+                            <div class="card-left">
+                                <div class="card-icon">
+                                    <i class="fa-solid fa-brain"></i>
+                                </div>
+                                <div class="card-info">
+                                    <h3>복약 패턴 분석</h3>
+                                    <p>행동 패턴 및 추세 분석</p>
+                                </div>
                             </div>
-                            <div class="report-info">
-                                <h3>복약 패턴 분석</h3>
-                                <p>행동 패턴 및 추세 분석</p>
+                            <div class="card-actions">
+                                <button class="action-btn" onclick="event.stopPropagation(); downloadReport('pattern')">
+                                    <i class="fa-solid fa-download"></i>
+                                </button>
+                                <i class="fa-solid fa-chevron-down expand-icon"></i>
                             </div>
                         </div>
-                        <div class="report-actions">
-                            <button class="download-btn" onclick="event.stopPropagation(); downloadReport('pattern')">
-                                <i class="fa-solid fa-download"></i>
-                            </button>
-                            <i class="fa-solid fa-chevron-down expand-icon"></i>
+                        <div class="card-content">
+                            <div id="patternTableContainer">
+                                <div class="loading-spinner">
+                                    <div class="spinner"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="report-content">
-                        <div id="patternTableContainer">
-                            <div class="loading-spinner">
-                                <div class="spinner"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- 센서 이력 -->
-                <div class="report-card" id="sensorReport">
-                    <div class="report-header" onclick="toggleReport('sensorReport')">
-                        <div class="report-title">
-                            <div class="report-icon">
-                                <i class="fa-solid fa-microchip"></i>
+                    <!-- 센서 이력 -->
+                    <div class="card" id="sensorReport">
+                        <div class="card-header" onclick="toggleReport('sensorReport')">
+                            <div class="card-left">
+                                <div class="card-icon">
+                                    <i class="fa-solid fa-microchip"></i>
+                                </div>
+                                <div class="card-info">
+                                    <h3>센서 감지 이력</h3>
+                                    <p>IR 센서 raw 데이터</p>
+                                </div>
                             </div>
-                            <div class="report-info">
-                                <h3>센서 감지 이력</h3>
-                                <p>IR 센서 raw 데이터</p>
+                            <div class="card-actions">
+                                <button class="action-btn" onclick="event.stopPropagation(); downloadReport('sensor')">
+                                    <i class="fa-solid fa-download"></i>
+                                </button>
+                                <i class="fa-solid fa-chevron-down expand-icon"></i>
                             </div>
                         </div>
-                        <div class="report-actions">
-                            <button class="download-btn" onclick="event.stopPropagation(); downloadReport('sensor')">
-                                <i class="fa-solid fa-download"></i>
-                            </button>
-                            <i class="fa-solid fa-chevron-down expand-icon"></i>
+                        <div class="card-content">
+                            <div id="sensorTableContainer">
+                                <div class="loading-spinner">
+                                    <div class="spinner"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="report-content">
-                        <div id="sensorTableContainer">
-                            <div class="loading-spinner">
-                                <div class="spinner"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- 월간 히트맵 -->
-                <div class="report-card" id="heatmapReport">
-                    <div class="report-header" onclick="toggleReport('heatmapReport')">
-                        <div class="report-title">
-                            <div class="report-icon">
-                                <i class="fa-solid fa-fire-flame-curved"></i>
+                    <!-- 월간 히트맵 -->
+                    <div class="card" id="heatmapReport">
+                        <div class="card-header" onclick="toggleReport('heatmapReport')">
+                            <div class="card-left">
+                                <div class="card-icon">
+                                    <i class="fa-solid fa-fire-flame-curved"></i>
+                                </div>
+                                <div class="card-info">
+                                    <h3>월간 활동 히트맵</h3>
+                                    <p>캘린더 형식 시각화</p>
+                                </div>
                             </div>
-                            <div class="report-info">
-                                <h3>월간 활동 히트맵</h3>
-                                <p>캘린더 형식 시각화</p>
+                            <div class="card-actions">
+                                <button class="action-btn" onclick="event.stopPropagation(); downloadReport('heatmap')">
+                                    <i class="fa-solid fa-download"></i>
+                                </button>
+                                <i class="fa-solid fa-chevron-down expand-icon"></i>
                             </div>
                         </div>
-                        <div class="report-actions">
-                            <button class="download-btn" onclick="event.stopPropagation(); downloadReport('heatmap')">
-                                <i class="fa-solid fa-download"></i>
-                            </button>
-                            <i class="fa-solid fa-chevron-down expand-icon"></i>
+                        <div class="card-content">
+                            <div id="heatmapContainer">
+                                <div class="loading-spinner">
+                                    <div class="spinner"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="report-content">
-                        <div id="heatmapContainer">
-                            <div class="loading-spinner">
-                                <div class="spinner"></div>
-                            </div>
-                        </div>
-                    </div>
+
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -658,6 +836,26 @@
             // 데이터 로드
             loadReportData();
         });
+
+        // 탭 전환
+        function switchTab(tabName) {
+            // 모든 탭 아이템 비활성화
+            document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
+            // 모든 탭 컨텐츠 숨기기
+            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+            
+            // 선택된 탭 활성화
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabName}`).style.display = 'block';
+            
+            // 차트 탭이면 차트 리사이즈
+            if (tabName === 'charts' && hourlyChart && weekdayChart) {
+                setTimeout(() => {
+                    hourlyChart.resize();
+                    weekdayChart.resize();
+                }, 100);
+            }
+        }
 
         // 리포트 데이터 로드
         async function loadReportData() {
@@ -700,14 +898,17 @@
             document.getElementById('maxStreak').textContent = '0';
             document.getElementById('adherenceRate').textContent = '0%';
             
-            // 모든 테이블 컨테이너에 메시지 표시
+            // 배지 업데이트
+            document.getElementById('badgeTotal').textContent = '0회';
+            document.getElementById('badgeAvg').textContent = '0/일';
+            document.getElementById('badgeRate').textContent = '0%';
+            
             const containers = ['dailyTableContainer', 'patternTableContainer', 'sensorTableContainer', 'heatmapContainer'];
             containers.forEach(id => {
                 document.getElementById(id).innerHTML = `
                     <div class="empty-state">
                         <i class="fa-solid fa-inbox"></i>
-                        <h3>아직 데이터가 없습니다</h3>
-                        <p>Arduino 센서가 데이터를 수집하면 여기에 표시됩니다.</p>
+                        <p>데이터가 없습니다.</p>
                     </div>
                 `;
             });
@@ -715,26 +916,28 @@
 
         // 통계 업데이트
         function updateStatistics() {
-            if (!reportData) return;
+            const total = reportData.totalCount || 0;
+            const avg = reportData.adherenceMetrics?.averagePerDay?.toFixed(1) || '0';
+            const maxStreak = reportData.adherenceMetrics?.maxStreak || 0;
+            const rate = reportData.adherenceMetrics?.adherenceRate?.toFixed(0) || 0;
             
-            const metrics = reportData.adherenceMetrics || {};
-            document.getElementById('totalCount').textContent = reportData.totalCount || '0';
-            document.getElementById('avgDaily').textContent = (metrics.averagePerDay || 0).toFixed(1);
-            document.getElementById('maxStreak').textContent = metrics.maxStreak || '0';
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('avgDaily').textContent = avg;
+            document.getElementById('maxStreak').textContent = maxStreak;
+            document.getElementById('adherenceRate').textContent = rate + '%';
             
-            // 순응도 계산
-            const targetPerDay = 3;
-            const totalDays = metrics.totalDays || 1;
-            const adherence = Math.min(100, Math.round((reportData.totalCount / (totalDays * targetPerDay)) * 100));
-            document.getElementById('adherenceRate').textContent = `${adherence}%`;
+            // 배지 업데이트
+            document.getElementById('badgeTotal').textContent = total + '회';
+            document.getElementById('badgeAvg').textContent = avg + '/일';
+            document.getElementById('badgeRate').textContent = rate + '%';
         }
 
         // 차트 업데이트
         function updateCharts() {
-            if (!reportData || !reportData.hourlyDistribution) return;
-            
             // 시간대별 차트
             const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+            const hourlyData = reportData.hourlyDistribution || new Array(24).fill(0);
+            
             if (hourlyChart) hourlyChart.destroy();
             
             hourlyChart = new Chart(hourlyCtx, {
@@ -743,10 +946,11 @@
                     labels: Array.from({length: 24}, (_, i) => `${i}시`),
                     datasets: [{
                         label: '복약 횟수',
-                        data: reportData.hourlyDistribution || new Array(24).fill(0),
-                        backgroundColor: 'rgba(107, 142, 107, 0.6)',
+                        data: hourlyData,
+                        backgroundColor: 'rgba(107, 142, 107, 0.7)',
                         borderColor: 'rgba(107, 142, 107, 1)',
-                        borderWidth: 1
+                        borderWidth: 1,
+                        borderRadius: 4
                     }]
                 },
                 options: {
@@ -759,41 +963,50 @@
                         y: {
                             beginAtZero: true,
                             ticks: { stepSize: 1 }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: { size: 10 }
+                            }
                         }
                     }
                 }
             });
-            
+
             // 요일별 차트
             const weekdayCtx = document.getElementById('weekdayChart').getContext('2d');
+            const weekdayData = reportData.weekdayDistribution || new Array(7).fill(0);
+            const weekdayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+            
             if (weekdayChart) weekdayChart.destroy();
             
-            const weekdayLabels = ['일', '월', '화', '수', '목', '금', '토'];
             weekdayChart = new Chart(weekdayCtx, {
-                type: 'radar',
+                type: 'doughnut',
                 data: {
                     labels: weekdayLabels,
                     datasets: [{
-                        label: '복약 횟수',
-                        data: reportData.weekdayDistribution || new Array(7).fill(0),
-                        backgroundColor: 'rgba(107, 142, 107, 0.2)',
-                        borderColor: 'rgba(107, 142, 107, 1)',
-                        pointBackgroundColor: 'rgba(107, 142, 107, 1)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(107, 142, 107, 1)'
+                        data: weekdayData,
+                        backgroundColor: [
+                            '#F44336', '#FF9800', '#FFC107', 
+                            '#4CAF50', '#2196F3', '#3F51B5', '#9C27B0'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        r: {
-                            beginAtZero: true,
-                            ticks: { stepSize: 1 }
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                padding: 15,
+                                usePointStyle: true,
+                                font: { size: 11 }
+                            }
                         }
                     }
                 }
@@ -802,63 +1015,50 @@
 
         // 테이블 업데이트
         function updateTables() {
-            if (!reportData) return;
-            
-            // 일일 기록 테이블
             updateDailyTable();
-            
-            // 패턴 분석 테이블
             updatePatternTable();
-            
-            // 센서 이력 테이블
             updateSensorTable();
-            
-            // 히트맵
             updateHeatmap();
         }
 
-        // 일일 기록 테이블
+        // 일일 복약 테이블
         function updateDailyTable() {
             const container = document.getElementById('dailyTableContainer');
             
             if (!reportData.dailyStats || Object.keys(reportData.dailyStats).length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
+                        <i class="fa-solid fa-calendar-xmark"></i>
                         <p>일일 데이터가 없습니다.</p>
                     </div>
                 `;
                 return;
             }
             
-            const dates = Object.keys(reportData.dailyStats).sort().reverse();
+            const sortedDates = Object.keys(reportData.dailyStats).sort().reverse();
+            
             let html = `
                 <table class="data-table">
                     <thead>
                         <tr>
                             <th>날짜</th>
-                            <th>복약 횟수</th>
-                            <th>첫 복약</th>
-                            <th>마지막 복약</th>
-                            <th>목표 달성</th>
+                            <th>횟수</th>
+                            <th>달성률</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
             
-            dates.forEach(date => {
+            sortedDates.slice(0, 20).forEach(date => {
                 const stats = reportData.dailyStats[date];
-                const times = stats.times || [];
-                const firstTime = times[0] ? new Date(times[0]).toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'}) : '-';
-                const lastTime = times[times.length - 1] ? new Date(times[times.length - 1]).toLocaleTimeString('ko-KR', {hour: '2-digit', minute: '2-digit'}) : '-';
-                const achieved = stats.count >= 3 ? '✅' : '❌';
+                const rate = Math.min(100, Math.round((stats.count / 3) * 100));
+                const rateColor = rate >= 100 ? '#4CAF50' : rate >= 66 ? '#FF9800' : '#F44336';
                 
                 html += `
                     <tr>
                         <td>${date}</td>
-                        <td>${stats.count}</td>
-                        <td>${firstTime}</td>
-                        <td>${lastTime}</td>
-                        <td style="text-align: center;">${achieved}</td>
+                        <td>${stats.count}회</td>
+                        <td style="color: ${rateColor};">${rate}%</td>
                     </tr>
                 `;
             });
@@ -878,6 +1078,7 @@
             if (!reportData.adherenceMetrics) {
                 container.innerHTML = `
                     <div class="empty-state">
+                        <i class="fa-solid fa-chart-simple"></i>
                         <p>패턴 데이터가 없습니다.</p>
                     </div>
                 `;
@@ -895,34 +1096,28 @@
                         <tr>
                             <th>분석 항목</th>
                             <th>값</th>
-                            <th>설명</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>평균 일일 복약</td>
                             <td>${metrics.averagePerDay.toFixed(1)}회</td>
-                            <td>목표: 3회/일</td>
                         </tr>
                         <tr>
                             <td>최대 연속 일수</td>
                             <td>${metrics.maxStreak}일</td>
-                            <td>중단 없이 복약한 최대 기간</td>
                         </tr>
                         <tr>
                             <td>현재 연속 일수</td>
                             <td>${metrics.currentStreak}일</td>
-                            <td>현재 진행 중인 연속 복약</td>
                         </tr>
                         <tr>
                             <td>가장 활발한 요일</td>
                             <td>${maxWeekday >= 0 ? weekdayNames[maxWeekday] : '-'}</td>
-                            <td>복약이 가장 많은 요일</td>
                         </tr>
                         <tr>
                             <td>총 기록 일수</td>
                             <td>${metrics.totalDays}일</td>
-                            <td>데이터가 있는 총 일수</td>
                         </tr>
                     </tbody>
                 </table>
@@ -938,6 +1133,7 @@
             if (!reportData.history || reportData.history.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
+                        <i class="fa-solid fa-microchip"></i>
                         <p>센서 이력이 없습니다.</p>
                     </div>
                 `;
@@ -950,25 +1146,27 @@
                         <tr>
                             <th>시간</th>
                             <th>동작</th>
-                            <th>센서값</th>
                             <th>상태</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
             
-            reportData.history.slice(0, 50).forEach(record => {
-                const time = new Date(record.timestamp).toLocaleString('ko-KR');
-                const action = record.action === 'removed' ? '약통 제거' : '약통 복귀';
-                const actionClass = record.action === 'removed' ? 'style="color: #F44336;"' : 'style="color: #4CAF50;"';
-                const status = record.value === 1 ? '감지됨' : '정상';
+            reportData.history.slice(0, 30).forEach(record => {
+                const time = new Date(record.timestamp).toLocaleString('ko-KR', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const action = record.action === 'removed' ? '제거' : '복귀';
+                const actionColor = record.action === 'removed' ? '#F44336' : '#4CAF50';
                 
                 html += `
                     <tr>
                         <td>${time}</td>
-                        <td ${actionClass}>${action}</td>
-                        <td>${record.value}</td>
-                        <td>${status}</td>
+                        <td style="color: ${actionColor};">${action}</td>
+                        <td>${record.value === 1 ? '감지' : '정상'}</td>
                     </tr>
                 `;
             });
@@ -976,8 +1174,8 @@
             html += `
                     </tbody>
                 </table>
-                <p style="margin-top: 10px; color: #666; font-size: 0.9rem;">
-                    최근 50개 기록만 표시됩니다. 전체 데이터는 다운로드하여 확인하세요.
+                <p style="margin-top: 10px; opacity: 0.7; font-size: 0.75rem;">
+                    최근 30개 기록만 표시
                 </p>
             `;
             
@@ -991,13 +1189,13 @@
             if (!reportData.dailyStats || Object.keys(reportData.dailyStats).length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
+                        <i class="fa-solid fa-fire"></i>
                         <p>히트맵 데이터가 없습니다.</p>
                     </div>
                 `;
                 return;
             }
             
-            // 최근 30일 히트맵 생성
             const today = new Date();
             const days = [];
             
@@ -1014,13 +1212,13 @@
                 });
             }
             
-            let html = '<h4 style="margin-bottom: 10px;">최근 30일 복약 히트맵</h4>';
+            let html = '<p style="margin-bottom: 10px; font-size: 0.8rem;">최근 30일 복약 히트맵</p>';
             html += '<div class="heatmap-container">';
             
             days.forEach(day => {
                 const intensity = Math.min(1, day.count / 3);
-                const color = day.count === 0 ? '#f0f0f0' : 
-                             `rgba(107, 142, 107, ${0.2 + intensity * 0.8})`;
+                const color = day.count === 0 ? 'rgba(255,255,255,0.2)' : 
+                             `rgba(76, 175, 80, ${0.3 + intensity * 0.7})`;
                 
                 html += `
                     <div class="heatmap-cell" 
@@ -1032,7 +1230,7 @@
             });
             
             html += '</div>';
-            html += '<p style="margin-top: 15px; color: #666; font-size: 0.85rem;">색이 진할수록 복약 횟수가 많습니다 (목표: 3회/일)</p>';
+            html += '<p style="margin-top: 10px; opacity: 0.7; font-size: 0.7rem;">색이 진할수록 복약 횟수 ↑</p>';
             
             container.innerHTML = html;
         }
@@ -1103,7 +1301,6 @@
 
         // 데이터 필터링
         function filterData() {
-            // 필터 구현 (추후 확장 가능)
             console.log('Filter applied');
             loadReportData();
         }
@@ -1115,7 +1312,6 @@
 
         // 에러 표시
         function showError(message) {
-            // 간단한 에러 표시
             alert(message);
         }
     </script>
