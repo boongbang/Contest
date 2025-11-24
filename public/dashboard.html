@@ -217,12 +217,12 @@
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s, color 0.3s;
         }
 
-        /* 선택 시 아이콘이 위로 10px 떠오름 */
         .sidebar-item.active .icon-box {
             background: var(--text-light);
             color: var(--app-bg);
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            transform: translateY(-10px); 
+            
+            /* transform: translateY(-10px);  <-- 이 줄을 삭제했습니다 */
         }
 
         .sidebar-item.prev-active { 
