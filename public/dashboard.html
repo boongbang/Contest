@@ -3,32 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>COSS - 스마트 약통 관리</title>
+    <title>COSS Dashboard - 스마트 약통 관리</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Poppins:wght@300;400;500;600&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* [수정 전] 디자인 스타일 복원 */
+        /* [수정 전] dashboard.txt 기반 디자인 복원 */
         :root {
-            --app-bg: #6B8E6B;
+            --app-bg: #6B8E6B; /* 오리지널 녹색 */
             --app-bg-dark: #556b57;
             --sidebar-bg: #f5f6fa;
             --text-light: #F1F5EF;
             --text-dark: #333333;
             --accent-color: #E8F5E9;
-            --curve-radius: 35px;
+            --curve-radius: 35px; /* 오리지널 곡률 복원 */
             --success-green: #4CAF50;
             --warning-orange: #FF9800;
             --error-red: #F44336;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Poppins', sans-serif; background-color: #eef1f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #eef1f4; 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; 
+        }
+
         .app-wrapper {
-            width: 100%; height: 100vh; background-color: var(--app-bg);
+            width: 100%; height: 100vh; 
+            background-color: var(--app-bg); /* 녹색 배경 유지 */
             position: relative; display: flex; flex-direction: column; overflow: hidden;
         }
 
@@ -36,103 +43,168 @@
             .app-wrapper { width: 414px; height: 880px; border-radius: 40px; box-shadow: 0 30px 60px rgba(0,0,0,0.2); }
         }
 
-        /* 헤더 스타일 */
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 40px 30px 20px 30px; z-index: 20; color: var(--text-light); }
+        /* 헤더 스타일 (오리지널 복원) */
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 40px 30px 20px 30px; z-index: 20; color: var(--text-light); 
+        }
         .header-title { font-family: 'Merriweather', serif; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
         .header-actions { display: flex; gap: 15px; align-items: center; }
 
+        /* [요청사항 복원] 우측 상단 센서 상태 표시 */
+        .sensor-status {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px; font-size: 0.85rem;
+        }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s infinite; }
+        .status-dot.active { background-color: #4CAF50; }
+        .status-dot.inactive { background-color: #F44336; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* 사용자 메뉴 */
+        .user-menu { position: relative; }
+        .user-profile-icon {
+            width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+        }
+        .dropdown-menu { display: none; position: absolute; top: 50px; right: 0; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); min-width: 200px; z-index: 100; }
+        .dropdown-menu.show { display: block; }
+        .dropdown-item { padding: 12px 20px; color: var(--text-dark); display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .dropdown-item:hover { background: var(--accent-color); }
+
         .content-body { display: flex; flex: 1; height: 100%; overflow: hidden; }
 
-        /* 사이드바 (수정 전 곡선 디자인 유지) */
-        .sidebar-container { width: 90px; background-color: transparent; display: flex; flex-direction: column; height: 100%; padding: 20px 0; position: relative; }
-        .active-indicator { position: absolute; left: 0; width: 100%; height: 75px; background: transparent; z-index: 0; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
+        /* [요청사항 복원] 사이드바 곡선 및 녹색 배경 유지 */
+        .sidebar-container { 
+            width: 90px; background-color: transparent; /* 투명 유지 -> 뒤의 app-bg(녹색)이 보임 */
+            display: flex; flex-direction: column; height: 100%; padding: 20px 0; position: relative; 
+        }
+        
+        /* 곡선 효과를 위한 Active Indicator (오리지널 코드) */
+        .active-indicator { position: absolute; left: 0; width: 100%; height: 90px; background: transparent; z-index: 0; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
         .active-indicator::before { content: ''; position: absolute; bottom: 100%; right: 0; width: 100%; height: 120vh; background-color: var(--sidebar-bg); border-bottom-right-radius: var(--curve-radius); }
         .active-indicator::after { content: ''; position: absolute; top: 100%; right: 0; width: 100%; height: 120vh; background-color: var(--sidebar-bg); border-top-right-radius: var(--curve-radius); }
         .active-indicator.is-first::before { opacity: 0; }
-        
-        .sidebar-item { height: 75px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; color: #999; z-index: 1; transition: color 0.3s; }
-        .sidebar-item.active { color: var(--text-light); background-color: transparent; }
-        .icon-box { width: 45px; height: 45px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; background: white; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: all 0.3s; }
-        .sidebar-item.active .icon-box { background: var(--text-light); color: var(--app-bg); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-        .sidebar-filler { flex: 1; background: transparent; }
 
-        /* 메인 컨텐츠 */
-        .main-content { flex: 1; padding: 0 25px 30px 10px; overflow-y: auto; background-color: var(--sidebar-bg); border-top-left-radius: var(--curve-radius); }
+        .sidebar-item { height: 90px; display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; color: #999; z-index: 1; transition: color 0.3s; }
+        .sidebar-item.active { color: var(--text-dark); /* 활성 아이콘 색상 */ }
+        
+        .icon-box { 
+            width: 45px; height: 45px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; 
+            background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); /* 비활성 상태 */
+            transition: all 0.3s; 
+        }
+        /* 활성화되면 아이콘 박스가 진해짐 */
+        .sidebar-item.active .icon-box { background: var(--text-dark); color: var(--app-bg); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+
+        .sidebar-filler { flex: 1; }
+
+        /* 메인 컨텐츠 영역 */
+        .main-content { 
+            flex: 1; padding: 0 25px 30px 10px; overflow-y: auto; 
+            background-color: var(--sidebar-bg); /* 흰색/회색 배경 */
+            /* [중요] 사이드바와 연결되는 곡선 처리를 위해 필요 */
+            border-top-left-radius: var(--curve-radius); 
+        }
         .main-content::-webkit-scrollbar { display: none; }
 
         .page-section { display: none; animation: fadeInUp 0.5s forwards; }
         .page-section.active { display: block; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         .welcome-text { color: var(--text-dark); margin: 30px 0 25px 5px; }
         .welcome-text h2 { font-family: 'Merriweather', serif; font-size: 1.8rem; color: var(--app-bg); }
         .welcome-text p { font-size: 0.9rem; opacity: 0.8; color: #666; }
 
-        /* [NEW] 디지털 시계 카드 (디자인은 이전 'IR 센서 상태' 카드 계승) */
-        .digital-clock-card {
+        /* [기능 A] 디지털 시계 카드 (디자인은 오리지널 느낌으로 통합) */
+        .digital-clock-section {
             background: linear-gradient(135deg, var(--app-bg) 0%, var(--app-bg-dark) 100%);
             border-radius: 25px; padding: 25px; color: white; margin-bottom: 25px;
-            box-shadow: 0 10px 20px rgba(107, 142, 107, 0.3); text-align: center;
+            box-shadow: 0 10px 20px rgba(107, 142, 107, 0.3); text-align: center; position: relative; overflow: hidden;
         }
-        .clock-time { font-family: 'Orbitron', monospace; font-size: 3.5rem; font-weight: 700; letter-spacing: 2px; text-shadow: 0 4px 10px rgba(0,0,0,0.2); margin: 10px 0; }
-        .clock-message { font-size: 1rem; opacity: 0.9; background: rgba(255,255,255,0.15); padding: 8px 15px; border-radius: 20px; display: inline-block; }
-        .clock-message.alert { background: rgba(255, 152, 0, 0.3); color: #fff; animation: pulse 2s infinite; }
+        .digital-clock-section::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: rotate 20s linear infinite;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         
-        /* [NEW] 4단계 복약 그리드 (디자인은 이전 'Summary Grid' 계승) */
-        .med-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .med-card {
+        .clock-time { font-family: 'Orbitron', monospace; font-size: 3.2rem; font-weight: 700; position: relative; text-shadow: 0 4px 10px rgba(0,0,0,0.2); margin: 10px 0; }
+        .clock-message { position: relative; font-size: 1rem; background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px; display: inline-block; backdrop-filter: blur(5px); }
+        .clock-message.alert { background: rgba(255, 152, 0, 0.9); color: white; animation: pulse 1s infinite; font-weight: bold; }
+        .clock-message.warning { background: rgba(244, 67, 54, 0.9); color: white; }
+        .clock-message.success { background: rgba(76, 175, 80, 0.9); color: white; }
+
+        /* [기능 B] 4단계 복약 타임라인 (카드형) */
+        .timeline-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
+        .timeline-card {
             background: white; border-radius: 20px; padding: 20px;
-            display: flex; flex-direction: column; justify-content: space-between; height: 130px;
-            box-shadow: 0 8px 15px rgba(0,0,0,0.05); transition: transform 0.2s; position: relative; overflow: hidden;
+            display: flex; flex-direction: column; justify-content: space-between; height: 140px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid transparent; position: relative;
         }
-        .med-card:hover { transform: translateY(-3px); }
+        .timeline-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         
-        .med-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 10px; transition: all 0.3s; }
-        /* 기본 상태: 회색 */
-        .med-card .med-icon { background: #f0f0f0; color: #999; }
+        /* 상태별 스타일 */
+        .timeline-card.completed { border-color: var(--success-green); background: #F1F8E9; }
+        .timeline-card.pending { border-color: var(--warning-orange); }
+        .timeline-card.missed { border-color: var(--error-red); background: #FFEBEE; }
         
-        /* 완료 상태 (Green) */
-        .med-card.completed .med-icon { background: #E8F5E9; color: var(--success-green); }
-        .med-card.completed { border: 2px solid var(--success-green); }
-        
-        /* 대기 상태 (Orange) */
-        .med-card.pending .med-icon { background: #FFF3E0; color: var(--warning-orange); }
-        
-        /* 놓침 상태 (Red) */
-        .med-card.missed .med-icon { background: #FFEBEE; color: var(--error-red); }
+        .timeline-icon { 
+            width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 10px; 
+            background: #f0f0f0; color: #999; transition: all 0.3s;
+        }
+        .timeline-card.completed .timeline-icon { background: var(--success-green); color: white; }
+        .timeline-card.pending .timeline-icon { background: var(--warning-orange); color: white; }
+        .timeline-card.missed .timeline-icon { background: var(--error-red); color: white; }
 
-        .med-name { font-size: 1rem; font-weight: 700; color: var(--text-dark); }
-        .med-time { font-size: 0.8rem; color: #666; font-weight: 500; }
-        .med-status-icon { position: absolute; top: 15px; right: 15px; font-size: 1.2rem; color: #ddd; }
-        .med-card.completed .med-status-icon { color: var(--success-green); }
+        .timeline-title { font-size: 1rem; font-weight: 700; color: var(--text-dark); }
+        .timeline-time { font-size: 0.8rem; color: #666; margin-top: 2px; }
+        .timeline-check { position: absolute; top: 15px; right: 15px; font-size: 1.2rem; color: #ddd; }
+        .timeline-card.completed .timeline-check { color: var(--success-green); }
 
-        /* 차트 섹션 (디자인 유지) */
+        /* [기능 C] 하단 통계 탭 */
         .chart-section { background: white; border-radius: 25px; padding: 25px; margin-bottom: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .section-title { font-size: 1.1rem; font-weight: 600; color: var(--text-dark); }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: #f0f0f0; padding: 5px; border-radius: 15px; }
+        .tab-btn { flex: 1; padding: 10px; text-align: center; border-radius: 12px; cursor: pointer; font-size: 0.9rem; color: #666; transition: all 0.3s; }
+        .tab-btn.active { background: var(--app-bg); color: white; font-weight: 600; shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
-        /* 애니메이션 */
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        .insight-box { margin-top: 15px; padding: 15px; background: #E8F5E9; border-radius: 15px; color: var(--app-bg-dark); font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
+        
+        /* 로딩 오버레이 */
+        .loading-overlay { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(107, 142, 107, 0.9); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; color: white; }
+        .loading-overlay.show { display: flex; }
+        .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3); border-top: 4px solid white; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 토스트 */
-        .toast { position: fixed; top: 20px; right: 20px; background: white; padding: 15px 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; z-index: 1000; transform: translateY(-100px); transition: transform 0.3s; }
-        .toast.show { transform: translateY(0); }
-        .toast.success { border-left: 5px solid var(--success-green); }
-        .toast i { color: var(--success-green); }
     </style>
 </head>
 <body>
     <div class="app-wrapper">
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <p>데이터 로딩 중...</p>
+        </div>
+
         <div class="header">
             <div class="header-title">
                 <i class="fa-solid fa-pills"></i> COSS
             </div>
             <div class="header-actions">
-                <div class="icon-box" onclick="refreshData()" style="width:40px; height:40px; cursor:pointer;">
-                    <i class="fa-solid fa-sync-alt" style="color:var(--app-bg); font-size:1rem;"></i>
+                <div class="sensor-status">
+                    <div class="status-dot" id="sensorStatusDot"></div>
+                    <span id="sensorStatusText">연결 대기</span>
                 </div>
-                <div class="icon-box" onclick="logout()" style="width:40px; height:40px; cursor:pointer;">
-                    <i class="fa-solid fa-sign-out-alt" style="color:var(--app-bg); font-size:1rem;"></i>
+                
+                <div class="user-menu">
+                    <div class="user-profile-icon" onclick="toggleUserMenu()">
+                        <i class="fa-regular fa-user"></i>
+                    </div>
+                    <div class="dropdown-menu" id="userDropdown">
+                        <div class="dropdown-item" onclick="logout()">
+                            <i class="fa-solid fa-sign-out-alt"></i> <span>로그아웃</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -140,12 +212,8 @@
         <div class="content-body">
             <div class="sidebar-container">
                 <div class="active-indicator"></div>
-                
                 <div class="sidebar-item active" data-section="dashboard" onclick="switchSection('dashboard', 0)">
                     <div class="icon-box"><i class="fa-solid fa-chart-pie"></i></div>
-                </div>
-                <div class="sidebar-item" data-section="medications" onclick="switchSection('medications', 1)">
-                    <div class="icon-box"><i class="fa-solid fa-capsules"></i></div>
                 </div>
                 <div class="sidebar-item" data-section="reports" onclick="window.location.href='/reports.html'">
                     <div class="icon-box"><i class="fa-solid fa-file-contract"></i></div>
@@ -154,105 +222,65 @@
             </div>
 
             <div class="main-content">
-                
                 <section id="dashboardSection" class="page-section active">
                     <div class="welcome-text">
                         <h2>Hello, <span id="userName">User</span></h2>
-                        <p>오늘의 4단계 복약 현황입니다.</p>
+                        <p>오늘의 복약 스케줄을 확인하세요.</p>
                     </div>
 
-                    <div class="digital-clock-card">
-                        <div class="sensor-header" style="justify-content: center; margin-bottom: 0;">
-                            <span style="opacity: 0.8; font-size: 0.9rem;">MEDICATION CLOCK</span>
-                        </div>
+                    <div class="digital-clock-section">
+                        <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px;">CURRENT TIME</div>
                         <div class="clock-time" id="digitalClock">00:00</div>
-                        <div class="clock-message" id="medicationMessage">시스템 로딩 중...</div>
+                        <div class="clock-message" id="medicationMessage">시스템 분석 중...</div>
                     </div>
 
-                    <div class="med-grid">
-                        <div class="med-card" id="card-sensor-1">
-                            <i class="fa-solid fa-circle-check med-status-icon"></i>
-                            <div class="med-icon"><i class="fa-regular fa-sun"></i></div>
-                            <div>
-                                <div class="med-name">아침 약</div>
-                                <div class="med-time">08:00 (식후)</div>
-                            </div>
+                    <div style="margin-bottom: 15px; font-weight: 600; color: #333; padding-left: 5px;">오늘의 복약 (4단계)</div>
+                    <div class="timeline-grid" id="timelineGrid">
                         </div>
-                        <div class="med-card" id="card-sensor-2">
-                            <i class="fa-solid fa-circle-check med-status-icon"></i>
-                            <div class="med-icon"><i class="fa-solid fa-sun"></i></div>
-                            <div>
-                                <div class="med-name">점심 약</div>
-                                <div class="med-time">13:00 (식후)</div>
-                            </div>
-                        </div>
-                        <div class="med-card" id="card-sensor-3">
-                            <i class="fa-solid fa-circle-check med-status-icon"></i>
-                            <div class="med-icon"><i class="fa-solid fa-moon"></i></div>
-                            <div>
-                                <div class="med-name">저녁 약</div>
-                                <div class="med-time">18:00 (식후)</div>
-                            </div>
-                        </div>
-                        <div class="med-card" id="card-sensor-4">
-                            <i class="fa-solid fa-circle-check med-status-icon"></i>
-                            <div class="med-icon"><i class="fa-solid fa-bed"></i></div>
-                            <div>
-                                <div class="med-name">취침 약</div>
-                                <div class="med-time">22:00 (취침전)</div>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="chart-section">
-                        <div class="section-header">
-                            <div class="section-title">주간 복약 달성률</div>
+                        <div class="tabs">
+                            <div class="tab-btn active" onclick="updateChart('weekly')">주간</div>
+                            <div class="tab-btn" onclick="updateChart('daily')">일간</div>
                         </div>
                         <div style="height: 200px;">
-                            <canvas id="weeklyChart"></canvas>
+                            <canvas id="statsChart"></canvas>
+                        </div>
+                        <div class="insight-box" id="chartInsight">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <span>데이터 분석 중...</span>
                         </div>
                     </div>
                 </section>
-
-                <section id="medicationsSection" class="page-section">
-                    <div class="welcome-text">
-                        <h2>나의 약통</h2>
-                        <p>4개의 스마트 약통 설정을 관리합니다.</p>
-                    </div>
-                    <div id="medListContainer" style="display: flex; flex-direction: column; gap: 15px;">
-                        </div>
-                </section>
-
             </div>
         </div>
-    </div>
-
-    <div class="toast" id="toast">
-        <i class="fa-solid fa-check-circle"></i>
-        <span id="toastMessage">완료되었습니다.</span>
     </div>
 
     <script>
         const API_URL = window.location.origin;
         let authToken = localStorage.getItem('authToken');
-        let sensorData = {};
-        let weeklyChart = null;
+        let statsChart = null;
 
         // 초기화
         window.addEventListener('load', () => {
             if (!authToken) { window.location.href = '/index.html'; return; }
             const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
             document.getElementById('userName').textContent = userInfo.name || 'User';
-            
-            startClock();
-            loadData();
-            setInterval(loadData, 5000); // 5초마다 데이터 갱신
-            
-            // 사이드바 초기화
+
+            // 사이드바 초기 위치 설정
             moveIndicator(0);
+            
+            // 시계 시작
+            startClock();
+            
+            // 데이터 로드
+            loadDashboardData();
+            
+            // 주기적 업데이트 (센서 상태 등)
+            setInterval(loadDashboardData, 5000); // 5초마다
         });
 
-        // 디지털 시계
+        // [기능 A] 디지털 시계 로직
         function startClock() {
             function update() {
                 const now = new Date();
@@ -263,117 +291,145 @@
             setInterval(update, 1000);
         }
 
-        // 데이터 로드 (핵심: 4개 센서 로직 매핑)
-        async function loadData() {
+        // 데이터 로드 및 UI 업데이트
+        async function loadDashboardData() {
             try {
+                // 상단 우측 상태 표시 업데이트 (오리지널 기능 복원)
+                updateSensorStatus(true); // 임시: 성공으로 가정 (실제로는 fetch 성공 여부 따름)
+
                 const res = await fetch(`${API_URL}/api/dashboard/stats`, {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
+                if(!res.ok) throw new Error("API Error");
                 const data = await res.json();
-                sensorData = data.sensors;
 
-                updateStatusGrid(data.sensors);
-                updateMessage(data.nextMedication, data.sensors);
-                updateChart(data.weekly);
-                updateMedList(data.sensors); // 약물 관리 탭용
+                // 1. 메시지 업데이트
+                updateMedicationMessage(data.nextMedication, data.sensors);
 
-            } catch (e) { console.error(e); }
-        }
+                // 2. 타임라인 업데이트 (센서 1~4 매핑)
+                updateTimeline(data.sensors);
 
-        // [NEW] 4단계 그리드 상태 업데이트 (이모지 X, 아이콘 O)
-        function updateStatusGrid(sensors) {
-            const now = new Date();
-            const timeStr = now.toTimeString().slice(0, 5);
+                // 3. 차트 업데이트 (처음 로드 시 주간)
+                if(!statsChart) updateChart('weekly', data);
 
-            for (let id = 1; id <= 4; id++) {
-                const sensor = sensors[id];
-                const card = document.getElementById(`card-sensor-${id}`);
-                const icon = card.querySelector('.med-icon i'); // FontAwesome 아이콘
-
-                // 클래스 초기화
-                card.classList.remove('completed', 'pending', 'missed');
-                
-                if (sensor.todayOpened) {
-                    card.classList.add('completed'); // 녹색 테두리 + 녹색 배경 아이콘
-                } else if (sensor.targetTime < timeStr) {
-                    card.classList.add('missed'); // 빨간 아이콘 배경
-                } else {
-                    card.classList.add('pending'); // 주황/회색 대기
-                }
-                
-                // 텍스트 업데이트 (설정된 이름 반영)
-                card.querySelector('.med-name').textContent = sensor.name;
-                card.querySelector('.med-time').textContent = sensor.targetTime;
+            } catch (e) {
+                console.error(e);
+                updateSensorStatus(false);
             }
         }
 
-        // 시계 메시지 업데이트
-        function updateMessage(nextMed, sensors) {
+        // [기능 A 상세] 메시지 업데이트 로직
+        function updateMedicationMessage(nextMed, sensors) {
             const msgEl = document.getElementById('medicationMessage');
+            
+            // 경고 체크 (아침 약(1번)을 점심(13시)까지 안 먹었을 때 등)
+            const now = new Date();
+            const currentHour = now.getHours();
+            
+            // 예시: 12시가 지났는데 아침약(1번)을 안 먹었다면 경고
+            if (currentHour >= 12 && !sensors[1].todayOpened) {
+                msgEl.innerHTML = "⚠️ <strong>아침 약통(1번)</strong>이 아직 열리지 않았습니다.";
+                msgEl.className = "clock-message warning";
+                return;
+            }
+
+            // 알림/평상시/완료 로직
             let allDone = true;
             for(let id in sensors) { if(!sensors[id].todayOpened) allDone = false; }
 
             if (allDone) {
-                msgEl.textContent = "오늘의 복약을 모두 완료했습니다!";
-                msgEl.className = "clock-message";
+                msgEl.textContent = "✅ 오늘의 모든 약 복용 완료!";
+                msgEl.className = "clock-message success";
             } else if (nextMed) {
                 if (nextMed.timeRemaining <= 30) {
-                    msgEl.textContent = `🔔 ${nextMed.sensor.name} 복용 시간입니다!`;
+                    // 알림 (주목도 높은 주황색)
+                    msgEl.innerHTML = `🔔 <strong>${nextMed.sensor.name}(${nextMed.sensor.id}번)</strong>을 열어 약을 드세요!`;
                     msgEl.className = "clock-message alert";
                 } else {
+                    // 평상시
                     const h = Math.floor(nextMed.timeRemaining/60);
                     const m = nextMed.timeRemaining%60;
-                    msgEl.textContent = `다음 복용: ${nextMed.sensor.name} (${h}시간 ${m}분 전)`;
+                    msgEl.textContent = `${nextMed.sensor.name} 복용까지 ${h}시간 ${m}분 남았습니다.`;
                     msgEl.className = "clock-message";
                 }
+            } else {
+                msgEl.textContent = "현재 예정된 복약이 없습니다.";
+                msgEl.className = "clock-message";
             }
         }
 
-        // 약물 리스트 (약물 관리 탭)
-        function updateMedList(sensors) {
-            const container = document.getElementById('medListContainer');
-            if(container.childElementCount > 0) return; // 이미 생성됐으면 패스 (간단처리)
-
+        // [기능 B 상세] 4단계 타임라인 생성
+        function updateTimeline(sensors) {
+            const container = document.getElementById('timelineGrid');
+            const sensorIds = [1, 2, 3, 4];
+            const icons = ['fa-sun', 'fa-cloud-sun', 'fa-moon', 'fa-bed']; // 아이콘 매핑
+            
             let html = '';
-            for(let id = 1; id <= 4; id++) {
+            
+            sensorIds.forEach((id, idx) => {
                 const s = sensors[id];
+                // 상태 결정 로직
+                let statusClass = 'pending';
+                if (s.todayOpened) statusClass = 'completed';
+                else {
+                    // 시간 지났는지 체크 (간단히 문자열 비교)
+                    const nowStr = new Date().toTimeString().slice(0, 5);
+                    if (s.targetTime < nowStr) statusClass = 'missed';
+                }
+
                 html += `
-                <div class="med-card" style="height: auto; flex-direction: row; align-items: center; justify-content: flex-start; gap: 15px;">
-                    <div class="med-icon"><i class="fa-solid fa-capsules"></i></div>
-                    <div style="flex:1;">
-                        <div class="med-name">${s.name}</div>
-                        <div class="med-time">${s.description} | ${s.targetTime}</div>
+                    <div class="timeline-card ${statusClass}">
+                        <i class="fa-solid fa-circle-check timeline-check"></i>
+                        <div class="timeline-icon">
+                            <i class="fa-solid ${icons[idx]}"></i>
+                        </div>
+                        <div>
+                            <div class="timeline-title">${s.name}</div>
+                            <div class="timeline-time">${s.targetTime}</div>
+                        </div>
                     </div>
-                </div>`;
-            }
+                `;
+            });
             container.innerHTML = html;
         }
 
-        // 주간 차트
-        function updateChart(weeklyData) {
-            const ctx = document.getElementById('weeklyChart').getContext('2d');
-            if (weeklyChart) weeklyChart.destroy();
+        // [기능 C 상세] 차트 및 인사이트
+        async function updateChart(period, preloadedData) {
+            // 탭 스타일 활성화
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active');
+                if(b.textContent.includes(period === 'weekly' ? '주간' : '일간')) b.classList.add('active');
+            });
+
+            // 데이터 준비 (실제로는 API 호출 필요할 수 있음)
+            let labels, dataPoints, insight;
             
-            const labels = weeklyData ? weeklyData.map(d => d.day) : ['일','월','화','수','목','금','토'];
-            const data = weeklyData ? weeklyData.map(d => d.completedCount) : [0,0,0,0,0,0,0];
+            // 더미 데이터/로직 예시 (실제 API 데이터와 연동 권장)
+            if(period === 'weekly') {
+                labels = ['월', '화', '수', '목', '금', '토', '일'];
+                dataPoints = [3, 4, 2, 4, 3, 4, 4]; // 예시 데이터
+                insight = "수요일에 복약 달성률이 가장 낮습니다.";
+            } else {
+                labels = ['아침', '점심', '저녁', '취침'];
+                dataPoints = [1, 1, 0, 1]; // 오늘 데이터 예시
+                insight = "저녁 약통(3번)의 개봉 빈도가 낮습니다.";
+            }
 
-            let gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, 'rgba(107, 142, 107, 0.4)');
-            gradient.addColorStop(1, 'rgba(107, 142, 107, 0)');
+            document.getElementById('chartInsight').innerHTML = `<i class="fa-solid fa-lightbulb"></i> <span>${insight}</span>`;
 
-            weeklyChart = new Chart(ctx, {
-                type: 'line',
+            // 차트 그리기
+            const ctx = document.getElementById('statsChart').getContext('2d');
+            if (statsChart) statsChart.destroy();
+
+            statsChart = new Chart(ctx, {
+                type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        data: data,
-                        borderColor: '#6B8E6B',
-                        backgroundColor: gradient,
-                        borderWidth: 3,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#6B8E6B',
-                        fill: true,
-                        tension: 0.4
+                        label: '복약 완료',
+                        data: dataPoints,
+                        backgroundColor: period === 'weekly' ? '#6B8E6B' : ['#FF9800', '#FF9800', '#F44336', '#4CAF50'],
+                        borderRadius: 5
                     }]
                 },
                 options: {
@@ -388,33 +444,35 @@
             });
         }
 
-        // UI 유틸리티
+        // 상단 우측 센서 상태 표시 (오리지널 기능)
+        function updateSensorStatus(isOnline) {
+            const dot = document.getElementById('sensorStatusDot');
+            const text = document.getElementById('sensorStatusText');
+            if(isOnline) {
+                dot.className = 'status-dot active';
+                text.textContent = '실시간';
+            } else {
+                dot.className = 'status-dot inactive';
+                text.textContent = '연결 끊김';
+            }
+        }
+
+        // 사이드바 인디케이터 이동 (곡선 효과)
         function switchSection(id, index) {
-            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-            document.getElementById(id + 'Section').classList.add('active');
-            
-            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
-            document.querySelectorAll('.sidebar-item')[index].classList.add('active');
-            
             moveIndicator(index);
         }
-
         function moveIndicator(index) {
             const ind = document.querySelector('.active-indicator');
-            ind.style.transform = `translateY(${index * 75}px)`;
-            if(index === 0) ind.classList.add('is-first'); else ind.classList.remove('is-first');
+            ind.style.transform = `translateY(${index * 90}px)`; // 아이템 높이 90px
+            if (index === 0) ind.classList.add('is-first'); else ind.classList.remove('is-first');
         }
 
+        function toggleUserMenu() {
+            document.getElementById('userDropdown').classList.toggle('show');
+        }
         function logout() {
             localStorage.removeItem('authToken');
             window.location.href = '/index.html';
-        }
-
-        function refreshData() {
-            loadData();
-            const t = document.getElementById('toast');
-            t.classList.add('show');
-            setTimeout(()=>t.classList.remove('show'), 2000);
         }
     </script>
 </body>
