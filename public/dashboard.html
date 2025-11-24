@@ -842,7 +842,7 @@
             loadDashboardData();
             
             // 센서 상태 주기적 확인 (5초마다)
-            sensorCheckInterval = setInterval(checkSensorStatus, 5000);
+            sensorCheckInterval = setInterval(checkSensorStatus, 500);
             checkSensorStatus(); // 즉시 한번 실행
             
             // 사이드바 인디케이터 위치 초기화
