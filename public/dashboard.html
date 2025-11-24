@@ -164,10 +164,16 @@
             flex-direction: column;
             height: 100%;
             padding-bottom: 20px;
-            border-top-right-radius: var(--curve-radius);
-            /* 중요: 맨 위 아이템이 선택되었을 때 자연스럽게 하기 위해 패딩 조정 */
+            
+            /* [기존 코드] 우측 상단 둥글게 설정 */
+            border-top-right-radius: var(--curve-radius); 
+            
             padding-top: 20px; 
             position: relative;
+        
+            /* [추가!] 이 속성이 핵심입니다. 
+               둥근 모서리 바깥으로 나가는 흰색 배경(::before)을 잘라버립니다. */
+            overflow: hidden; 
         }
 
         /* 움직이는 커브 배경 (Active Indicator) */
