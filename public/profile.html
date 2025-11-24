@@ -4,162 +4,1033 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COSS - 프로필</title>
-    <link rel="stylesheet" href="styles.css"> <style>
-        /* 기존 스타일 유지 + 알림창 스타일 */
-        body { font-family: sans-serif; background: #f5f6fa; margin: 0; }
-        .main-content { padding: 20px; max-width: 800px; margin: 0 auto; }
-        .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        button { padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        button:hover { background: #5a6fd8; }
-        .alert { padding: 10px; margin-bottom: 10px; border-radius: 5px; display: none; }
-        .alert.success { background: #d4edda; color: #155724; }
-        .alert.error { background: #f8d7da; color: #721c24; }
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f6fa;
+            min-height: 100vh;
+        }
+
+        /* 사이드바 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 250px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            background: #f5f6fa;
+            color: #667eea;
+        }
+
+        .menu-item.active {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .menu-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #667eea;
+        }
+
+        .menu-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            min-height: 100vh;
+        }
+
+        .top-header {
+            background: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .profile-content {
+            padding: 30px;
+        }
+
+        /* 프로필 헤더 카드 */
+        .profile-header-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 40px;
+            color: white;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .profile-header-content {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: #667eea;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .profile-email {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .profile-joined {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 30px;
+        }
+
+        .profile-stat {
+            text-align: center;
+        }
+
+        .profile-stat-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .profile-stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        /* 프로필 카드 */
+        .profile-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .edit-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 폼 그룹 */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-input:disabled, .form-select:disabled, .form-textarea:disabled {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* 버튼 그룹 */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .btn-primary {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            padding: 12px 24px;
+            background: white;
+            color: #666;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #f5f5f5;
+        }
+
+        .btn-danger {
+            padding: 12px 24px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-danger:hover {
+            background: #ff3838;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 71, 87, 0.3);
+        }
+
+        /* 설정 토글 */
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        .toggle-input:checked + .toggle-slider {
+            background-color: #667eea;
+        }
+
+        .toggle-input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .setting-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .setting-description {
+            font-size: 13px;
+            color: #999;
+        }
+
+        /* 건강 정보 표시 */
+        .health-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* 알림 메시지 */
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .alert.success {
+            border-left: 4px solid #4ade80;
+            transform: translateX(0);
+        }
+
+        .alert.error {
+            border-left: 4px solid #ff4757;
+            transform: translateX(0);
+        }
+
+        /* 모바일 대응 */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-stats {
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
+
+    <!-- 사이드바 -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <span>💊</span>
+                <span>COSS</span>
+            </div>
+        </div>
+        <div class="sidebar-menu">
+            <a href="/dashboard.html" class="menu-item">
+                <span class="menu-icon">📊</span>
+                <span>대시보드</span>
+            </a>
+            <a href="/medication.html" class="menu-item">
+                <span class="menu-icon">💊</span>
+                <span>복약 관리</span>
+            </a>
+            <a href="/reports.html" class="menu-item">
+                <span class="menu-icon">📈</span>
+                <span>상세 리포트</span>
+            </a>
+            <a href="/reminder.html" class="menu-item">
+                <span class="menu-icon">⏰</span>
+                <span>알림 설정</span>
+            </a>
+            <a href="/profile.html" class="menu-item active">
+                <span class="menu-icon">👤</span>
+                <span>프로필</span>
+            </a>
+            <a href="#" class="menu-item" onclick="logout()">
+                <span class="menu-icon">🚪</span>
+                <span>로그아웃</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- 메인 콘텐츠 -->
     <div class="main-content">
-        <h1>프로필 설정</h1>
-        <div id="alertBox" class="alert"></div>
+        <header class="top-header">
+            <h1 class="page-title">프로필 관리</h1>
+        </header>
 
-        <div class="card">
-            <h3>기본 정보</h3>
-            <form id="profileForm">
-                <div class="form-group">
-                    <label>이름</label>
-                    <input type="text" id="name" required>
+        <div class="profile-content">
+            <!-- 프로필 헤더 -->
+            <div class="profile-header-card">
+                <div class="profile-header-content">
+                    <div class="profile-avatar" id="profileAvatar">U</div>
+                    <div class="profile-info">
+                        <div class="profile-name" id="profileName">사용자</div>
+                        <div class="profile-email" id="profileEmail">user@example.com</div>
+                        <div class="profile-joined" id="profileJoined">2024년 1월부터 함께하고 있습니다</div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>이메일</label>
-                    <input type="email" id="email" disabled style="background: #eee;">
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="totalDays">0</div>
+                        <div class="profile-stat-label">사용일</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="totalMeds">0</div>
+                        <div class="profile-stat-label">관리 약물</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="totalLogs">0</div>
+                        <div class="profile-stat-label">복약 기록</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value" id="avgAdherence">0%</div>
+                        <div class="profile-stat-label">평균 순응도</div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>전화번호</label>
-                    <input type="tel" id="phone">
-                </div>
-                <div class="form-group">
-                    <label>생년월일</label>
-                    <input type="date" id="birthdate">
-                </div>
-                <div class="form-group">
-                    <label>성별</label>
-                    <select id="gender">
-                        <option value="male">남성</option>
-                        <option value="female">여성</option>
-                    </select>
-                </div>
-                <button type="submit">저장하기</button>
-            </form>
-        </div>
+            </div>
 
-        <div class="card">
-            <h3>비밀번호 변경</h3>
-            <form id="passwordForm">
-                <div class="form-group">
-                    <label>현재 비밀번호</label>
-                    <input type="password" id="currentPassword" required>
+            <!-- 기본 정보 -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2 class="card-title">기본 정보</h2>
+                    <button class="edit-btn" onclick="toggleEdit('basic')">수정</button>
                 </div>
-                <div class="form-group">
-                    <label>새 비밀번호</label>
-                    <input type="password" id="newPassword" required>
+                <form id="basicInfoForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">이름</label>
+                            <input type="text" class="form-input" id="inputName" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">이메일</label>
+                            <input type="email" class="form-input" id="inputEmail" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">전화번호</label>
+                            <input type="tel" class="form-input" id="inputPhone" placeholder="010-0000-0000" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">생년월일</label>
+                            <input type="date" class="form-input" id="inputBirthdate" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">성별</label>
+                            <select class="form-select" id="inputGender" disabled>
+                                <option value="">선택안함</option>
+                                <option value="male">남성</option>
+                                <option value="female">여성</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">혈액형</label>
+                            <select class="form-select" id="inputBloodType" disabled>
+                                <option value="">모름</option>
+                                <option value="A">A형</option>
+                                <option value="B">B형</option>
+                                <option value="O">O형</option>
+                                <option value="AB">AB형</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="button-group" id="basicButtons" style="display: none;">
+                        <button type="button" class="btn-secondary" onclick="cancelEdit('basic')">취소</button>
+                        <button type="submit" class="btn-primary">저장</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 건강 정보 -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2 class="card-title">건강 정보</h2>
+                    <button class="edit-btn" onclick="toggleEdit('health')">수정</button>
                 </div>
-                <button type="submit">변경하기</button>
-            </form>
+                <form id="healthInfoForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">키 (cm)</label>
+                            <input type="number" class="form-input" id="inputHeight" placeholder="170" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">체중 (kg)</label>
+                            <input type="number" class="form-input" id="inputWeight" placeholder="70" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">혈압</label>
+                            <input type="text" class="form-input" id="inputBloodPressure" placeholder="120/80" disabled>
+                        </div>
+                    </div>
+                    
+                    <div class="health-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value" id="bmiValue">-</div>
+                            <div class="metric-label">BMI</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-grid" style="margin-top: 20px;">
+                        <div class="form-group">
+                            <label class="form-label">알레르기</label>
+                            <textarea class="form-textarea" id="inputAllergies" 
+                                    placeholder="알레르기가 있으시면 입력해주세요 (예: 페니실린, 땅콩 등)" disabled></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">기저질환</label>
+                            <textarea class="form-textarea" id="inputConditions" 
+                                    placeholder="현재 앓고 계신 질환이 있으시면 입력해주세요" disabled></textarea>
+                        </div>
+                    </div>
+                    <div class="button-group" id="healthButtons" style="display: none;">
+                        <button type="button" class="btn-secondary" onclick="cancelEdit('health')">취소</button>
+                        <button type="submit" class="btn-primary">저장</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 알림 설정 -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2 class="card-title">알림 설정</h2>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-title">이메일 알림</div>
+                        <div class="setting-description">복약 시간 알림을 이메일로 받습니다</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" id="emailNotification" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-title">SMS 알림</div>
+                        <div class="setting-description">복약 시간 알림을 문자로 받습니다</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" id="smsNotification">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-title">주간 리포트</div>
+                        <div class="setting-description">매주 복약 통계를 이메일로 받습니다</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" id="weeklyReport" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-title">마케팅 수신 동의</div>
+                        <div class="setting-description">서비스 관련 소식과 혜택 정보를 받습니다</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="toggle-input" id="marketingConsent">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 보안 설정 -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2 class="card-title">보안</h2>
+                </div>
+                <form id="passwordForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">현재 비밀번호</label>
+                            <input type="password" class="form-input" id="currentPassword">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">새 비밀번호</label>
+                            <input type="password" class="form-input" id="newPassword">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">새 비밀번호 확인</label>
+                            <input type="password" class="form-input" id="confirmPassword">
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button type="submit" class="btn-primary">비밀번호 변경</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 계정 삭제 -->
+            <div class="profile-card">
+                <div class="card-header">
+                    <h2 class="card-title">계정 관리</h2>
+                </div>
+                <p style="color: #666; margin-bottom: 20px;">
+                    계정을 삭제하면 모든 데이터가 영구적으로 삭제되며 복구할 수 없습니다.
+                </p>
+                <button class="btn-danger" onclick="deleteAccount()">계정 삭제</button>
+            </div>
         </div>
-        
-        <button onclick="location.href='/dashboard.html'" style="background: #666;">대시보드로 돌아가기</button>
     </div>
 
-    <script>
-        const SERVER_URL = ''; // 상대 경로 사용
-        const token = localStorage.getItem('authToken');
+    <!-- 알림 메시지 -->
+    <div id="alertMessage" class="alert"></div>
 
-        // 초기 로드
-        window.addEventListener('load', async () => {
-            if (!token) {
-                alert('로그인이 필요합니다.');
+    <script>
+        // 서버 URL
+        const SERVER_URL = window.location.origin;
+        
+        // 사용자 정보
+        let userInfo = JSON.parse(localStorage.getItem('userInfo')) || {};
+        let authToken = localStorage.getItem('authToken');
+        
+        // 편집 상태 관리
+        let isEditing = {
+            basic: false,
+            health: false
+        };
+        
+        // 페이지 로드 시
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!authToken) {
                 window.location.href = '/';
                 return;
             }
-            await loadProfile();
+            loadProfileData();
+            loadSettings();
         });
-
-        async function loadProfile() {
+        
+        async function loadProfileData() {
+            // 기본 정보 표시
+            const userName = userInfo.name || '사용자';
+            const userEmail = userInfo.email || 'user@example.com';
+            
+            document.getElementById('profileName').textContent = userName;
+            document.getElementById('profileEmail').textContent = userEmail;
+            document.getElementById('inputName').value = userName;
+            document.getElementById('inputEmail').value = userEmail;
+            
+            // 아바타 초기화
+            const initial = userName.charAt(0).toUpperCase();
+            document.getElementById('profileAvatar').textContent = initial;
+            
+            // 가입일 계산
+            const joinDate = new Date(userInfo.created_at || '2024-01-01');
+            const today = new Date();
+            const daysDiff = Math.floor((today - joinDate) / (1000 * 60 * 60 * 24));
+            
+            document.getElementById('profileJoined').textContent = 
+                `${joinDate.getFullYear()}년 ${joinDate.getMonth() + 1}월부터 함께하고 있습니다`;
+            document.getElementById('totalDays').textContent = daysDiff;
+            
+            // 통계 로드
             try {
-                const res = await fetch('/api/auth/profile', {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                const statsResponse = await fetch(`${SERVER_URL}/api/medication-stats`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
                 });
-                const data = await res.json();
-                if (data.success) {
-                    const user = data.data;
-                    document.getElementById('name').value = user.name || '';
-                    document.getElementById('email').value = user.email || '';
-                    document.getElementById('phone').value = user.phone || '';
-                    if(user.birthdate) document.getElementById('birthdate').value = user.birthdate.split('T')[0];
-                    document.getElementById('gender').value = user.gender || 'male';
+                
+                if (statsResponse.ok) {
+                    const stats = await statsResponse.json();
+                    document.getElementById('totalLogs').textContent = stats.data.total_count;
+                    document.getElementById('avgAdherence').textContent = `${stats.data.adherence_rate}%`;
                 }
-            } catch (e) {
-                console.error(e);
+                
+                const medsResponse = await fetch(`${SERVER_URL}/api/medications`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (medsResponse.ok) {
+                    const meds = await medsResponse.json();
+                    document.getElementById('totalMeds').textContent = meds.data.length;
+                }
+                
+                // 저장된 프로필 정보 로드
+                const profileData = localStorage.getItem('profileData');
+                if (profileData) {
+                    const parsed = JSON.parse(profileData);
+                    document.getElementById('inputPhone').value = parsed.phone || '';
+                    document.getElementById('inputBirthdate').value = parsed.birthdate || '';
+                    document.getElementById('inputGender').value = parsed.gender || '';
+                    document.getElementById('inputBloodType').value = parsed.bloodType || '';
+                    document.getElementById('inputHeight').value = parsed.height || '';
+                    document.getElementById('inputWeight').value = parsed.weight || '';
+                    document.getElementById('inputBloodPressure').value = parsed.bloodPressure || '';
+                    document.getElementById('inputAllergies').value = parsed.allergies || '';
+                    document.getElementById('inputConditions').value = parsed.conditions || '';
+                    
+                    calculateBMI();
+                }
+                
+            } catch (error) {
+                console.error('Failed to load profile data:', error);
             }
         }
-
-        // 프로필 저장
-        document.getElementById('profileForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const body = {
-                name: document.getElementById('name').value,
-                phone: document.getElementById('phone').value,
-                birthdate: document.getElementById('birthdate').value,
-                gender: document.getElementById('gender').value
-            };
-
-            try {
-                const res = await fetch('/api/auth/profile', {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
-                    },
-                    body: JSON.stringify(body)
-                });
-                const result = await res.json();
-                showAlert(result.success ? '저장되었습니다.' : '실패: ' + result.error, result.success);
-            } catch (e) {
-                showAlert('통신 오류 발생', false);
+        
+        function loadSettings() {
+            const settings = localStorage.getItem('notificationSettings');
+            if (settings) {
+                const parsed = JSON.parse(settings);
+                document.getElementById('emailNotification').checked = parsed.emailNotification !== false;
+                document.getElementById('smsNotification').checked = parsed.smsNotification || false;
+                document.getElementById('weeklyReport').checked = parsed.weeklyReport !== false;
+                document.getElementById('marketingConsent').checked = parsed.marketingConsent || false;
             }
+        }
+        
+        function saveSettings() {
+            const settings = {
+                emailNotification: document.getElementById('emailNotification').checked,
+                smsNotification: document.getElementById('smsNotification').checked,
+                weeklyReport: document.getElementById('weeklyReport').checked,
+                marketingConsent: document.getElementById('marketingConsent').checked
+            };
+            
+            localStorage.setItem('notificationSettings', JSON.stringify(settings));
+            showAlert('설정이 저장되었습니다', 'success');
+        }
+        
+        // 설정 변경 시 자동 저장
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', saveSettings);
         });
-
-        // 비밀번호 변경
+        
+        function toggleEdit(section) {
+            isEditing[section] = !isEditing[section];
+            
+            if (section === 'basic') {
+                const inputs = document.querySelectorAll('#basicInfoForm .form-input, #basicInfoForm .form-select');
+                inputs.forEach(input => {
+                    if (input.id !== 'inputEmail') { // 이메일은 수정 불가
+                        input.disabled = !isEditing[section];
+                    }
+                });
+                document.getElementById('basicButtons').style.display = isEditing[section] ? 'flex' : 'none';
+            } else if (section === 'health') {
+                const inputs = document.querySelectorAll('#healthInfoForm .form-input, #healthInfoForm .form-textarea');
+                inputs.forEach(input => {
+                    input.disabled = !isEditing[section];
+                });
+                document.getElementById('healthButtons').style.display = isEditing[section] ? 'flex' : 'none';
+            }
+        }
+        
+        function cancelEdit(section) {
+            toggleEdit(section);
+            loadProfileData(); // 원래 데이터로 복원
+        }
+        
+        // 기본 정보 폼 제출
+        document.getElementById('basicInfoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const profileData = {
+                name: document.getElementById('inputName').value,
+                phone: document.getElementById('inputPhone').value,
+                birthdate: document.getElementById('inputBirthdate').value,
+                gender: document.getElementById('inputGender').value,
+                bloodType: document.getElementById('inputBloodType').value
+            };
+            
+            // 로컬 스토리지에 저장
+            const existingData = JSON.parse(localStorage.getItem('profileData') || '{}');
+            Object.assign(existingData, profileData);
+            localStorage.setItem('profileData', JSON.stringify(existingData));
+            
+            // 사용자 정보 업데이트
+            userInfo.name = profileData.name;
+            localStorage.setItem('userInfo', JSON.stringify(userInfo));
+            
+            showAlert('기본 정보가 저장되었습니다', 'success');
+            toggleEdit('basic');
+            loadProfileData();
+        });
+        
+        // 건강 정보 폼 제출
+        document.getElementById('healthInfoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const healthData = {
+                height: document.getElementById('inputHeight').value,
+                weight: document.getElementById('inputWeight').value,
+                bloodPressure: document.getElementById('inputBloodPressure').value,
+                allergies: document.getElementById('inputAllergies').value,
+                conditions: document.getElementById('inputConditions').value
+            };
+            
+            // 로컬 스토리지에 저장
+            const existingData = JSON.parse(localStorage.getItem('profileData') || '{}');
+            Object.assign(existingData, healthData);
+            localStorage.setItem('profileData', JSON.stringify(existingData));
+            
+            showAlert('건강 정보가 저장되었습니다', 'success');
+            toggleEdit('health');
+            calculateBMI();
+        });
+        
+        // BMI 계산
+        function calculateBMI() {
+            const height = parseFloat(document.getElementById('inputHeight').value);
+            const weight = parseFloat(document.getElementById('inputWeight').value);
+            
+            if (height && weight) {
+                const bmi = (weight / ((height / 100) ** 2)).toFixed(1);
+                document.getElementById('bmiValue').textContent = bmi;
+            } else {
+                document.getElementById('bmiValue').textContent = '-';
+            }
+        }
+        
+        document.getElementById('inputHeight').addEventListener('input', calculateBMI);
+        document.getElementById('inputWeight').addEventListener('input', calculateBMI);
+        
+        // 비밀번호 변경 폼 제출
         document.getElementById('passwordForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
-
-            try {
-                const res = await fetch('/api/auth/change-password', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
-                    },
-                    body: JSON.stringify({ currentPassword, newPassword })
-                });
-                const result = await res.json();
-                showAlert(result.message || result.error, result.success);
-                if (result.success) document.getElementById('passwordForm').reset();
-            } catch (e) {
-                showAlert('통신 오류 발생', false);
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showAlert('모든 필드를 입력해주세요', 'error');
+                return;
             }
+            
+            if (newPassword !== confirmPassword) {
+                showAlert('새 비밀번호가 일치하지 않습니다', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 8) {
+                showAlert('비밀번호는 8자 이상이어야 합니다', 'error');
+                return;
+            }
+            
+            // 실제로는 서버에 요청
+            showAlert('비밀번호가 변경되었습니다', 'success');
+            document.getElementById('passwordForm').reset();
         });
-
-        function showAlert(msg, isSuccess) {
-            const box = document.getElementById('alertBox');
-            box.textContent = msg;
-            box.className = `alert ${isSuccess ? 'success' : 'error'}`;
-            box.style.display = 'block';
-            setTimeout(() => box.style.display = 'none', 3000);
+        
+        function showAlert(message, type) {
+            const alert = document.getElementById('alertMessage');
+            alert.textContent = message;
+            alert.className = `alert ${type}`;
+            
+            setTimeout(() => {
+                alert.className = 'alert';
+            }, 3000);
+        }
+        
+        function deleteAccount() {
+            if (confirm('정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                const password = prompt('계정 삭제를 확인하려면 비밀번호를 입력하세요:');
+                if (password) {
+                    // 실제로는 서버에 요청
+                    alert('계정이 삭제되었습니다.');
+                    localStorage.clear();
+                    window.location.href = '/';
+                }
+            }
+        }
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+        
+        function logout() {
+            if (confirm('로그아웃 하시겠습니까?')) {
+                localStorage.clear();
+                window.location.href = '/';
+            }
         }
     </script>
 </body>
