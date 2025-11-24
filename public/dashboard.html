@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>COSS Dashboard - 스마트 약통 관리</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Poppins:wght@300;400;500;600&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -17,7 +17,10 @@
             --text-light: #F1F5EF;
             --text-dark: #333333;
             --accent-color: #E8F5E9;
-            --curve-radius: 35px; /* [수정] 곡률을 사진처럼 더 둥글게 조정 */
+            --curve-radius: 35px;
+            --success-green: #4CAF50;
+            --warning-orange: #FF9800;
+            --error-red: #F44336;
         }
 
         * {
@@ -44,13 +47,12 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            transition: background-color 0.3s;
         }
 
         @media (min-width: 481px) {
             .app-wrapper {
                 width: 414px;
-                height: 880px;
+                height: 900px;
                 border-radius: 40px;
                 box-shadow: 0 30px 60px rgba(0,0,0,0.2);
             }
@@ -61,14 +63,14 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 40px 30px 20px 30px;
+            padding: 30px 25px 20px 25px;
             z-index: 20;
             color: var(--text-light);
         }
 
         .header-title {
             font-family: 'Merriweather', serif;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -76,35 +78,56 @@
 
         .header-actions {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
         }
 
-        /* 센서 상태 표시 */
-        .sensor-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255,255,255,0.2);
-            padding: 5px 12px;
+        /* 디지털 복약 시계 (NEW) */
+        .digital-clock-section {
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+            margin: 0 20px 20px 20px;
+            padding: 20px;
             border-radius: 20px;
-            font-size: 0.85rem;
+            backdrop-filter: blur(10px);
+            text-align: center;
+            color: white;
         }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
+        .digital-time {
+            font-family: 'Orbitron', monospace;
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+
+        .medication-message {
+            font-size: 1.1rem;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
             animation: pulse 2s infinite;
         }
 
-        .status-dot.active { background-color: #4CAF50; }
-        .status-dot.inactive { background-color: #F44336; }
+        .medication-message.alert {
+            background: rgba(255, 152, 0, 0.3);
+            border: 1px solid rgba(255, 152, 0, 0.5);
+        }
+
+        .medication-message.success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+        }
+
+        .medication-message.warning {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid rgba(244, 67, 54, 0.5);
+        }
 
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
         }
 
         /* 사용자 메뉴 */
@@ -154,9 +177,7 @@
             overflow: hidden;
         }
 
-        /* ==========================================================================
-           [사이드바 스타일 수정 - 애니메이션 및 디자인 개선]
-           ========================================================================== */
+        /* 사이드바 */
         .sidebar-container {
             width: 90px;
             background-color: transparent;
@@ -164,57 +185,49 @@
             flex-direction: column;
             height: 100%;
             padding-bottom: 20px;
-            /* 중요: 맨 위 아이템이 선택되었을 때 자연스럽게 하기 위해 패딩 조정 */
             padding-top: 20px; 
             position: relative;
         }
 
-        /* 움직이는 커브 배경 (Active Indicator) */
         .active-indicator {
             position: absolute;
             left: 0;
             width: 100%;
-            height: 90px; /* 아이템 높이 */
+            height: 75px;
             background: transparent;
             z-index: 0;
-            /* [수정됨] 애니메이션 속도감 개선: 끝부분을 더 빠르게 정착시킴 */
             transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        /* 인디케이터 위쪽 덮개 (하얀색 배경) */
         .active-indicator::before {
             content: '';
             position: absolute;
             bottom: 100%;
             right: 0;
             width: 100%;
-            height: 120vh; /* 위쪽을 넉넉하게 덮음 */
+            height: 120vh;
             background-color: var(--sidebar-bg);
-            /* 사진과 같은 둥근 모서리 처리 */
             border-bottom-right-radius: var(--curve-radius);
             transition: opacity 0.3s;
         }
 
-        /* 인디케이터 아래쪽 덮개 (하얀색 배경) */
         .active-indicator::after {
             content: '';
             position: absolute;
             top: 100%;
             right: 0;
             width: 100%;
-            height: 120vh; /* 아래쪽을 넉넉하게 덮음 */
+            height: 120vh;
             background-color: var(--sidebar-bg);
-            /* 사진과 같은 둥근 모서리 처리 */
             border-top-right-radius: var(--curve-radius);
         }
 
-        /* [수정됨] 맨 위 아이템이 선택되었을 때 위쪽 바 숨기기 */
         .active-indicator.is-first::before {
-            opacity: 0; /* 투명하게 처리하여 녹색 배경 노출 */
+            opacity: 0;
         }
 
         .sidebar-item {
-            height: 90px;
+            height: 75px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -226,381 +239,549 @@
         }
 
         .sidebar-item.active {
-            color: var(--text-light);
-            background-color: transparent;
+            color: var(--app-bg);
         }
 
-        .icon-box {
-            width: 45px;
-            height: 45px;
-            border-radius: 15px;
+        .sidebar-item i {
+            font-size: 1.4rem;
+        }
+
+        /* 새로고침 버튼 (NEW) */
+        .refresh-button {
+            margin-top: auto;
+            padding-top: 20px;
+        }
+
+        .refresh-btn {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: rotate(180deg);
+        }
+
+        .refresh-btn i {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        /* 메인 컨텐츠 영역 */
+        .main-content {
+            flex: 1;
+            background-color: var(--sidebar-bg);
+            border-radius: var(--curve-radius) 0 0 0;
+            overflow-y: auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .page-section {
+            padding: 30px 20px;
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+        }
+
+        /* 4단계 복약 타임라인 (NEW) */
+        .medication-timeline {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .timeline-card {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+            min-height: 120px;
+        }
+
+        .timeline-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .timeline-card.completed {
+            background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+            border: 2px solid var(--success-green);
+        }
+
+        .timeline-card.pending {
+            background: linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%);
+            border: 2px solid var(--warning-orange);
+        }
+
+        .timeline-card.missed {
+            background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+            border: 2px solid var(--error-red);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .timeline-emoji {
+            font-size: 2rem;
+        }
+
+        .timeline-time {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .timeline-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+
+        .timeline-desc {
+            font-size: 0.85rem;
+            color: #777;
+        }
+
+        .timeline-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
-            background: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            transition: background 0.3s, color 0.3s, box-shadow 0.3s;
         }
 
-        .sidebar-item.active .icon-box {
-            background: var(--text-light);
-            color: var(--app-bg);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            /* 튀어오르는 효과 제거됨 (제자리 색상 변경) */
-        }
-
-        .sidebar-filler {
-            flex: 1;
-            background: transparent;
-        }
-        /* ========================================================================== */
-
-        .main-content {
-            flex: 1;
-            padding: 0 25px 30px 10px;
-            overflow-y: auto;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        .main-content::-webkit-scrollbar { display: none; }
-
-        .page-section {
-            display: none;
-            animation: fadeInUp 0.5s forwards;
-        }
-        .page-section.active { display: block; }
-
-        .welcome-text {
-            color: var(--text-light);
-            margin-bottom: 25px;
-            padding-left: 15px;
-        }
-        .welcome-text h2 { font-family: 'Merriweather', serif; font-size: 1.8rem; }
-        .welcome-text p { font-size: 0.9rem; opacity: 0.8; }
-
-        .sensor-card {
-            background: var(--app-bg-dark);
-            border-radius: 25px;
-            padding: 25px;
+        .timeline-status.check {
+            background: var(--success-green);
             color: white;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
-        .sensor-header {
+        .timeline-status.clock {
+            background: var(--warning-orange);
+            color: white;
+        }
+
+        .timeline-status.alert {
+            background: var(--error-red);
+            color: white;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* 기간별 복약 현황 탭 (NEW) */
+        .period-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 5px;
+            border-radius: 15px;
+        }
+
+        .period-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .period-tab.active {
+            background: var(--app-bg);
+            color: white;
+        }
+
+        .period-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .period-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* 나의 약통 섹션 (NEW) */
+        .medication-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .medication-item {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
         }
-        .sensor-title { font-size: 1.1rem; opacity: 0.9; }
-        .sensor-value-display {
+
+        .medication-info {
+            flex: 1;
+        }
+
+        .medication-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
             display: flex;
-            align-items: baseline;
+            align-items: center;
             gap: 10px;
-            margin-bottom: 15px;
         }
-        .sensor-big-value {
-            font-size: 3rem;
-            font-weight: 700;
-            font-family: 'Merriweather', serif;
+
+        .medication-detail {
+            font-size: 0.9rem;
+            color: #666;
         }
-        .sensor-unit { font-size: 1rem; opacity: 0.8; }
-        
-        .sensor-state {
-            padding: 8px 16px;
-            background: rgba(255,255,255,0.2);
+
+        .edit-btn {
+            background: var(--app-bg);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .edit-btn:hover {
+            background: var(--app-bg-dark);
+        }
+
+        /* 차트 컨테이너 */
+        .chart-container {
+            background: white;
+            padding: 20px;
             border-radius: 20px;
-            display: inline-block;
-            font-size: 0.9rem;
-        }
-        .sensor-state.detected { background: rgba(244, 67, 54, 0.2); color: #ffcdd2; }
-        .sensor-state.clear { background: rgba(76, 175, 80, 0.2); color: #c8e6c9; }
-
-        .no-data-message {
-            text-align: center;
-            padding: 40px;
-            color: rgba(255,255,255,0.6);
-            font-size: 0.9rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            margin-top: 20px;
+            height: 300px;
         }
 
-        .summary-grid {
+        /* 통계 카드 */
+        .stats-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 25px;
+            background: white;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 140px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
-        .stat-card:hover { transform: translateY(-3px); }
-
-        .stat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-        }
-        .stat-icon.green { background: #E8F5E9; color: #2E7D32; }
-        .stat-icon.orange { background: #FFF3E0; color: #EF6C00; }
-        .stat-icon.blue { background: #E3F2FD; color: #1976D2; }
-
-        .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--text-dark); }
-        .stat-label { font-size: 0.8rem; color: #666; font-weight: 500; }
-
-        .chart-section {
-            background: white;
-            border-radius: 25px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .chart-container {
-            position: relative;
-            height: 200px;
-            width: 100%;
-            overflow: hidden;
-        }
-        
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .section-title { font-size: 1.1rem; font-weight: 600; color: var(--text-dark); }
-
-        /* 약물 관리 섹션 */
-        .medication-list {
-            background: white;
-            border-radius: 25px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .med-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px;
-            margin-bottom: 10px;
-            background: var(--accent-color);
             border-radius: 15px;
-            transition: transform 0.2s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
         }
-        .med-item:hover { transform: translateX(5px); }
-        .med-info { display: flex; align-items: center; gap: 15px; }
-        .med-icon {
-            width: 40px;
-            height: 40px;
-            background: white;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--app-bg);
-        }
-        .med-details h4 { font-size: 1rem; color: var(--text-dark); margin-bottom: 3px; }
-        .med-details p { font-size: 0.85rem; color: #666; }
-        
-        .med-action {
-            padding: 8px 16px;
-            background: var(--app-bg);
-            color: white;
-            border: none;
-            border-radius: 20px;
+
+        .stat-label {
             font-size: 0.85rem;
-            cursor: pointer;
-            transition: background 0.3s;
-            white-space: nowrap;
-            flex-shrink: 0;
+            color: #999;
+            margin-bottom: 5px;
         }
-        .med-action:hover { background: var(--app-bg-dark); }
 
-        /* 알림 섹션 */
-        .reminder-list {
-            background: white;
-            border-radius: 25px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .reminder-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-left: 4px solid var(--app-bg);
-            background: var(--accent-color);
-            border-radius: 8px;
-        }
-        .reminder-time { font-size: 1.2rem; font-weight: 600; color: var(--app-bg); }
-        .reminder-details { flex: 1; }
-        .reminder-title { font-size: 0.95rem; color: var(--text-dark); margin-bottom: 3px; }
-        .reminder-desc { font-size: 0.85rem; color: #666; }
-
-        .toggle-switch {
-            position: relative;
-            width: 50px;
-            height: 25px;
-        }
-        .toggle-switch input { display: none; }
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 25px;
-        }
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 4px;
-            bottom: 3.5px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .toggle-slider { background-color: var(--app-bg); }
-        input:checked + .toggle-slider:before { transform: translateX(25px); }
-
-        /* 프로필 섹션 */
-        .profile-card {
-            background: white;
-            border-radius: 25px;
-            padding: 30px;
-            margin-bottom: 25px;
-            text-align: center;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            background: var(--accent-color);
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 600;
             color: var(--app-bg);
         }
-        .profile-name { font-size: 1.5rem; color: var(--text-dark); margin-bottom: 5px; font-weight: 600; }
-        .profile-email { color: #666; margin-bottom: 20px; }
-        .profile-stats {
-            display: flex;
-            justify-content: space-around;
-            padding: 20px 0;
-            border-top: 1px solid #e0e0e0;
-        }
-        .profile-stat { text-align: center; }
-        .profile-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--app-bg); }
-        .profile-stat-label { font-size: 0.85rem; color: #666; margin-top: 5px; }
 
-        .action-button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            background: var(--app-bg);
-            color: white;
-            border: none;
-            border-radius: 15px;
+        .stat-unit {
             font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .action-button:hover { background: var(--app-bg-dark); }
-        .action-button.secondary {
-            background: white;
-            color: var(--app-bg);
-            border: 2px solid var(--app-bg);
-        }
-        .action-button.secondary:hover { background: var(--accent-color); }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            color: #666;
         }
 
+        /* 로딩 오버레이 */
         .loading-overlay {
-            display: none;
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(107, 142, 107, 0.9);
-            z-index: 1000;
-            justify-content: center;
+            background: rgba(0,0,0,0.5);
+            display: none;
             align-items: center;
-            flex-direction: column;
-            color: white;
+            justify-content: center;
+            z-index: 9999;
         }
-        .loading-overlay.show { display: flex; }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
         .spinner {
             width: 50px;
             height: 50px;
-            border: 4px solid rgba(255,255,255,0.3);
-            border-top: 4px solid white;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 알림 토스트 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 10000;
+            animation: slideIn 0.3s;
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        .toast.success {
+            border-left: 4px solid var(--success-green);
+        }
+
+        .toast.error {
+            border-left: 4px solid var(--error-red);
+        }
+
+        .toast.warning {
+            border-left: 4px solid var(--warning-orange);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* 빈 상태 디자인 */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: #ddd;
             margin-bottom: 20px;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .empty-text {
+            font-size: 1.1rem;
+            color: #999;
+            margin-bottom: 20px;
+        }
+
+        .empty-btn {
+            background: var(--app-bg);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .empty-btn:hover {
+            background: var(--app-bg-dark);
+            transform: translateY(-2px);
+        }
+
+        /* 모달 스타일 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            animation: modalFadeIn 0.3s;
+        }
+
+        @keyframes modalFadeIn {
+            from { 
+                transform: translateY(-50px); 
+                opacity: 0; 
+            }
+            to { 
+                transform: translateY(0); 
+                opacity: 1; 
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--app-bg);
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-primary, .btn-secondary {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--app-bg);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--app-bg-dark);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
         }
     </style>
 </head>
 <body>
     <div class="app-wrapper">
-        <div class="loading-overlay" id="loadingOverlay">
-            <div class="spinner"></div>
-            <p>데이터 로딩 중...</p>
-        </div>
-
+        <!-- 헤더 -->
         <div class="header">
             <div class="header-title">
-                <i class="fa-solid fa-pills"></i> COSS
+                <i class="fa-solid fa-pills"></i>
+                <span>COSS</span>
             </div>
             <div class="header-actions">
-                <div class="sensor-status">
-                    <div class="status-dot" id="sensorStatusDot"></div>
-                    <span id="sensorStatusText">연결 확인중</span>
-                </div>
                 <div class="user-menu">
                     <div class="user-profile-icon" onclick="toggleUserMenu()">
                         <i class="fa-regular fa-user"></i>
                     </div>
                     <div class="dropdown-menu" id="userDropdown">
-                        <div class="dropdown-item" onclick="switchSection('profile')">
+                        <div class="dropdown-item">
                             <i class="fa-solid fa-user"></i>
-                            <span>프로필</span>
+                            <span id="userName">사용자</span>
                         </div>
                         <div class="dropdown-divider"></div>
+                        <div class="dropdown-item" onclick="exportData()">
+                            <i class="fa-solid fa-download"></i>
+                            <span>데이터 내보내기</span>
+                        </div>
                         <div class="dropdown-item" onclick="logout()">
-                            <i class="fa-solid fa-sign-out-alt"></i>
+                            <i class="fa-solid fa-right-from-bracket"></i>
                             <span>로그아웃</span>
                         </div>
                     </div>
@@ -608,388 +789,406 @@
             </div>
         </div>
 
-        <div class="content-body">
-            <div class="sidebar-container" id="sidebar">
-                <div class="active-indicator"></div>
+        <!-- 디지털 복약 시계 (NEW) -->
+        <div class="digital-clock-section">
+            <div class="digital-time" id="digitalClock">00:00</div>
+            <div class="medication-message" id="medicationMessage">
+                시스템 로딩 중...
+            </div>
+        </div>
 
+        <div class="content-body">
+            <!-- 사이드바 -->
+            <div class="sidebar-container">
+                <div class="active-indicator"></div>
                 <div class="sidebar-item active" data-section="dashboard" onclick="switchSection('dashboard')">
-                    <div class="icon-box"><i class="fa-solid fa-chart-pie"></i></div>
+                    <i class="fa-solid fa-house"></i>
                 </div>
-                <div class="sidebar-item" data-section="medication" onclick="switchSection('medication')">
-                    <div class="icon-box"><i class="fa-solid fa-capsules"></i></div>
+                <div class="sidebar-item" data-section="medications" onclick="switchSection('medications')">
+                    <i class="fa-solid fa-capsules"></i>
                 </div>
-                <div class="sidebar-item" data-section="reminder" onclick="switchSection('reminder')">
-                    <div class="icon-box"><i class="fa-regular fa-bell"></i></div>
+                <div class="sidebar-item" data-section="timeline" onclick="switchSection('timeline')">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
-                <div class="sidebar-item" data-section="profile" onclick="switchSection('profile')">
-                    <div class="icon-box"><i class="fa-solid fa-user"></i></div>
+                <div class="sidebar-item" data-section="statistics" onclick="switchSection('statistics')">
+                    <i class="fa-solid fa-chart-line"></i>
                 </div>
-                <div class="sidebar-filler"></div>
+                <div class="sidebar-item" data-section="settings" onclick="switchSection('settings')">
+                    <i class="fa-solid fa-gear"></i>
+                </div>
+                <!-- 새로고침 버튼 -->
+                <div class="refresh-button">
+                    <div class="refresh-btn" onclick="refreshData()">
+                        <i class="fa-solid fa-sync-alt"></i>
+                    </div>
+                </div>
             </div>
 
+            <!-- 메인 컨텐츠 -->
             <div class="main-content">
-                <section class="page-section active" id="dashboardSection">
-                    <div class="welcome-text">
-                        <h2>Hello, <span id="userName">User</span></h2>
-                        <p>오늘의 복약 상태를 확인하세요.</p>
+                <!-- 대시보드 섹션 -->
+                <section id="dashboardSection" class="page-section active">
+                    <h2 class="section-title">복약 현황</h2>
+                    
+                    <!-- 4단계 복약 타임라인 -->
+                    <div class="medication-timeline" id="medicationTimeline">
+                        <!-- 동적으로 생성됨 -->
                     </div>
 
-                    <div class="sensor-card">
-                        <div class="sensor-header">
-                            <div class="sensor-title">IR 센서 상태</div>
-                            <i class="fa-solid fa-wifi"></i>
-                        </div>
-                        <div id="sensorDataArea">
-                            <div class="no-data-message">
-                                <i class="fa-solid fa-satellite-dish" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                                <p>아직 데이터가 없습니다.</p>
-                                <p style="font-size: 0.8rem; margin-top: 10px;">Arduino가 연결되면 자동으로 표시됩니다.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="summary-grid">
+                    <!-- 통계 카드 -->
+                    <div class="stats-grid">
                         <div class="stat-card">
-                            <div class="stat-icon green"><i class="fa-solid fa-check"></i></div>
-                            <div>
-                                <div class="stat-value" id="todayCount">-</div>
-                                <div class="stat-label">오늘 복용</div>
+                            <div class="stat-label">오늘 복용</div>
+                            <div class="stat-value">
+                                <span id="todayCompleted">0</span>
+                                <span class="stat-unit">/ 4</span>
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon orange"><i class="fa-solid fa-fire"></i></div>
-                            <div>
-                                <div class="stat-value" id="adherenceRate">-%</div>
-                                <div class="stat-label">순응도</div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon blue"><i class="fa-solid fa-calendar-check"></i></div>
-                            <div>
-                                <div class="stat-value" id="streakDays">-</div>
-                                <div class="stat-label">연속 일수</div>
-                            </div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon green"><i class="fa-solid fa-pills"></i></div>
-                            <div>
-                                <div class="stat-value" id="totalCount">-</div>
-                                <div class="stat-label">총 복용</div>
+                            <div class="stat-label">순응도</div>
+                            <div class="stat-value">
+                                <span id="adherenceRate">0</span>
+                                <span class="stat-unit">%</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="chart-section">
-                        <div class="section-header">
-                            <div class="section-title">주간 활동</div>
-                            <i class="fa-solid fa-ellipsis" style="color: #ccc;"></i>
+                    <!-- 기간별 복약 현황 탭 -->
+                    <div class="period-tabs">
+                        <div class="period-tab active" onclick="switchPeriod('daily')">일간</div>
+                        <div class="period-tab" onclick="switchPeriod('weekly')">주간</div>
+                        <div class="period-tab" onclick="switchPeriod('monthly')">월간</div>
+                    </div>
+
+                    <div class="period-content active" id="dailyContent">
+                        <div class="chart-container">
+                            <canvas id="dailyChart"></canvas>
                         </div>
+                    </div>
+                    <div class="period-content" id="weeklyContent">
                         <div class="chart-container">
                             <canvas id="weeklyChart"></canvas>
                         </div>
                     </div>
-                </section>
-
-                <section class="page-section" id="medicationSection">
-                    <div class="welcome-text">
-                        <h2>약물 관리</h2>
-                        <p>복약 일정과 약물 정보를 관리하세요.</p>
-                    </div>
-
-                    <div class="medication-list">
-                        <div class="section-header">
-                            <div class="section-title">등록된 약물</div>
-                            <button class="med-action">+ 추가</button>
-                        </div>
-                        
-                        <div id="medicationListArea">
-                            <div class="med-item">
-                                <div class="med-info">
-                                    <div class="med-icon">
-                                        <i class="fa-solid fa-tablets"></i>
-                                    </div>
-                                    <div class="med-details">
-                                        <h4>비타민 C</h4>
-                                        <p>1일 1회, 아침 식후</p>
-                                    </div>
-                                </div>
-                                <button class="med-action">수정</button>
-                            </div>
-                            <div class="med-item">
-                                <div class="med-info">
-                                    <div class="med-icon">
-                                        <i class="fa-solid fa-capsules"></i>
-                                    </div>
-                                    <div class="med-details">
-                                        <h4>오메가-3</h4>
-                                        <p>1일 1회, 저녁 식후</p>
-                                    </div>
-                                </div>
-                                <button class="med-action">수정</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="chart-section">
-                        <div class="section-header">
-                            <div class="section-title">복약 시간 분포</div>
-                        </div>
-                        <canvas id="timeDistributionChart" height="150"></canvas>
-                    </div>
-                </section>
-
-                <section class="page-section" id="reminderSection">
-                    <div class="welcome-text">
-                        <h2>알림 설정</h2>
-                        <p>복약 알림을 관리하세요.</p>
-                    </div>
-
-                    <div class="reminder-list">
-                        <div class="section-header">
-                            <div class="section-title">알림 일정</div>
-                            <button class="med-action">+ 추가</button>
-                        </div>
-                        
-                        <div id="reminderListArea">
-                            <div class="reminder-item">
-                                <div class="reminder-time">08:00</div>
-                                <div class="reminder-details">
-                                    <div class="reminder-title">아침 복약</div>
-                                    <div class="reminder-desc">비타민 C</div>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                            <div class="reminder-item">
-                                <div class="reminder-time">20:00</div>
-                                <div class="reminder-details">
-                                    <div class="reminder-title">저녁 복약</div>
-                                    <div class="reminder-desc">오메가-3</div>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" checked>
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
+                    <div class="period-content" id="monthlyContent">
+                        <div class="chart-container">
+                            <canvas id="monthlyChart"></canvas>
                         </div>
                     </div>
                 </section>
 
-                <section class="page-section" id="profileSection">
-                    <div class="profile-card">
-                        <div class="profile-avatar">
-                            <i class="fa-solid fa-user"></i>
+                <!-- 나의 약통 섹션 -->
+                <section id="medicationsSection" class="page-section">
+                    <h2 class="section-title">나의 약통</h2>
+                    <div class="medication-list" id="medicationList">
+                        <!-- 동적으로 생성됨 -->
+                    </div>
+                </section>
+
+                <!-- 타임라인 섹션 -->
+                <section id="timelineSection" class="page-section">
+                    <h2 class="section-title">복약 기록</h2>
+                    <div id="timelineHistory">
+                        <!-- 동적으로 생성됨 -->
+                    </div>
+                </section>
+
+                <!-- 통계 섹션 -->
+                <section id="statisticsSection" class="page-section">
+                    <h2 class="section-title">상세 분석</h2>
+                    <div class="chart-container">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    <div id="sensorAnalysis" style="margin-top: 20px;">
+                        <!-- 센서별 분석 결과 -->
+                    </div>
+                </section>
+
+                <!-- 설정 섹션 -->
+                <section id="settingsSection" class="page-section">
+                    <h2 class="section-title">설정</h2>
+                    <div class="settings-content">
+                        <div class="medication-item">
+                            <div class="medication-info">
+                                <div class="medication-title">알림 설정</div>
+                                <div class="medication-detail">복약 시간 10분 전 알림</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="notificationToggle" checked>
+                                <span class="slider round"></span>
+                            </label>
                         </div>
-                        <h3 class="profile-name" id="profileName">사용자</h3>
-                        <p class="profile-email" id="profileEmail">user@coss.com</p>
-                        
-                        <div class="profile-stats">
-                            <div class="profile-stat">
-                                <div class="profile-stat-value" id="profileTotalDays">0</div>
-                                <div class="profile-stat-label">사용 일수</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="profile-stat-value" id="profileAverage">0</div>
-                                <div class="profile-stat-label">일 평균</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="profile-stat-value" id="profileStreak">0</div>
-                                <div class="profile-stat-label">최대 연속</div>
-                            </div>
-                        </div>
-                        
-                        <button class="action-button" onclick="window.location.href='/reports.html'">
-                            <i class="fa-solid fa-chart-line"></i> 상세 통계 보기
-                        </button>
-                        <button class="action-button secondary" onclick="exportData()">
-                            <i class="fa-solid fa-download"></i> 데이터 내보내기
-                        </button>
                     </div>
                 </section>
             </div>
         </div>
     </div>
 
-    <script>
-        // API 설정
-        const API_URL = window.location.origin;
-        let authToken = null;
-        let userInfo = null;
-        let currentSection = 'dashboard';
-        let weeklyChart = null;
-        let timeChart = null;
-        let sensorCheckInterval = null;
+    <!-- 약물 정보 수정 모달 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">약물 정보 수정</h3>
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editSensorId">
+                <div class="form-group">
+                    <label class="form-label">약물 이름</label>
+                    <input type="text" class="form-input" id="editName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">설명</label>
+                    <input type="text" class="form-input" id="editDescription">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">복용 시간</label>
+                    <input type="time" class="form-input" id="editTime" required>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn-secondary" onclick="closeModal()">취소</button>
+                    <button type="submit" class="btn-primary">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-        // 페이지 로드
-        window.addEventListener('load', () => {
-            // 인증 확인
-            authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-            const userInfoStr = localStorage.getItem('userInfo') || sessionStorage.getItem('userInfo');
-            
-            if (!authToken || !userInfoStr) {
+    <!-- 로딩 오버레이 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- 토스트 알림 -->
+    <div class="toast" id="toast">
+        <i class="fa-solid fa-check-circle"></i>
+        <span id="toastMessage">메시지</span>
+    </div>
+
+    <script>
+        // 전역 변수
+        const API_URL = window.location.origin;
+        let authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        let userInfo = JSON.parse(localStorage.getItem('userInfo') || sessionStorage.getItem('userInfo') || '{}');
+        let currentSection = 'dashboard';
+        let sensorData = {};
+        let dashboardData = {};
+        let charts = {};
+        let notificationPermission = false;
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!authToken) {
                 window.location.href = '/index.html';
                 return;
             }
-            
-            userInfo = JSON.parse(userInfoStr);
-            document.getElementById('userName').textContent = userInfo.name;
-            document.getElementById('profileName').textContent = userInfo.name;
-            document.getElementById('profileEmail').textContent = userInfo.email;
-            
+
+            // 사용자 이름 설정
+            document.getElementById('userName').textContent = userInfo.name || '사용자';
+
+            // 디지털 시계 시작
+            startDigitalClock();
+
+            // 알림 권한 요청
+            requestNotificationPermission();
+
             // 데이터 로드
             loadDashboardData();
-            
-            // 센서 상태 주기적 확인 (5초마다)
-            sensorCheckInterval = setInterval(checkSensorStatus, 5000);
-            checkSensorStatus(); // 즉시 한번 실행
-            
-            // 사이드바 인디케이터 위치 초기화
-            const sidebarItems = document.querySelectorAll('.sidebar-item');
-            let activeIndex = 0;
-            sidebarItems.forEach((item, index) => {
-                if (item.classList.contains('active')) activeIndex = index;
-            });
-            moveIndicator(activeIndex); // 초기 위치 설정
+
+            // 주기적 업데이트 (10초마다)
+            setInterval(() => {
+                loadDashboardData();
+                checkNotifications();
+            }, 10000);
+
+            // 1분마다 시계 메시지 업데이트
+            setInterval(updateMedicationMessage, 60000);
         });
 
-        // 센서 상태 확인
-        async function checkSensorStatus() {
-            try {
-                const response = await fetch(`${API_URL}/value`);
-                const data = await response.json();
-                
-                const statusDot = document.getElementById('sensorStatusDot');
-                const statusText = document.getElementById('sensorStatusText');
-                
-                if (data.timestamp) {
-                    // 센서 데이터가 있음
-                    const lastUpdate = new Date(data.timestamp);
-                    const now = new Date();
-                    const diffMinutes = Math.floor((now - lastUpdate) / 60000);
-                    
-                    if (diffMinutes < 1) {
-                        statusDot.className = 'status-dot active';
-                        statusText.textContent = '실시간';
-                    } else if (diffMinutes < 5) {
-                        statusDot.className = 'status-dot active';
-                        statusText.textContent = `${diffMinutes}분 전`;
-                    } else {
-                        statusDot.className = 'status-dot inactive';
-                        statusText.textContent = '오프라인';
-                    }
-                    
-                    // 센서 데이터 표시
-                    updateSensorDisplay(data);
-                } else {
-                    statusDot.className = 'status-dot inactive';
-                    statusText.textContent = '대기중';
-                }
-            } catch (error) {
-                console.error('Sensor check failed:', error);
-                document.getElementById('sensorStatusDot').className = 'status-dot inactive';
-                document.getElementById('sensorStatusText').textContent = '오류';
+        // 디지털 시계
+        function startDigitalClock() {
+            function updateClock() {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                document.getElementById('digitalClock').textContent = `${hours}:${minutes}`;
             }
+
+            updateClock();
+            setInterval(updateClock, 1000);
         }
 
-        // 센서 데이터 표시
-        function updateSensorDisplay(data) {
-            const sensorArea = document.getElementById('sensorDataArea');
-            
-            if (!data.timestamp) {
-                return;
+        // 복약 메시지 업데이트
+        function updateMedicationMessage() {
+            if (!dashboardData.sensors) return;
+
+            const now = new Date();
+            const currentTime = now.toTimeString().slice(0, 5);
+            let messageHTML = '';
+            let messageClass = '';
+
+            // 다음 약 복용 시간 확인
+            if (dashboardData.nextMedication) {
+                const { sensor, timeRemaining } = dashboardData.nextMedication;
+                
+                if (timeRemaining <= 10) {
+                    messageHTML = `🔔 <strong>${sensor.name}(${sensor.id}번)</strong>을 지금 복용하세요!`;
+                    messageClass = 'alert';
+                } else if (timeRemaining <= 60) {
+                    const hours = Math.floor(timeRemaining / 60);
+                    const mins = timeRemaining % 60;
+                    messageHTML = `${sensor.emoji} ${sensor.name} 복용까지 ${hours > 0 ? hours + '시간 ' : ''}${mins}분 남았습니다.`;
+                    messageClass = 'success';
+                } else {
+                    messageHTML = `다음 복용: ${sensor.emoji} ${sensor.name} (${sensor.targetTime})`;
+                    messageClass = 'success';
+                }
+            } else {
+                // 놓친 약 확인
+                let missedMeds = [];
+                for (let id in dashboardData.sensors) {
+                    const sensor = dashboardData.sensors[id];
+                    if (sensor.targetTime < currentTime && !sensor.todayOpened) {
+                        missedMeds.push(`${sensor.emoji} ${sensor.name}`);
+                    }
+                }
+
+                if (missedMeds.length > 0) {
+                    messageHTML = `⚠️ 복용하지 않은 약: ${missedMeds.join(', ')}`;
+                    messageClass = 'warning';
+                } else {
+                    // 모든 약 복용 완료
+                    let completedCount = 0;
+                    for (let id in dashboardData.sensors) {
+                        if (dashboardData.sensors[id].todayOpened) completedCount++;
+                    }
+
+                    if (completedCount === 4) {
+                        messageHTML = '✅ 오늘의 모든 약을 복용하셨습니다!';
+                        messageClass = 'success';
+                    } else {
+                        messageHTML = `오늘 ${completedCount}/4개 복용 완료`;
+                        messageClass = 'success';
+                    }
+                }
             }
-            
-            const stateClass = data.value === 1 ? 'detected' : 'clear';
-            const stateText = data.value === 1 ? '약통 제거됨' : '약통 있음';
-            const iconClass = data.value === 1 ? 'fa-box-open' : 'fa-box';
-            
-            sensorArea.innerHTML = `
-                <div class="sensor-value-display">
-                    <div class="sensor-big-value">${data.count || 0}</div>
-                    <div class="sensor-unit">회</div>
-                </div>
-                <div class="sensor-state ${stateClass}">
-                    <i class="fa-solid ${iconClass}"></i> ${stateText}
-                </div>
-                <div style="margin-top: 15px; font-size: 0.85rem; opacity: 0.7;">
-                    마지막 업데이트: ${new Date(data.timestamp).toLocaleTimeString()}
-                </div>
-            `;
+
+            const messageEl = document.getElementById('medicationMessage');
+            messageEl.innerHTML = messageHTML;
+            messageEl.className = `medication-message ${messageClass}`;
         }
 
         // 대시보드 데이터 로드
         async function loadDashboardData() {
-            const overlay = document.getElementById('loadingOverlay');
-            overlay.classList.add('show');
-            
             try {
                 const response = await fetch(`${API_URL}/api/dashboard/stats`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`
                     }
                 });
-                
+
                 if (!response.ok) throw new Error('Failed to load data');
-                
-                const data = await response.json();
-                
-                // 통계 업데이트
-                document.getElementById('todayCount').textContent = data.today.count || '0';
-                document.getElementById('adherenceRate').textContent = `${data.adherenceRate || 0}%`;
-                document.getElementById('streakDays').textContent = data.adherenceMetrics?.currentStreak || '0';
-                document.getElementById('totalCount').textContent = data.totalCount || '0';
-                
-                // 프로필 통계 업데이트
-                document.getElementById('profileTotalDays').textContent = data.adherenceMetrics?.totalDays || '0';
-                document.getElementById('profileAverage').textContent = 
-                    (data.adherenceMetrics?.averagePerDay || 0).toFixed(1);
-                document.getElementById('profileStreak').textContent = data.adherenceMetrics?.maxStreak || '0';
-                
-                // 차트 업데이트
-                updateWeeklyChart(data.weekly);
-                
+
+                dashboardData = await response.json();
+                sensorData = dashboardData.sensors;
+
+                // UI 업데이트
+                updateMedicationTimeline();
+                updateMedicationMessage();
+                updateStats();
+                updateCharts();
+
             } catch (error) {
                 console.error('Failed to load dashboard data:', error);
-                showNotification('데이터를 불러오는데 실패했습니다.', 'error');
-            } finally {
-                overlay.classList.remove('show');
+                showToast('데이터를 불러오는데 실패했습니다.', 'error');
             }
         }
 
-        // 주간 차트 업데이트
-        function updateWeeklyChart(weeklyData) {
-            const ctx = document.getElementById('weeklyChart').getContext('2d');
-            
-            if (weeklyChart) {
-                weeklyChart.destroy();
+        // 4단계 복약 타임라인 업데이트
+        function updateMedicationTimeline() {
+            const timeline = document.getElementById('medicationTimeline');
+            let html = '';
+
+            for (let id = 1; id <= 4; id++) {
+                const sensor = sensorData[id];
+                if (!sensor) continue;
+
+                let cardClass = 'pending';
+                let statusIcon = '';
+
+                const now = new Date();
+                const currentTime = now.toTimeString().slice(0, 5);
+
+                if (sensor.todayOpened) {
+                    cardClass = 'completed';
+                    statusIcon = '<div class="timeline-status check"><i class="fa-solid fa-check"></i></div>';
+                } else if (sensor.targetTime < currentTime) {
+                    cardClass = 'missed';
+                    statusIcon = '<div class="timeline-status alert"><i class="fa-solid fa-exclamation"></i></div>';
+                } else {
+                    statusIcon = '<div class="timeline-status clock"><i class="fa-solid fa-clock"></i></div>';
+                }
+
+                html += `
+                    <div class="timeline-card ${cardClass}" onclick="viewSensorDetail(${id})">
+                        ${statusIcon}
+                        <div class="timeline-header">
+                            <span class="timeline-emoji">${sensor.emoji}</span>
+                            <span class="timeline-time">${sensor.targetTime}</span>
+                        </div>
+                        <div class="timeline-name">${sensor.name}</div>
+                        <div class="timeline-desc">${sensor.description}</div>
+                        ${sensor.lastOpened ? `<div class="timeline-desc">마지막: ${new Date(sensor.lastOpened).toLocaleTimeString()}</div>` : ''}
+                    </div>
+                `;
             }
-            
-            const labels = weeklyData ? weeklyData.map(d => d.day) : 
-                          ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const values = weeklyData ? weeklyData.map(d => d.count) :
-                          [0, 0, 0, 0, 0, 0, 0];
-            
-            let gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, 'rgba(107, 142, 107, 0.2)');
-            gradient.addColorStop(1, 'rgba(107, 142, 107, 0)');
-            
-            weeklyChart = new Chart(ctx, {
-                type: 'line',
+
+            timeline.innerHTML = html;
+        }
+
+        // 통계 업데이트
+        function updateStats() {
+            let completedCount = 0;
+            for (let id in sensorData) {
+                if (sensorData[id].todayOpened) completedCount++;
+            }
+
+            document.getElementById('todayCompleted').textContent = completedCount;
+            document.getElementById('adherenceRate').textContent = dashboardData.adherenceRate || 0;
+        }
+
+        // 차트 업데이트
+        function updateCharts() {
+            // 일간 차트 (오늘의 센서별 상태)
+            updateDailyChart();
+
+            // 주간 차트 (최근 7일 완료율)
+            updateWeeklyChart();
+
+            // 월간 차트는 별도 API 호출 필요
+        }
+
+        function updateDailyChart() {
+            const ctx = document.getElementById('dailyChart');
+            if (!ctx) return;
+
+            const labels = ['🌅 아침', '☀️ 점심', '🌙 저녁', '🛌 자기전'];
+            const data = [];
+
+            for (let i = 1; i <= 4; i++) {
+                data.push(sensorData[i] && sensorData[i].todayOpened ? 1 : 0);
+            }
+
+            if (charts.daily) charts.daily.destroy();
+
+            charts.daily = new Chart(ctx, {
+                type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: '복약 횟수',
-                        data: values,
-                        borderColor: '#6B8E6B',
-                        backgroundColor: gradient,
-                        borderWidth: 3,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#6B8E6B',
-                        pointRadius: 4,
-                        fill: true,
-                        tension: 0.4
+                        label: '복용 여부',
+                        data: data,
+                        backgroundColor: data.map(v => v ? '#4CAF50' : '#F44336'),
+                        borderRadius: 10
                     }]
                 },
                 options: {
@@ -1001,53 +1200,88 @@
                     scales: {
                         y: {
                             beginAtZero: true,
-                            grid: { borderDash: [5, 5], color: '#f0f0f0' },
-                            ticks: { 
+                            max: 1,
+                            ticks: {
                                 stepSize: 1,
-                                color: '#999' 
+                                callback: value => value ? '복용' : '미복용'
                             }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#999' }
                         }
                     }
                 }
             });
         }
 
-        // [수정됨] 인디케이터 이동 함수 (중복 제거)
-        function moveIndicator(index) {
-            const indicator = document.querySelector('.active-indicator');
-            const sidebarItems = document.querySelectorAll('.sidebar-item');
-            
-            // 인디케이터 이동 (top padding 20px 고려하지 않고 item height만 계산)
-            // sidebar-container padding-top: 20px, indicator top: 10px (css 보정필요 없음, relative 이동)
-            // 정확한 위치를 위해 인덱스 * 90px
-            indicator.style.transform = `translateY(${index * 90}px)`;
-            
-            // [핵심] 맨 위 아이템(index 0) 선택 시, 위쪽 덮개(::before) 숨기기 클래스 추가
-            if (index === 0) {
-                indicator.classList.add('is-first');
-            } else {
-                indicator.classList.remove('is-first');
+        function updateWeeklyChart() {
+            const ctx = document.getElementById('weeklyChart');
+            if (!ctx) return;
+
+            if (charts.weekly) charts.weekly.destroy();
+
+            const labels = dashboardData.weekly?.map(d => d.day) || [];
+            const data = dashboardData.weekly?.map(d => d.completedCount) || [];
+
+            charts.weekly = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '완료 개수',
+                        data: data,
+                        borderColor: '#6B8E6B',
+                        backgroundColor: 'rgba(107, 142, 107, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 4,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 기간 탭 전환
+        function switchPeriod(period) {
+            document.querySelectorAll('.period-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.period-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            event.target.classList.add('active');
+            document.getElementById(`${period}Content`).classList.add('active');
+
+            // 월간 차트는 필요시 로드
+            if (period === 'monthly' && !charts.monthly) {
+                loadMonthlyChart();
             }
         }
 
-        // 섹션 전환 함수
+        // 섹션 전환
         function switchSection(section) {
-            // 현재 섹션 비활성화
             document.querySelectorAll('.page-section').forEach(s => {
                 s.classList.remove('active');
             });
-            
-            // 새 섹션 활성화
+
             document.getElementById(`${section}Section`).classList.add('active');
-            
-            // 사이드바 아이템 활성 상태 업데이트 및 인덱스 찾기
+
+            // 사이드바 업데이트
             const sidebarItems = document.querySelectorAll('.sidebar-item');
             let activeIndex = 0;
-            
+
             sidebarItems.forEach((item, index) => {
                 item.classList.remove('active');
                 if (item.dataset.section === section) {
@@ -1055,14 +1289,348 @@
                     activeIndex = index;
                 }
             });
-            
+
             // 인디케이터 이동
             moveIndicator(activeIndex);
 
             currentSection = section;
-            
-            // 드롭다운 닫기
-            document.getElementById('userDropdown').classList.remove('show');
+
+            // 섹션별 데이터 로드
+            if (section === 'medications') {
+                loadMedications();
+            } else if (section === 'timeline') {
+                loadTimeline();
+            } else if (section === 'statistics') {
+                loadStatistics();
+            }
+        }
+
+        // 인디케이터 이동
+        function moveIndicator(index) {
+            const indicator = document.querySelector('.active-indicator');
+            indicator.style.transform = `translateY(${index * 75}px)`;
+
+            if (index === 0) {
+                indicator.classList.add('is-first');
+            } else {
+                indicator.classList.remove('is-first');
+            }
+        }
+
+        // 나의 약통 로드
+        async function loadMedications() {
+            try {
+                const response = await fetch(`${API_URL}/api/medications`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const medications = await response.json();
+                const list = document.getElementById('medicationList');
+
+                if (medications.length === 0) {
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fa-solid fa-pills"></i></div>
+                            <div class="empty-text">등록된 약물이 없습니다</div>
+                        </div>
+                    `;
+                } else {
+                    let html = '';
+                    medications.forEach(med => {
+                        html += `
+                            <div class="medication-item">
+                                <div class="medication-info">
+                                    <div class="medication-title">
+                                        <span>${med.emoji}</span>
+                                        <span>${med.name}</span>
+                                    </div>
+                                    <div class="medication-detail">
+                                        ${med.description} | 복용 시간: ${med.targetTime}
+                                    </div>
+                                </div>
+                                <button class="edit-btn" onclick="editMedication(${med.sensorId})">
+                                    <i class="fa-solid fa-pen"></i> 수정
+                                </button>
+                            </div>
+                        `;
+                    });
+                    list.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Failed to load medications:', error);
+            }
+        }
+
+        // 약물 정보 수정
+        function editMedication(sensorId) {
+            const sensor = sensorData[sensorId];
+            if (!sensor) return;
+
+            document.getElementById('editSensorId').value = sensorId;
+            document.getElementById('editName').value = sensor.name;
+            document.getElementById('editDescription').value = sensor.description;
+            document.getElementById('editTime').value = sensor.targetTime;
+
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        // 모달 닫기
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+
+        // 약물 정보 저장
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const sensorId = document.getElementById('editSensorId').value;
+            const data = {
+                name: document.getElementById('editName').value,
+                description: document.getElementById('editDescription').value,
+                targetTime: document.getElementById('editTime').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/api/medications/${sensorId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    closeModal();
+                    showToast('약물 정보가 수정되었습니다.', 'success');
+                    loadDashboardData();
+                    loadMedications();
+                }
+            } catch (error) {
+                console.error('Failed to update medication:', error);
+                showToast('수정에 실패했습니다.', 'error');
+            }
+        });
+
+        // 타임라인 로드
+        async function loadTimeline() {
+            try {
+                const response = await fetch(`${API_URL}/api/sensor/history`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+                const timeline = document.getElementById('timelineHistory');
+
+                if (data.history.length === 0) {
+                    timeline.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                            <div class="empty-text">아직 기록이 없습니다</div>
+                        </div>
+                    `;
+                } else {
+                    let html = '<div class="medication-list">';
+                    data.history.slice(0, 20).forEach(record => {
+                        const icon = record.action === 'removed' ? 'fa-box-open' : 'fa-box';
+                        const color = record.action === 'removed' ? '#4CAF50' : '#999';
+                        html += `
+                            <div class="medication-item">
+                                <div class="medication-info">
+                                    <div class="medication-title" style="color: ${color};">
+                                        <i class="fa-solid ${icon}"></i>
+                                        <span>${record.sensorName}</span>
+                                    </div>
+                                    <div class="medication-detail">
+                                        ${new Date(record.timestamp).toLocaleString()}
+                                        ${record.action === 'removed' ? ' - 약통 열림' : ' - 약통 닫힘'}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    timeline.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Failed to load timeline:', error);
+            }
+        }
+
+        // 통계 로드
+        async function loadStatistics() {
+            try {
+                const response = await fetch(`${API_URL}/api/reports/detailed`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+                
+                // 레이더 차트 업데이트
+                updateRadarChart(data.sensorStats);
+
+                // 센서별 분석
+                updateSensorAnalysis(data.sensorStats);
+
+            } catch (error) {
+                console.error('Failed to load statistics:', error);
+            }
+        }
+
+        // 레이더 차트 업데이트
+        function updateRadarChart(sensorStats) {
+            const ctx = document.getElementById('radarChart');
+            if (!ctx) return;
+
+            const labels = [];
+            const data = [];
+
+            for (let id in sensorStats) {
+                labels.push(sensorStats[id].name);
+                data.push(sensorStats[id].successRate);
+            }
+
+            if (charts.radar) charts.radar.destroy();
+
+            charts.radar = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '복용 성공률 (%)',
+                        data: data,
+                        borderColor: '#6B8E6B',
+                        backgroundColor: 'rgba(107, 142, 107, 0.2)',
+                        borderWidth: 2,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: { stepSize: 20 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 센서별 분석 업데이트
+        function updateSensorAnalysis(sensorStats) {
+            const analysis = document.getElementById('sensorAnalysis');
+            let html = '<div class="stats-grid">';
+
+            for (let id in sensorStats) {
+                const stat = sensorStats[id];
+                html += `
+                    <div class="stat-card">
+                        <div class="stat-label">${stat.emoji} ${stat.name}</div>
+                        <div class="stat-value">${stat.successRate}%</div>
+                        <div class="medication-detail">총 ${stat.totalCount}회 복용</div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            analysis.innerHTML = html;
+        }
+
+        // 알림 권한 요청
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                    notificationPermission = permission === 'granted';
+                });
+            }
+        }
+
+        // 알림 체크
+        async function checkNotifications() {
+            try {
+                const response = await fetch(`${API_URL}/api/notifications/check`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.alerts && data.alerts.length > 0) {
+                    data.alerts.forEach(alert => {
+                        if (alert.priority === 'high' || alert.priority === 'medium') {
+                            showNotification(alert.message, alert.type);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to check notifications:', error);
+            }
+        }
+
+        // 브라우저 알림 표시
+        function showNotification(message, type = 'info') {
+            // 토스트 알림
+            showToast(message, type);
+
+            // 브라우저 알림
+            if (notificationPermission && document.hidden) {
+                new Notification('COSS 복약 알림', {
+                    body: message.replace(/<[^>]*>/g, ''),
+                    icon: '/favicon.ico'
+                });
+            }
+        }
+
+        // 토스트 알림 표시
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+
+            toastMessage.textContent = message.replace(/<[^>]*>/g, '');
+            toast.className = `toast ${type} show`;
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 센서 상세 보기
+        function viewSensorDetail(sensorId) {
+            const sensor = sensorData[sensorId];
+            if (!sensor) return;
+
+            let status = sensor.todayOpened ? '✅ 복용 완료' : '⏰ 복용 대기';
+            let message = `
+                ${sensor.emoji} ${sensor.name}
+                상태: ${status}
+                목표 시간: ${sensor.targetTime}
+                ${sensor.lastOpened ? `마지막 복용: ${new Date(sensor.lastOpened).toLocaleString()}` : ''}
+            `;
+
+            alert(message);
+        }
+
+        // 데이터 새로고침
+        function refreshData() {
+            const btn = document.querySelector('.refresh-btn');
+            btn.style.transform = 'rotate(360deg)';
+
+            loadDashboardData();
+
+            setTimeout(() => {
+                btn.style.transform = 'rotate(0deg)';
+                showToast('데이터를 새로고침했습니다.', 'success');
+            }, 500);
         }
 
         // 사용자 메뉴 토글
@@ -1071,7 +1639,7 @@
             dropdown.classList.toggle('show');
         }
 
-        // 클릭 외부 감지
+        // 외부 클릭 감지
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.user-menu')) {
                 document.getElementById('userDropdown').classList.remove('show');
@@ -1095,10 +1663,9 @@
                         'Authorization': `Bearer ${authToken}`
                     }
                 });
-                
+
                 const data = await response.json();
-                
-                // JSON으로 다운로드
+
                 const blob = new Blob([JSON.stringify(data, null, 2)], 
                                      { type: 'application/json' });
                 const url = window.URL.createObjectURL(blob);
@@ -1106,26 +1673,13 @@
                 a.href = url;
                 a.download = `coss-data-${new Date().toISOString().split('T')[0]}.json`;
                 a.click();
-                
-                showNotification('데이터가 다운로드되었습니다.', 'success');
+
+                showToast('데이터가 다운로드되었습니다.', 'success');
             } catch (error) {
                 console.error('Export failed:', error);
-                showNotification('데이터 내보내기 실패', 'error');
+                showToast('데이터 내보내기 실패', 'error');
             }
         }
-
-        // 알림 표시
-        function showNotification(message, type = 'info') {
-            // 간단한 알림 구현 (토스트)
-            console.log(`[${type}] ${message}`);
-        }
-
-        // 페이지 언로드 시 정리
-        window.addEventListener('beforeunload', () => {
-            if (sensorCheckInterval) {
-                clearInterval(sensorCheckInterval);
-            }
-        });
     </script>
 </body>
 </html>
