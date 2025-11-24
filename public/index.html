@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COSS 스마트 약통 관리 시스템</title>
+    <title>COSS - 스마트 약통 관리 시스템</title>
     <style>
         * {
             margin: 0;
@@ -15,270 +15,114 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
         }
 
-        .main-container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .header {
+        .auth-container {
             background: rgba(255, 255, 255, 0.98);
             border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
         }
 
-        h1 {
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
             color: #333;
             font-size: 32px;
             margin-bottom: 10px;
         }
 
-        .subtitle {
+        .logo p {
             color: #666;
-            font-size: 16px;
+            font-size: 14px;
         }
 
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
             border-bottom: 2px solid #f0f0f0;
         }
 
-        .sensor-status-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .sensor-status-card .card-title {
-            color: white;
-            border-bottom-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .sensor-value {
-            font-size: 64px;
-            font-weight: bold;
+        .tab {
+            flex: 1;
+            padding: 15px;
             text-align: center;
-            margin: 30px 0;
-        }
-
-        .sensor-state {
-            display: inline-block;
-            padding: 10px 24px;
-            border-radius: 25px;
-            font-weight: 600;
-            margin-top: 10px;
-            font-size: 16px;
-        }
-
-        .sensor-state.detected {
-            background: rgba(248, 113, 113, 0.2);
-            color: #fff;
-        }
-
-        .sensor-state.clear {
-            background: rgba(74, 222, 128, 0.2);
-            color: #fff;
-        }
-
-        .metric {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .metric:last-child {
-            border-bottom: none;
-        }
-
-        .metric-label {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .metric-value {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .metric-value.good {
-            color: #10b981;
-        }
-
-        .metric-value.warning {
-            color: #f59e0b;
-        }
-
-        .metric-value.danger {
-            color: #ef4444;
-        }
-
-        .adherence-gauge {
-            text-align: center;
-            padding: 20px;
-        }
-
-        .gauge-circle {
-            width: 180px;
-            height: 180px;
-            margin: 0 auto 20px;
-            position: relative;
-        }
-
-        .gauge-bg {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: conic-gradient(
-                from 180deg,
-                #10b981 0deg,
-                #10b981 var(--percentage),
-                #e5e7eb var(--percentage),
-                #e5e7eb 360deg
-            );
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .gauge-center {
-            width: 140px;
-            height: 140px;
-            background: white;
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .gauge-value {
-            font-size: 36px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .gauge-label {
-            font-size: 14px;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .time-chart {
-            height: 200px;
-            position: relative;
-            margin-top: 20px;
-        }
-
-        .hour-blocks {
-            display: grid;
-            grid-template-columns: repeat(24, 1fr);
-            gap: 2px;
-            height: 40px;
-            margin-top: 20px;
-        }
-
-        .hour-block {
-            background: #e5e7eb;
-            border-radius: 3px;
-            position: relative;
             cursor: pointer;
+            transition: all 0.3s ease;
+            color: #999;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .tab.active {
+            color: #667eea;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
             transition: all 0.3s ease;
         }
 
-        .hour-block.taken {
-            background: #10b981;
-        }
-
-        .hour-block:hover {
-            transform: scale(1.2);
-            z-index: 10;
-        }
-
-        .weekday-chart {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .weekday {
-            text-align: center;
-        }
-
-        .weekday-label {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 8px;
-        }
-
-        .weekday-bar {
-            height: 80px;
-            background: #e5e7eb;
-            border-radius: 8px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .weekday-fill {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background: linear-gradient(to top, #667eea, #764ba2);
-            transition: height 0.5s ease;
-        }
-
-        .weekday-percent {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-weight: 600;
-            color: #333;
-            z-index: 1;
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 20px;
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         button {
+            width: 100%;
+            padding: 14px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
+            border-radius: 10px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-weight: 600;
         }
 
         button:hover {
@@ -291,505 +135,331 @@
             cursor: not-allowed;
         }
 
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-left: 8px;
-            animation: blink 2s infinite;
-        }
-
-        .status-indicator.active {
-            background: #10b981;
-            box-shadow: 0 0 10px #10b981;
-        }
-
-        .status-indicator.inactive {
-            background: #ef4444;
-            box-shadow: 0 0 10px #ef4444;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .alert {
-            padding: 15px;
-            border-radius: 10px;
+        .message {
             margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+
+        .form-footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
             font-size: 14px;
         }
 
-        .alert.warning {
-            background: #fef3c7;
-            color: #92400e;
-            border-left: 4px solid #f59e0b;
+        .form-footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
         }
 
-        .alert.success {
-            background: #d1fae5;
-            color: #065f46;
-            border-left: 4px solid #10b981;
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
         }
 
-        .timestamp {
-            text-align: center;
-            color: #999;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        button.loading .button-text {
+            display: none;
+        }
+
+        button.loading .loading-spinner {
+            display: block;
+        }
+
+        .password-requirements {
             font-size: 12px;
-            margin-top: 10px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
         }
     </style>
 </head>
 <body>
-    <div class="main-container">
-        <div class="header">
-            <h1>💊 COSS 스마트 약통 관리 시스템</h1>
-            <p class="subtitle">실시간 복약 모니터링 및 순응도 분석 대시보드</p>
+    <div class="auth-container">
+        <div class="logo">
+            <h1>💊 COSS</h1>
+            <p>스마트 약통 관리 시스템</p>
         </div>
 
-        <div class="dashboard">
-            <!-- 센서 상태 카드 -->
-            <div class="card sensor-status-card">
-                <h3 class="card-title">센서 상태 모니터<span id="statusIndicator" class="status-indicator inactive"></span></h3>
-                <div class="sensor-value" id="sensorValue">-</div>
-                <center>
-                    <div id="detectionState" class="sensor-state clear">대기 중</div>
-                </center>
-                <div class="timestamp" id="lastUpdate">마지막 업데이트: -</div>
-            </div>
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('login')">로그인</div>
+            <div class="tab" onclick="switchTab('signup')">회원가입</div>
+        </div>
 
-            <!-- 오늘의 복약 현황 -->
-            <div class="card">
-                <h3 class="card-title">오늘의 복약 현황</h3>
-                <div class="metric">
-                    <span class="metric-label">복약 횟수</span>
-                    <span class="metric-value" id="todayCount">0회</span>
+        <!-- 로그인 폼 -->
+        <div id="loginForm" class="form-container active">
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="loginEmail">이메일</label>
+                    <input type="email" id="loginEmail" required placeholder="example@email.com">
                 </div>
-                <div class="metric">
-                    <span class="metric-label">첫 복약 시간</span>
-                    <span class="metric-value" id="firstDose">-</span>
+                <div class="form-group">
+                    <label for="loginPassword">비밀번호</label>
+                    <input type="password" id="loginPassword" required placeholder="비밀번호 입력">
                 </div>
-                <div class="metric">
-                    <span class="metric-label">마지막 복약 시간</span>
-                    <span class="metric-value" id="lastDose">-</span>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="rememberMe">
+                    <label for="rememberMe">로그인 상태 유지</label>
                 </div>
-                <div class="metric">
-                    <span class="metric-label">평균 간격</span>
-                    <span class="metric-value" id="avgInterval">-</span>
-                </div>
-                <div id="todayAlert" class="alert" style="display: none;"></div>
+                <button type="submit">
+                    <span class="button-text">로그인</span>
+                    <div class="loading-spinner"></div>
+                </button>
+            </form>
+            <div id="loginMessage" class="message"></div>
+            <div class="form-footer">
+                계정이 없으신가요? <a href="#" onclick="switchTab('signup')">회원가입</a>
             </div>
+        </div>
 
-            <!-- 복약 순응도 -->
-            <div class="card">
-                <h3 class="card-title">복약 순응도 (PDC)</h3>
-                <div class="adherence-gauge">
-                    <div class="gauge-circle">
-                        <div class="gauge-bg" style="--percentage: 0deg;">
-                            <div class="gauge-center">
-                                <div class="gauge-value" id="adherencePercent">0%</div>
-                                <div class="gauge-label">최근 7일</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">연속 복약일</span>
-                        <span class="metric-value good" id="streak">0일</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">이번 주 성공률</span>
-                        <span class="metric-value" id="weekSuccess">0%</span>
+        <!-- 회원가입 폼 -->
+        <div id="signupForm" class="form-container">
+            <form onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label for="signupName">이름</label>
+                    <input type="text" id="signupName" required placeholder="실명 입력">
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">이메일</label>
+                    <input type="email" id="signupEmail" required placeholder="example@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">비밀번호</label>
+                    <input type="password" id="signupPassword" required placeholder="8자 이상">
+                    <div class="password-requirements">
+                        * 8자 이상, 영문과 숫자 포함
                     </div>
                 </div>
-            </div>
-
-            <!-- 시간대별 패턴 -->
-            <div class="card">
-                <h3 class="card-title">시간대별 복약 패턴 (24시간)</h3>
-                <div class="hour-blocks" id="hourChart"></div>
-                <div class="metric">
-                    <span class="metric-label">주요 복약 시간대</span>
-                    <span class="metric-value" id="peakHour">분석 중...</span>
+                <div class="form-group">
+                    <label for="signupPasswordConfirm">비밀번호 확인</label>
+                    <input type="password" id="signupPasswordConfirm" required placeholder="비밀번호 재입력">
                 </div>
-                <div class="metric">
-                    <span class="metric-label">시간 일관성</span>
-                    <span class="metric-value" id="consistency">계산 중...</span>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="agreeTerms" required>
+                    <label for="agreeTerms">이용약관 및 개인정보처리방침에 동의합니다</label>
                 </div>
-            </div>
-
-            <!-- 요일별 분석 -->
-            <div class="card">
-                <h3 class="card-title">요일별 복약 패턴</h3>
-                <div class="weekday-chart" id="weekdayChart"></div>
-                <div class="alert warning" id="weekendAlert" style="display: none;">
-                    주말 복약률이 평일보다 낮습니다. 주의가 필요합니다.
-                </div>
-            </div>
-
-            <!-- 통계 요약 -->
-            <div class="card">
-                <h3 class="card-title">전체 통계</h3>
-                <div class="metric">
-                    <span class="metric-label">총 복약 횟수</span>
-                    <span class="metric-value" id="totalCount">0</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">모니터링 시작</span>
-                    <span class="metric-value" id="startDate">-</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">최장 연속 복약</span>
-                    <span class="metric-value good" id="maxStreak">0일</span>
-                </div>
-                <div class="metric">
-                    <span class="metric-label">최장 휴약 기간</span>
-                    <span class="metric-value danger" id="maxGap">0일</span>
-                </div>
-                <div class="controls">
-                    <button onclick="resetData()">데이터 초기화</button>
-                    <button onclick="exportData()">데이터 내보내기</button>
-                </div>
+                <button type="submit">
+                    <span class="button-text">회원가입</span>
+                    <div class="loading-spinner"></div>
+                </button>
+            </form>
+            <div id="signupMessage" class="message"></div>
+            <div class="form-footer">
+                이미 계정이 있으신가요? <a href="#" onclick="switchTab('login')">로그인</a>
             </div>
         </div>
     </div>
 
     <script>
-        // 서버 URL 고정
         const SERVER_URL = 'https://port-0-coss-mi0kk25df8c7e306.sel3.cloudtype.app';
-        
-        // 상태 관리 변수
-        let isConnected = false;
-        let intervalId = null;
-        let medicationHistory = JSON.parse(localStorage.getItem('medicationHistory')) || [];
-        let currentSensorState = 0;
-        let removalStartTime = null;
-        let debounceTimer = null;
-        
-        // 초기화
+
+        // 페이지 로드 시 저장된 토큰 확인
         window.addEventListener('load', () => {
-            loadHistoricalData();
-            initializeCharts();
-            connect();
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                // 토큰 유효성 확인
+                verifyToken(token);
+            }
         });
 
-        function connect() {
-            isConnected = true;
-            document.getElementById('statusIndicator').className = 'status-indicator active';
-            
-            // 데이터 폴링 시작
-            fetchSensorData();
-            intervalId = setInterval(fetchSensorData, 1000);
-        }
-
-        async function fetchSensorData() {
+        async function verifyToken(token) {
             try {
-                const response = await fetch(`${SERVER_URL}/value`, {
-                    method: 'GET',
+                const response = await fetch(`${SERVER_URL}/api/auth/verify`, {
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
-                if (!response.ok) {
-                    throw new Error('서버 응답 오류');
+                if (response.ok) {
+                    // 토큰이 유효하면 대시보드로 이동
+                    window.location.href = '/dashboard.html';
+                } else {
+                    // 토큰이 무효하면 삭제
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userInfo');
                 }
+            } catch (error) {
+                console.error('Token verification failed:', error);
+            }
+        }
+
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.tab');
+            const forms = document.querySelectorAll('.form-container');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            forms.forEach(f => f.classList.remove('active'));
+            
+            if (tab === 'login') {
+                tabs[0].classList.add('active');
+                document.getElementById('loginForm').classList.add('active');
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('signupForm').classList.add('active');
+            }
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            const button = event.target.querySelector('button');
+            const message = document.getElementById('loginMessage');
+            
+            button.classList.add('loading');
+            button.disabled = true;
+            message.className = 'message';
+            
+            try {
+                const response = await fetch(`${SERVER_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password, rememberMe })
+                });
 
                 const data = await response.json();
-                processSensorData(data);
-
+                
+                if (response.ok) {
+                    // 로그인 성공
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('userInfo', JSON.stringify(data.user));
+                    
+                    message.className = 'message success';
+                    message.textContent = '로그인 성공! 대시보드로 이동합니다...';
+                    
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 1000);
+                } else {
+                    // 로그인 실패
+                    message.className = 'message error';
+                    message.textContent = data.error || '로그인에 실패했습니다.';
+                }
             } catch (error) {
-                console.error('데이터 가져오기 실패:', error);
-                document.getElementById('statusIndicator').className = 'status-indicator inactive';
+                message.className = 'message error';
+                message.textContent = '서버 연결에 실패했습니다.';
+            } finally {
+                button.classList.remove('loading');
+                button.disabled = false;
             }
         }
 
-        function processSensorData(data) {
-            const sensorValue = data.a !== undefined ? data.a : 0;
-            const timestamp = new Date(data.timestamp || new Date());
+        async function handleSignup(event) {
+            event.preventDefault();
             
-            // UI 업데이트
-            document.getElementById('sensorValue').textContent = sensorValue;
-            document.getElementById('lastUpdate').textContent = 
-                `마지막 업데이트: ${timestamp.toLocaleTimeString('ko-KR')}`;
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+            const agreeTerms = document.getElementById('agreeTerms').checked;
             
-            // 센서 값이 0->1로 변경 (약통 제거)
-            if (currentSensorState === 0 && sensorValue === 1) {
-                removalStartTime = Date.now();
-                
-                // 디바운싱: 1초 후에 확인
-                if (debounceTimer) clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => {
-                    if (currentSensorState === 1) { // 여전히 제거 상태면
-                        recordMedication(removalStartTime);
-                    }
-                }, 1000);
-                
-                document.getElementById('detectionState').textContent = '💊 약통 제거됨';
-                document.getElementById('detectionState').className = 'sensor-state detected';
-            }
-            // 센서 값이 1->0으로 변경 (약통 복귀)
-            else if (currentSensorState === 1 && sensorValue === 0) {
-                if (debounceTimer) clearTimeout(debounceTimer);
-                
-                document.getElementById('detectionState').textContent = '✅ 약통 복귀됨';
-                document.getElementById('detectionState').className = 'sensor-state clear';
-                
-                // 복약 소요 시간 계산 (선택사항)
-                if (removalStartTime) {
-                    const duration = Date.now() - removalStartTime;
-                    console.log(`복약 소요 시간: ${Math.round(duration / 1000)}초`);
-                }
+            const button = event.target.querySelector('button');
+            const message = document.getElementById('signupMessage');
+            
+            // 비밀번호 확인
+            if (password !== passwordConfirm) {
+                message.className = 'message error';
+                message.textContent = '비밀번호가 일치하지 않습니다.';
+                return;
             }
             
-            currentSensorState = sensorValue;
-        }
+            // 비밀번호 규칙 확인
+            if (password.length < 8) {
+                message.className = 'message error';
+                message.textContent = '비밀번호는 8자 이상이어야 합니다.';
+                return;
+            }
+            
+            if (!agreeTerms) {
+                message.className = 'message error';
+                message.textContent = '이용약관에 동의해주세요.';
+                return;
+            }
+            
+            button.classList.add('loading');
+            button.disabled = true;
+            message.className = 'message';
+            
+            try {
+                const response = await fetch(`${SERVER_URL}/api/auth/signup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
 
-        function recordMedication(timestamp) {
-            const medication = {
-                timestamp: timestamp,
-                date: new Date(timestamp).toLocaleDateString('ko-KR'),
-                time: new Date(timestamp).toLocaleTimeString('ko-KR'),
-                hour: new Date(timestamp).getHours()
-            };
-            
-            medicationHistory.push(medication);
-            localStorage.setItem('medicationHistory', JSON.stringify(medicationHistory));
-            
-            // 통계 업데이트
-            updateStatistics();
-            updateCharts();
-            
-            // 알림 표시
-            showNotification('복약이 기록되었습니다');
-        }
-
-        function updateStatistics() {
-            const today = new Date().toLocaleDateString('ko-KR');
-            const todayMeds = medicationHistory.filter(m => m.date === today);
-            
-            // 오늘의 복약 현황
-            document.getElementById('todayCount').textContent = `${todayMeds.length}회`;
-            
-            if (todayMeds.length > 0) {
-                document.getElementById('firstDose').textContent = todayMeds[0].time;
-                document.getElementById('lastDose').textContent = todayMeds[todayMeds.length - 1].time;
+                const data = await response.json();
                 
-                // 평균 간격 계산
-                if (todayMeds.length > 1) {
-                    const intervals = [];
-                    for (let i = 1; i < todayMeds.length; i++) {
-                        intervals.push(todayMeds[i].timestamp - todayMeds[i-1].timestamp);
-                    }
-                    const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-                    const hours = Math.floor(avgInterval / 3600000);
-                    const minutes = Math.floor((avgInterval % 3600000) / 60000);
-                    document.getElementById('avgInterval').textContent = `${hours}시간 ${minutes}분`;
-                }
-            }
-            
-            // 복약 순응도 (PDC) 계산 - 최근 7일
-            const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-            const recentMeds = medicationHistory.filter(m => m.timestamp > sevenDaysAgo);
-            const uniqueDays = new Set(recentMeds.map(m => m.date)).size;
-            const adherence = Math.round((uniqueDays / 7) * 100);
-            
-            document.getElementById('adherencePercent').textContent = `${adherence}%`;
-            document.querySelector('.gauge-bg').style.setProperty('--percentage', `${adherence * 3.6}deg`);
-            
-            // 연속 복약일 계산
-            const streak = calculateStreak();
-            document.getElementById('streak').textContent = `${streak}일`;
-            
-            // 이번 주 성공률
-            const weekSuccess = calculateWeekSuccess();
-            document.getElementById('weekSuccess').textContent = `${weekSuccess}%`;
-            
-            // 전체 통계
-            document.getElementById('totalCount').textContent = medicationHistory.length;
-            if (medicationHistory.length > 0) {
-                const startDate = new Date(medicationHistory[0].timestamp);
-                document.getElementById('startDate').textContent = startDate.toLocaleDateString('ko-KR');
-            }
-            
-            // 알림 조건 확인
-            checkAlerts(todayMeds.length);
-        }
-
-        function calculateStreak() {
-            if (medicationHistory.length === 0) return 0;
-            
-            let streak = 0;
-            const today = new Date();
-            const dates = [...new Set(medicationHistory.map(m => m.date))].sort().reverse();
-            
-            for (let i = 0; i < dates.length; i++) {
-                const date = new Date(dates[i]);
-                const expectedDate = new Date(today);
-                expectedDate.setDate(expectedDate.getDate() - i);
-                
-                if (date.toDateString() === expectedDate.toDateString()) {
-                    streak++;
+                if (response.ok) {
+                    // 회원가입 성공
+                    message.className = 'message success';
+                    message.textContent = '회원가입이 완료되었습니다! 로그인해주세요.';
+                    
+                    // 3초 후 로그인 탭으로 전환
+                    setTimeout(() => {
+                        switchTab('login');
+                        document.getElementById('loginEmail').value = email;
+                    }, 2000);
                 } else {
-                    break;
+                    // 회원가입 실패
+                    message.className = 'message error';
+                    message.textContent = data.error || '회원가입에 실패했습니다.';
                 }
+            } catch (error) {
+                message.className = 'message error';
+                message.textContent = '서버 연결에 실패했습니다.';
+            } finally {
+                button.classList.remove('loading');
+                button.disabled = false;
             }
-            
-            return streak;
-        }
-
-        function calculateWeekSuccess() {
-            const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-            const weekMeds = medicationHistory.filter(m => m.timestamp > weekAgo);
-            const uniqueDays = new Set(weekMeds.map(m => m.date)).size;
-            return Math.round((uniqueDays / 7) * 100);
-        }
-
-        function initializeCharts() {
-            // 시간대별 차트 초기화
-            const hourChart = document.getElementById('hourChart');
-            for (let i = 0; i < 24; i++) {
-                const block = document.createElement('div');
-                block.className = 'hour-block';
-                block.title = `${i}:00 - ${i + 1}:00`;
-                block.dataset.hour = i;
-                hourChart.appendChild(block);
-            }
-            
-            // 요일별 차트 초기화
-            const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-            const weekdayChart = document.getElementById('weekdayChart');
-            
-            weekdays.forEach((day, index) => {
-                const dayDiv = document.createElement('div');
-                dayDiv.className = 'weekday';
-                dayDiv.innerHTML = `
-                    <div class="weekday-label">${day}</div>
-                    <div class="weekday-bar">
-                        <div class="weekday-fill" data-day="${index}"></div>
-                        <div class="weekday-percent">0%</div>
-                    </div>
-                `;
-                weekdayChart.appendChild(dayDiv);
-            });
-            
-            updateCharts();
-        }
-
-        function updateCharts() {
-            // 시간대별 패턴 업데이트
-            const hourCounts = new Array(24).fill(0);
-            medicationHistory.forEach(m => {
-                hourCounts[m.hour]++;
-            });
-            
-            const maxHourCount = Math.max(...hourCounts, 1);
-            const hourBlocks = document.querySelectorAll('.hour-block');
-            
-            hourBlocks.forEach((block, hour) => {
-                if (hourCounts[hour] > 0) {
-                    block.classList.add('taken');
-                    block.style.opacity = 0.3 + (hourCounts[hour] / maxHourCount) * 0.7;
-                } else {
-                    block.classList.remove('taken');
-                    block.style.opacity = 1;
-                }
-            });
-            
-            // 주요 복약 시간대 찾기
-            const peakHour = hourCounts.indexOf(Math.max(...hourCounts));
-            if (hourCounts[peakHour] > 0) {
-                document.getElementById('peakHour').textContent = `${peakHour}:00 - ${peakHour + 1}:00`;
-            }
-            
-            // 요일별 패턴 업데이트
-            const weekdayCounts = new Array(7).fill(0);
-            const weekdayTotals = new Array(7).fill(0);
-            
-            medicationHistory.forEach(m => {
-                const day = new Date(m.timestamp).getDay();
-                weekdayCounts[day]++;
-            });
-            
-            // 전체 기간 중 각 요일이 몇 번 있었는지 계산
-            if (medicationHistory.length > 0) {
-                const firstDate = new Date(medicationHistory[0].timestamp);
-                const lastDate = new Date();
-                const dayCount = Math.ceil((lastDate - firstDate) / (24 * 60 * 60 * 1000)) + 1;
-                
-                for (let i = 0; i < dayCount; i++) {
-                    const date = new Date(firstDate);
-                    date.setDate(date.getDate() + i);
-                    weekdayTotals[date.getDay()]++;
-                }
-            }
-            
-            // 요일별 차트 업데이트
-            document.querySelectorAll('.weekday-fill').forEach((fill, index) => {
-                const percent = weekdayTotals[index] > 0 ? 
-                    Math.round((weekdayCounts[index] / weekdayTotals[index]) * 100) : 0;
-                fill.style.height = `${percent}%`;
-                fill.parentElement.querySelector('.weekday-percent').textContent = `${percent}%`;
-            });
-            
-            // 주말 경고 확인
-            const weekendPercent = weekdayTotals[0] + weekdayTotals[6] > 0 ?
-                ((weekdayCounts[0] + weekdayCounts[6]) / (weekdayTotals[0] + weekdayTotals[6])) * 100 : 0;
-            const weekdayPercent = weekdayTotals.slice(1, 6).reduce((a, b) => a + b, 0) > 0 ?
-                (weekdayCounts.slice(1, 6).reduce((a, b) => a + b, 0) / 
-                weekdayTotals.slice(1, 6).reduce((a, b) => a + b, 0)) * 100 : 0;
-            
-            if (weekendPercent < weekdayPercent * 0.8 && medicationHistory.length > 7) {
-                document.getElementById('weekendAlert').style.display = 'block';
-            }
-        }
-
-        function checkAlerts(todayCount) {
-            const alertDiv = document.getElementById('todayAlert');
-            
-            if (todayCount === 0) {
-                alertDiv.className = 'alert warning';
-                alertDiv.textContent = '오늘 아직 복약하지 않았습니다.';
-                alertDiv.style.display = 'block';
-            } else if (todayCount >= 3) {
-                alertDiv.className = 'alert success';
-                alertDiv.textContent = '오늘의 복약을 잘 수행하고 있습니다!';
-                alertDiv.style.display = 'block';
-            } else {
-                alertDiv.style.display = 'none';
-            }
-        }
-
-        function showNotification(message) {
-            // 간단한 알림 표시 (실제로는 더 세련된 토스트 메시지 사용 가능)
-            console.log(message);
-        }
-
-        function loadHistoricalData() {
-            const history = localStorage.getItem('medicationHistory');
-            if (history) {
-                medicationHistory = JSON.parse(history);
-                updateStatistics();
-            }
-        }
-
-        function resetData() {
-            if (confirm('모든 복약 기록을 삭제하시겠습니까?')) {
-                medicationHistory = [];
-                localStorage.removeItem('medicationHistory');
-                location.reload();
-            }
-        }
-
-        function exportData() {
-            const dataStr = JSON.stringify(medicationHistory, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `medication_history_${new Date().toISOString()}.json`;
-            link.click();
         }
     </script>
 </body>
