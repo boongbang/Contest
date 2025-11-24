@@ -479,7 +479,7 @@
             font-size: 0.85rem;
             color: #666;
         }
-
+        
         .med-action {
             padding: 8px 16px;
             background: var(--app-bg);
@@ -489,6 +489,10 @@
             font-size: 0.85rem;
             cursor: pointer;
             transition: background 0.3s;
+            
+            /* [수정됨] 텍스트 줄바꿈 방지 및 버튼 찌그러짐 방지 */
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .med-action:hover {
