@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COSS Admin - 시스템 관리</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-green: #6B8E6B;
+            --dark-green: #556b57;
+            --light-green: #E8F5E9;
+            --text-light: #F1F5EF;
+            --text-dark: #333333;
+            --error-red: #ff6b6b;
+            --warning-yellow: #ffd93d;
+            --success-green: #6bcf7f;
+            --bg-gray: #f5f6fa;
+            --border-color: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .admin-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-badge {
+            background: var(--error-red);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .admin-title h1 {
+            font-family: 'Merriweather', serif;
+            font-size: 2rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--error-red);
+            border-color: var(--error-red);
+        }
+
+        .btn-danger:hover {
+            background: #ff5252;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .status-card {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .status-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .status-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.active {
+            background: var(--success-green);
+            box-shadow: 0 0 10px var(--success-green);
+        }
+
+        .status-indicator.warning {
+            background: var(--warning-yellow);
+            box-shadow: 0 0 10px var(--warning-yellow);
+        }
+
+        .status-indicator.error {
+            background: var(--error-red);
+            box-shadow: 0 0 10px var(--error-red);
+        }
+
+        .status-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .status-label {
+            opacity: 0.8;
+        }
+
+        .status-value {
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .monitor-section {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .real-time-data {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .data-box {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .data-box:hover {
+            background: rgba(255,255,255,0.05);
+            transform: scale(1.02);
+        }
+
+        .data-label {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-bottom: 8px;
+        }
+
+        .data-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--success-green);
+            font-family: 'Courier New', monospace;
+        }
+
+        .data-unit {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-left: 5px;
+        }
+
+        .log-container {
+            background: #000;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .log-time {
+            color: #6bcf7f;
+            margin-right: 10px;
+        }
+
+        .log-level {
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            margin-right: 10px;
+            font-weight: 600;
+        }
+
+        .log-level.info {
+            background: #2196F3;
+            color: white;
+        }
+
+        .log-level.warning {
+            background: var(--warning-yellow);
+            color: #000;
+        }
+
+        .log-level.error {
+            background: var(--error-red);
+            color: white;
+        }
+
+        .log-message {
+            color: #ccc;
+        }
+
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .control-card {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .control-title {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .control-input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .control-btn {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary-green);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .control-btn:hover {
+            background: var(--dark-green);
+        }
+
+        .alert-box {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid var(--error-red);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-box.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chart-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.9rem;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-title h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- 관리자 헤더 -->
+        <div class="admin-header">
+            <div class="header-content">
+                <div class="admin-title">
+                    <i class="fa-solid fa-shield-halved" style="font-size: 2rem;"></i>
+                    <h1>COSS Admin Panel</h1>
+                    <span class="admin-badge">ADMIN ONLY</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn" onclick="refreshAll()">
+                        <i class="fa-solid fa-refresh"></i> 전체 새로고침
+                    </button>
+                    <a href="/dashboard.html" class="btn">
+                        <i class="fa-solid fa-gauge"></i> 대시보드
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 경고 메시지 -->
+        <div class="alert-box" id="alertBox">
+            <i class="fa-solid fa-triangle-exclamation"></i> 
+            <span id="alertMessage">시스템 경고 메시지</span>
+        </div>
+
+        <!-- 시스템 상태 카드 -->
+        <div class="status-grid">
+            <!-- 서버 상태 -->
+            <div class="status-card">
+                <div class="status-header">
+                    <div class="status-title">
+                        <i class="fa-solid fa-server"></i> 서버 상태
+                    </div>
+                    <div class="status-indicator" id="serverStatus"></div>
+                </div>
+                <div class="status-content">
+                    <div class="status-item">
+                        <span class="status-label">상태</span>
+                        <span class="status-value" id="serverState">확인중...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">가동 시간</span>
+                        <span class="status-value" id="uptime">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">메모리 사용량</span>
+                        <span class="status-value" id="memoryUsage">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Node.js 버전</span>
+                        <span class="status-value">v18.0.0+</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 데이터베이스 상태 -->
+            <div class="status-card">
+                <div class="status-header">
+                    <div class="status-title">
+                        <i class="fa-solid fa-database"></i> 데이터베이스
+                    </div>
+                    <div class="status-indicator" id="dbStatus"></div>
+                </div>
+                <div class="status-content">
+                    <div class="status-item">
+                        <span class="status-label">연결 상태</span>
+                        <span class="status-value" id="dbConnection">확인중...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">타입</span>
+                        <span class="status-value" id="dbType">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">총 레코드</span>
+                        <span class="status-value" id="totalRecords">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">데이터 일수</span>
+                        <span class="status-value" id="dataDays">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arduino 센서 상태 -->
+            <div class="status-card">
+                <div class="status-header">
+                    <div class="status-title">
+                        <i class="fa-solid fa-microchip"></i> Arduino 센서
+                    </div>
+                    <div class="status-indicator" id="sensorStatus"></div>
+                </div>
+                <div class="status-content">
+                    <div class="status-item">
+                        <span class="status-label">마지막 업데이트</span>
+                        <span class="status-value" id="lastSensorUpdate">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">현재 센서값</span>
+                        <span class="status-value" id="currentSensorValue">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">총 감지 횟수</span>
+                        <span class="status-value" id="totalDetections">-</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">상태</span>
+                        <span class="status-value" id="sensorState">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 실시간 모니터링 -->
+        <div class="monitor-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fa-solid fa-chart-line"></i> 실시간 모니터링
+                </h2>
+                <span id="currentTime" style="color: #6bcf7f; font-family: 'Courier New', monospace;"></span>
+            </div>
+
+            <div class="real-time-data">
+                <div class="data-box">
+                    <div class="data-label">센서값</div>
+                    <div class="data-value" id="realtimeSensor">0</div>
+                </div>
+                <div class="data-box">
+                    <div class="data-label">오늘 복용</div>
+                    <div class="data-value" id="todayCount">0</div>
+                </div>
+                <div class="data-box">
+                    <div class="data-label">현재 사용자</div>
+                    <div class="data-value" id="activeUsers">0</div>
+                </div>
+                <div class="data-box">
+                    <div class="data-label">API 호출/분</div>
+                    <div class="data-value" id="apiRate">0</div>
+                </div>
+            </div>
+
+            <!-- 차트 영역 -->
+            <div class="chart-container">
+                <canvas id="realtimeChart" height="100"></canvas>
+            </div>
+        </div>
+
+        <!-- 시스템 로그 -->
+        <div class="monitor-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fa-solid fa-terminal"></i> 시스템 로그
+                </h2>
+                <button class="btn" onclick="clearLogs()">
+                    <i class="fa-solid fa-broom"></i> 로그 지우기
+                </button>
+            </div>
+            <div class="log-container" id="logContainer">
+                <div class="no-data">로그를 불러오는 중...</div>
+            </div>
+        </div>
+
+        <!-- 제어 패널 -->
+        <div class="monitor-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fa-solid fa-sliders"></i> 시스템 제어
+                </h2>
+            </div>
+            
+            <div class="control-panel">
+                <!-- 데이터 리셋 -->
+                <div class="control-card">
+                    <h3 class="control-title">
+                        <i class="fa-solid fa-trash-can"></i> 데이터 리셋
+                    </h3>
+                    <input type="password" class="control-input" id="resetPassword" placeholder="관리자 비밀번호">
+                    <button class="control-btn btn-danger" onclick="resetData()">
+                        센서 데이터 초기화
+                    </button>
+                </div>
+
+                <!-- 센서 테스트 -->
+                <div class="control-card">
+                    <h3 class="control-title">
+                        <i class="fa-solid fa-vial"></i> 센서 테스트
+                    </h3>
+                    <input type="number" class="control-input" id="testValue" placeholder="테스트 값 (0 또는 1)" min="0" max="1">
+                    <button class="control-btn" onclick="testSensor()">
+                        테스트 신호 전송
+                    </button>
+                </div>
+
+                <!-- 서버 제어 -->
+                <div class="control-card">
+                    <h3 class="control-title">
+                        <i class="fa-solid fa-power-off"></i> 서버 제어
+                    </h3>
+                    <button class="control-btn" onclick="checkHealth()">
+                        헬스 체크 실행
+                    </button>
+                    <button class="control-btn btn-danger" style="margin-top: 10px;" onclick="confirmServerRestart()">
+                        서버 재시작 (주의)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>COSS Admin Panel v1.0 | Arduino R4 WiFi Monitoring System</p>
+            <p>이 페이지는 관리자 전용입니다. 무단 접근 시 법적 조치가 가능합니다.</p>
+        </div>
+    </div>
+
+    <script>
+        // API 설정
+        const API_URL = window.location.origin;
+        let statusInterval = null;
+        let logInterval = null;
+        let realtimeChart = null;
+        let chartData = [];
+
+        // 페이지 로드
+        window.addEventListener('load', () => {
+            // 관리자 권한 확인 (간단한 확인만)
+            const isAdmin = confirm('관리자 페이지입니다. 접근 권한이 있으신가요?');
+            if (!isAdmin) {
+                window.location.href = '/';
+                return;
+            }
+            
+            // 초기 데이터 로드
+            loadSystemStatus();
+            initRealtimeChart();
+            loadLogs();
+            
+            // 주기적 업데이트
+            statusInterval = setInterval(loadSystemStatus, 5000);
+            logInterval = setInterval(loadLogs, 10000);
+            
+            // 현재 시간 표시
+            updateTime();
+            setInterval(updateTime, 1000);
+        });
+
+        // 현재 시간 업데이트
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleString('ko-KR');
+        }
+
+        // 시스템 상태 로드
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch(`${API_URL}/api/admin/status`);
+                const data = await response.json();
+                
+                // 서버 상태 업데이트
+                if (data.server) {
+                    document.getElementById('serverState').textContent = data.server.status || 'Unknown';
+                    document.getElementById('serverStatus').className = 'status-indicator active';
+                    
+                    const uptimeSeconds = Math.floor(data.server.uptime || 0);
+                    const hours = Math.floor(uptimeSeconds / 3600);
+                    const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+                    document.getElementById('uptime').textContent = `${hours}시간 ${minutes}분`;
+                    
+                    const memory = data.server.memory;
+                    if (memory) {
+                        const usedMB = Math.round(memory.heapUsed / 1048576);
+                        const totalMB = Math.round(memory.heapTotal / 1048576);
+                        document.getElementById('memoryUsage').textContent = `${usedMB}/${totalMB} MB`;
+                    }
+                }
+                
+                // 데이터베이스 상태
+                if (data.database) {
+                    const dbConnected = data.database.connected;
+                    document.getElementById('dbConnection').textContent = dbConnected ? '연결됨' : '연결 안됨';
+                    document.getElementById('dbType').textContent = data.database.type || '-';
+                    document.getElementById('dbStatus').className = dbConnected ? 'status-indicator active' : 'status-indicator warning';
+                }
+                
+                // 통계
+                if (data.statistics) {
+                    document.getElementById('totalRecords').textContent = data.statistics.totalRecords || '0';
+                    document.getElementById('dataDays').textContent = data.statistics.daysWithData || '0';
+                    document.getElementById('activeUsers').textContent = data.statistics.totalUsers || '0';
+                }
+                
+                // 센서 상태
+                if (data.sensor) {
+                    const lastUpdate = data.sensor.lastUpdate;
+                    if (lastUpdate) {
+                        const updateTime = new Date(lastUpdate);
+                        const now = new Date();
+                        const diffMinutes = Math.floor((now - updateTime) / 60000);
+                        
+                        if (diffMinutes < 1) {
+                            document.getElementById('lastSensorUpdate').textContent = '방금 전';
+                            document.getElementById('sensorStatus').className = 'status-indicator active';
+                        } else if (diffMinutes < 5) {
+                            document.getElementById('lastSensorUpdate').textContent = `${diffMinutes}분 전`;
+                            document.getElementById('sensorStatus').className = 'status-indicator active';
+                        } else {
+                            document.getElementById('lastSensorUpdate').textContent = `${diffMinutes}분 전`;
+                            document.getElementById('sensorStatus').className = 'status-indicator warning';
+                        }
+                    } else {
+                        document.getElementById('lastSensorUpdate').textContent = '데이터 없음';
+                        document.getElementById('sensorStatus').className = 'status-indicator error';
+                    }
+                    
+                    const sensorValue = data.sensor.currentValue;
+                    document.getElementById('currentSensorValue').textContent = sensorValue !== undefined ? sensorValue : '-';
+                    document.getElementById('realtimeSensor').textContent = sensorValue !== undefined ? sensorValue : '0';
+                    document.getElementById('totalDetections').textContent = data.sensor.totalCount || '0';
+                    document.getElementById('sensorState').textContent = sensorValue === 1 ? '약통 제거됨' : '약통 있음';
+                    
+                    // 차트 데이터 업데이트
+                    updateRealtimeChart(sensorValue || 0);
+                }
+                
+                // 오늘 통계 로드
+                await loadTodayStats();
+                
+            } catch (error) {
+                console.error('Status load failed:', error);
+                showAlert('시스템 상태를 불러오는데 실패했습니다.');
+            }
+        }
+
+        // 오늘 통계 로드
+        async function loadTodayStats() {
+            try {
+                const response = await fetch(`${API_URL}/api/dashboard/stats`, {
+                    headers: {
+                        'Authorization': 'Bearer dummy-admin-token'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('todayCount').textContent = data.today?.count || '0';
+                }
+            } catch (error) {
+                console.error('Today stats failed:', error);
+            }
+        }
+
+        // 실시간 차트 초기화
+        function initRealtimeChart() {
+            const ctx = document.getElementById('realtimeChart').getContext('2d');
+            
+            // 초기 데이터 (최근 20개 포인트)
+            for (let i = 0; i < 20; i++) {
+                chartData.push(0);
+            }
+            
+            realtimeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(20).fill(''),
+                    datasets: [{
+                        label: '센서값',
+                        data: chartData,
+                        borderColor: '#6bcf7f',
+                        backgroundColor: 'rgba(107, 207, 127, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1.5,
+                            grid: {
+                                color: 'rgba(255,255,255,0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255,255,255,0.7)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255,255,255,0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255,255,255,0.7)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 실시간 차트 업데이트
+        function updateRealtimeChart(value) {
+            if (!realtimeChart) return;
+            
+            // 데이터 추가 (최대 20개 유지)
+            chartData.push(value);
+            if (chartData.length > 20) {
+                chartData.shift();
+            }
+            
+            realtimeChart.data.datasets[0].data = [...chartData];
+            realtimeChart.update('none'); // 애니메이션 없이 업데이트
+        }
+
+        // 로그 로드
+        function loadLogs() {
+            const container = document.getElementById('logContainer');
+            const logs = [
+                { time: new Date().toLocaleTimeString(), level: 'info', message: '시스템 정상 작동 중' },
+                { time: new Date().toLocaleTimeString(), level: 'info', message: 'Arduino 센서 연결 확인' },
+            ];
+            
+            // 센서 상태에 따른 로그 추가
+            const sensorValue = document.getElementById('realtimeSensor').textContent;
+            if (sensorValue === '1') {
+                logs.push({ 
+                    time: new Date().toLocaleTimeString(), 
+                    level: 'warning', 
+                    message: '약통이 제거되었습니다' 
+                });
+            }
+            
+            let html = '';
+            logs.forEach(log => {
+                let levelClass = log.level;
+                html += `
+                    <div class="log-entry">
+                        <span class="log-time">${log.time}</span>
+                        <span class="log-level ${levelClass}">${log.level.toUpperCase()}</span>
+                        <span class="log-message">${log.message}</span>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // 로그 지우기
+        function clearLogs() {
+            document.getElementById('logContainer').innerHTML = '<div class="no-data">로그가 지워졌습니다.</div>';
+        }
+
+        // 데이터 리셋
+        async function resetData() {
+            const password = document.getElementById('resetPassword').value;
+            
+            if (!password) {
+                showAlert('관리자 비밀번호를 입력하세요.');
+                return;
+            }
+            
+            if (!confirm('정말로 모든 센서 데이터를 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/api/admin/reset`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('데이터가 초기화되었습니다.', 'success');
+                    document.getElementById('resetPassword').value = '';
+                    loadSystemStatus();
+                } else {
+                    showAlert(data.error || '초기화 실패', 'error');
+                }
+            } catch (error) {
+                console.error('Reset failed:', error);
+                showAlert('데이터 초기화 실패');
+            }
+        }
+
+        // 센서 테스트
+        async function testSensor() {
+            const value = document.getElementById('testValue').value;
+            
+            if (value === '' || (value != '0' && value != '1')) {
+                showAlert('0 또는 1을 입력하세요.');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/value`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ a: parseInt(value) })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('테스트 신호가 전송되었습니다.', 'success');
+                    document.getElementById('testValue').value = '';
+                    loadSystemStatus();
+                } else {
+                    showAlert('테스트 실패', 'error');
+                }
+            } catch (error) {
+                console.error('Test failed:', error);
+                showAlert('테스트 신호 전송 실패');
+            }
+        }
+
+        // 헬스 체크
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                if (data.status === 'ok') {
+                    showAlert('서버가 정상 작동 중입니다.', 'success');
+                } else {
+                    showAlert('서버 상태 이상', 'error');
+                }
+            } catch (error) {
+                console.error('Health check failed:', error);
+                showAlert('헬스 체크 실패');
+            }
+        }
+
+        // 서버 재시작 확인
+        function confirmServerRestart() {
+            if (confirm('서버를 재시작하시겠습니까? 일시적으로 서비스가 중단됩니다.')) {
+                showAlert('서버 재시작 기능은 보안상 비활성화되어 있습니다.', 'warning');
+            }
+        }
+
+        // 전체 새로고침
+        function refreshAll() {
+            loadSystemStatus();
+            loadLogs();
+            showAlert('데이터를 새로고침했습니다.', 'success');
+        }
+
+        // 알림 표시
+        function showAlert(message, type = 'error') {
+            const alertBox = document.getElementById('alertBox');
+            const alertMessage = document.getElementById('alertMessage');
+            
+            alertMessage.textContent = message;
+            alertBox.className = 'alert-box show';
+            
+            if (type === 'success') {
+                alertBox.style.background = 'rgba(107, 207, 127, 0.1)';
+                alertBox.style.borderColor = '#6bcf7f';
+            } else if (type === 'warning') {
+                alertBox.style.background = 'rgba(255, 217, 61, 0.1)';
+                alertBox.style.borderColor = '#ffd93d';
+            } else {
+                alertBox.style.background = 'rgba(255, 107, 107, 0.1)';
+                alertBox.style.borderColor = '#ff6b6b';
+            }
+            
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+            }, 5000);
+        }
+
+        // 페이지 언로드 시 정리
+        window.addEventListener('beforeunload', () => {
+            if (statusInterval) clearInterval(statusInterval);
+            if (logInterval) clearInterval(logInterval);
+        });
+    </script>
+</body>
+</html>
