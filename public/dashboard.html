@@ -192,11 +192,17 @@
             justify-content: center;
             position: relative;
             cursor: pointer;
-            transition: none;
+            transition: none; /* 잔상 제거를 위해 transition 삭제 */
             color: #999;
         }
-        
-        /* [수정됨] 아이콘의 움직임을 쫀득하게 설정 */
+
+        /* [추가됨] 선택된 메뉴의 배경을 투명하게 처리하여 흰색 사각형 제거 */
+        .sidebar-item.active {
+            background-color: transparent;
+            color: var(--text-light);
+        }
+
+        /* 아이콘의 움직임을 쫀득하게 설정 */
         .icon-box {
             width: 45px;
             height: 45px;
@@ -207,18 +213,15 @@
             font-size: 1.2rem;
             background: white;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            
             /* 부드러운 이동을 위한 트랜지션 설정 */
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s, color 0.3s;
         }
 
-        /* [수정됨] 선택 시 아이콘이 위로 10px 떠오름 */
+        /* 선택 시 아이콘이 위로 10px 떠오름 */
         .sidebar-item.active .icon-box {
             background: var(--text-light);
             color: var(--app-bg);
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            
-            /* 기존 scale(1.1) 대신 위로 이동 적용 */
             transform: translateY(-10px); 
         }
 
@@ -264,8 +267,7 @@
         .welcome-text {
             color: var(--text-light);
             margin-bottom: 25px;
-            
-            /* [수정됨] 왼쪽으로 15px만큼 이동 (값 조절 가능) */
+            /* 왼쪽으로 15px 이동 */
             padding-left: 15px; 
         }
         
@@ -413,11 +415,11 @@
         }
         
         .chart-container {
-        position: relative;
-        height: 200px; /* 높이를 반드시 지정해야 함 */
-        width: 100%;
-        overflow: hidden;
-    }
+            position: relative;
+            height: 200px;
+            width: 100%;
+            overflow: hidden;
+        }
         
         .section-header {
             display: flex;
@@ -483,7 +485,7 @@
             font-size: 0.85rem;
             color: #666;
         }
-        
+
         .med-action {
             padding: 8px 16px;
             background: var(--app-bg);
@@ -494,7 +496,7 @@
             cursor: pointer;
             transition: background 0.3s;
             
-            /* [수정됨] 텍스트 줄바꿈 방지 및 버튼 찌그러짐 방지 */
+            /* 텍스트 줄바꿈 방지 및 버튼 찌그러짐 방지 */
             white-space: nowrap;
             flex-shrink: 0;
         }
@@ -770,7 +772,6 @@
             </div>
 
             <div class="main-content">
-                <!-- 대시보드 섹션 -->
                 <section class="page-section active" id="dashboardSection">
                     <div class="welcome-text">
                         <h2>Hello, <span id="userName">User</span></h2>
@@ -833,7 +834,6 @@
                     </div>
                 </section>
 
-                <!-- 약물 관리 섹션 -->
                 <section class="page-section" id="medicationSection">
                     <div class="welcome-text">
                         <h2>약물 관리</h2>
@@ -882,7 +882,6 @@
                     </div>
                 </section>
 
-                <!-- 알림 섹션 -->
                 <section class="page-section" id="reminderSection">
                     <div class="welcome-text">
                         <h2>알림 설정</h2>
@@ -922,7 +921,6 @@
                     </div>
                 </section>
 
-                <!-- 프로필 섹션 -->
                 <section class="page-section" id="profileSection">
                     <div class="profile-card">
                         <div class="profile-avatar">
