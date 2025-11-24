@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COSS - 대시보드</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -714,6 +715,19 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">주간 활동</h3>
+                        <div class="chart-options">
+                            <i class="fa-solid fa-ellipsis" style="color: #ccc; cursor: pointer;"></i>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 250px; width: 100%;">
+                        <canvas id="weeklyChart"></canvas>
+                    </div>
+                </div>
+                
             </div> </div>
     </div>
 
@@ -837,19 +851,59 @@
         }
 
         function initializeCharts() {
-            // 시간대별 분포 차트 초기화
-            const hourBars = document.getElementById('hourBars');
-            for (let i = 0; i < 24; i++) {
-                const bar = document.createElement('div');
-                bar.className = 'hour-bar';
-                bar.dataset.hour = i;
-                bar.style.height = '5%';
-                hourBars.appendChild(bar);
-            }
+    // 시간대별 분포 차트 초기화
+    const hourBars = document.getElementById('hourBars');
+    hourBars.innerHTML = ''; // 초기화 추가
+    for (let i = 0; i < 24; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'hour-bar';
+        bar.dataset.hour = i;
+        bar.style.height = '5%';
+        hourBars.appendChild(bar);
+    }
 
-            // 히트맵 초기화
-            initializeHeatmap();
-        }
+    // 히트맵 초기화
+    initializeHeatmap();
+    
+    // [수정됨] 주간 활동 Chart.js 초기화
+    const ctx = document.getElementById('weeklyChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['월', '화', '수', '목', '금', '토', '일'],
+                datasets: [{
+                    label: '복약 횟수',
+                    data: [3, 2, 3, 3, 1, 3, 2], // 임시 데이터
+                    backgroundColor: '#667eea',
+                    borderRadius: 4,
+                    barThickness: 20
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // 이 옵션이 고정 높이 컨테이너와 함께 늘어남 방지
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 5,
+                        grid: {
+                            display: true,
+                            drawBorder: false,
+                            color: '#f0f0f0'
+                        }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+}
 
         function initializeHeatmap() {
             const weeksContainer = document.getElementById('heatmapWeeks');
