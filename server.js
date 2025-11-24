@@ -32,6 +32,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.static('public'));
 
+// 현재 활성 사용자 추적 (센서 데이터를 위한 임시 해결책)
+let activeUsers = new Map(); // token -> userId 매핑
+
 // ===== 인증 미들웨어 =====
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -46,6 +49,11 @@ const authenticateToken = (req, res, next) => {
             return res.status(403).json({ error: 'Invalid or expired token' });
         }
         req.user = user;
+        req.token = token;
+        
+        // 활성 사용자 추적
+        activeUsers.set(token, user.id);
+        
         next();
     });
 };
@@ -124,6 +132,8 @@ app.post('/api/auth/login', async (req, res) => {
                     { expiresIn: rememberMe ? '30d' : '24h' }
                 );
                 
+                activeUsers.set(token, 1);
+                
                 return res.json({
                     success: true,
                     token,
@@ -160,6 +170,9 @@ app.post('/api/auth/login', async (req, res) => {
             { expiresIn: rememberMe ? '30d' : '24h' }
         );
         
+        // 활성 사용자 추적
+        activeUsers.set(token, user.id);
+        
         // 마지막 로그인 시간 업데이트
         await conn.query(
             'UPDATE users SET last_login = NOW() WHERE id = ?',
@@ -192,6 +205,13 @@ app.get('/api/auth/verify', authenticateToken, (req, res) => {
     });
 });
 
+// 로그아웃
+app.post('/api/auth/logout', authenticateToken, (req, res) => {
+    // 활성 사용자에서 제거
+    activeUsers.delete(req.token);
+    res.json({ success: true, message: 'Logged out successfully' });
+});
+
 // ===== IR 센서 전용 엔드포인트 =====
 // 현재 센서값 저장용 메모리 변수
 let currentSensorValue = { 
@@ -199,6 +219,9 @@ let currentSensorValue = {
     timestamp: new Date().toISOString(),
     count: 0  // 총 감지 횟수
 };
+
+// 메모리 기반 사용자별 복약 로그 (DB 없을 때 사용)
+let memoryMedicationLogs = new Map(); // userId -> logs[]
 
 // GET: 현재 센서값 조회 (웹 대시보드용)
 app.get('/value', (req, res) => {
@@ -215,21 +238,34 @@ app.post('/value', async (req, res) => {
     if (a === 1 && currentSensorValue.a === 0) {
         currentSensorValue.count++;
         
-        // 모든 사용자에게 복약 로그 저장 (실제로는 특정 사용자만 저장해야 함)
-        // 이 부분은 추후 개선 필요
-        if (pool) {
-            let conn;
-            try {
-                conn = await pool.getConnection();
-                // 현재는 모든 활성 사용자에게 기록 (개선 필요)
-                await conn.query(
-                    'INSERT INTO medication_logs (user_id, timestamp, event_type) VALUES (?, ?, ?)',
-                    [1, now, 'MEDICATION_TAKEN'] // user_id는 추후 개선
-                );
-            } catch (error) {
-                console.error('Error saving medication log:', error);
-            } finally {
-                if (conn) conn.release();
+        // 현재 활성 사용자들에게 복약 로그 저장
+        if (activeUsers.size > 0) {
+            for (const [token, userId] of activeUsers.entries()) {
+                if (pool) {
+                    let conn;
+                    try {
+                        conn = await pool.getConnection();
+                        await conn.query(
+                            'INSERT INTO medication_logs (user_id, timestamp, event_type) VALUES (?, ?, ?)',
+                            [userId, now, 'SENSOR_TRIGGERED']
+                        );
+                        console.log(`Medication logged for user ${userId}`);
+                    } catch (error) {
+                        console.error('Error saving medication log:', error);
+                    } finally {
+                        if (conn) conn.release();
+                    }
+                } else {
+                    // 메모리에 저장
+                    if (!memoryMedicationLogs.has(userId)) {
+                        memoryMedicationLogs.set(userId, []);
+                    }
+                    memoryMedicationLogs.get(userId).push({
+                        timestamp: now.toISOString(),
+                        event_type: 'SENSOR_TRIGGERED'
+                    });
+                    console.log(`Medication logged in memory for user ${userId}`);
+                }
             }
         }
     }
@@ -253,8 +289,13 @@ app.get('/api/medication-logs', authenticateToken, async (req, res) => {
     const userId = req.user.id;
     const { start_date, end_date, limit = 100 } = req.query;
     
+    console.log(`Fetching medication logs for user ${userId}`);
+    
     if (!pool) {
-        return res.json({ success: true, data: [] });
+        // 메모리에서 조회
+        const logs = memoryMedicationLogs.get(userId) || [];
+        console.log(`Returning ${logs.length} logs from memory`);
+        return res.json({ success: true, data: logs });
     }
     
     let conn;
@@ -275,7 +316,10 @@ app.get('/api/medication-logs', authenticateToken, async (req, res) => {
         query += ' ORDER BY timestamp DESC LIMIT ?';
         params.push(parseInt(limit));
         
+        console.log('Query:', query, 'Params:', params);
         const logs = await conn.query(query, params);
+        
+        console.log(`Found ${logs.length} medication logs for user ${userId}`);
         res.json({ success: true, data: logs });
     } catch (error) {
         console.error('Error fetching medication logs:', error);
@@ -290,8 +334,18 @@ app.post('/api/medication-logs', authenticateToken, async (req, res) => {
     const userId = req.user.id;
     const { timestamp } = req.body;
     
+    console.log(`Adding medication log for user ${userId}`);
+    
     if (!pool) {
-        return res.json({ success: true, message: 'Log saved (no DB)' });
+        // 메모리에 저장
+        if (!memoryMedicationLogs.has(userId)) {
+            memoryMedicationLogs.set(userId, []);
+        }
+        memoryMedicationLogs.get(userId).push({
+            timestamp: timestamp || new Date().toISOString(),
+            event_type: 'MANUAL_RECORD'
+        });
+        return res.json({ success: true, message: 'Log saved in memory' });
     }
     
     let conn;
@@ -302,6 +356,7 @@ app.post('/api/medication-logs', authenticateToken, async (req, res) => {
             [userId, timestamp || new Date(), 'MANUAL_RECORD']
         );
         
+        console.log(`Medication log saved for user ${userId}`);
         res.json({ success: true, message: 'Medication log saved' });
     } catch (error) {
         console.error('Error saving medication log:', error);
@@ -315,8 +370,11 @@ app.post('/api/medication-logs', authenticateToken, async (req, res) => {
 app.delete('/api/medication-logs/reset', authenticateToken, async (req, res) => {
     const userId = req.user.id;
     
+    console.log(`Resetting medication logs for user ${userId}`);
+    
     if (!pool) {
-        return res.json({ success: true, message: 'Logs reset (no DB)' });
+        memoryMedicationLogs.delete(userId);
+        return res.json({ success: true, message: 'Logs reset in memory' });
     }
     
     let conn;
@@ -327,6 +385,7 @@ app.delete('/api/medication-logs/reset', authenticateToken, async (req, res) => 
             [userId]
         );
         
+        console.log(`Medication logs reset for user ${userId}`);
         res.json({ success: true, message: 'Medication logs reset' });
     } catch (error) {
         console.error('Error resetting logs:', error);
@@ -348,7 +407,25 @@ app.get('/api/medication-stats', authenticateToken, async (req, res) => {
         streak_days: 0
     };
     
+    console.log(`Calculating stats for user ${userId}`);
+    
     if (!pool) {
+        // 메모리에서 계산
+        const logs = memoryMedicationLogs.get(userId) || [];
+        stats.total_count = logs.length;
+        
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        
+        stats.today_count = logs.filter(log => 
+            new Date(log.timestamp).toDateString() === today.toDateString()
+        ).length;
+        
+        stats.week_count = logs.filter(log => 
+            new Date(log.timestamp) >= weekAgo
+        ).length;
+        
         return res.json({ success: true, data: stats });
     }
     
@@ -420,6 +497,7 @@ app.get('/api/medication-stats', authenticateToken, async (req, res) => {
         }
         stats.streak_days = streak;
         
+        console.log(`Stats calculated for user ${userId}:`, stats);
         res.json({ success: true, data: stats });
         
     } catch (error) {
@@ -447,70 +525,9 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'ok', 
         timestamp: new Date().toISOString(),
-        sensorStatus: currentSensorValue
+        sensorStatus: currentSensorValue,
+        activeUsers: activeUsers.size
     });
-});
-
-// Arduino에서 복잡한 센서 데이터 수신 (COSS 프로젝트용)
-app.post('/api/sensor-data', async (req, res) => {
-    console.log('Received sensor data:', req.body);
-    
-    // DB 연결이 없으면 메모리에만 저장
-    if (!pool) {
-        const { boxId, sensorValue, temperature, humidity, compartmentStatus } = req.body;
-        
-        // 간단한 센서값도 업데이트
-        if (sensorValue !== undefined) {
-            currentSensorValue.a = sensorValue;
-            currentSensorValue.timestamp = new Date().toISOString();
-        }
-        
-        res.json({ 
-            success: true, 
-            message: 'Data received (no DB)',
-            data: req.body 
-        });
-        return;
-    }
-    
-    // DB 연결이 있으면 데이터베이스에 저장
-    let conn;
-    try {
-        const { boxId, temperature, humidity, compartmentStatus, sensorValue } = req.body;
-        
-        // 간단한 센서값 업데이트
-        if (sensorValue !== undefined) {
-            currentSensorValue.a = sensorValue;
-            currentSensorValue.timestamp = new Date().toISOString();
-        }
-        
-        conn = await pool.getConnection();
-        
-        // 센서 데이터 저장
-        if (temperature !== undefined && humidity !== undefined) {
-            await conn.query(
-                'INSERT INTO sensor_logs (box_id, temperature, humidity, timestamp) VALUES (?, ?, ?, NOW())',
-                [boxId, temperature, humidity]
-            );
-        }
-
-        // 각 칸막이 상태 저장
-        if (compartmentStatus && Array.isArray(compartmentStatus)) {
-            for (const compartment of compartmentStatus) {
-                await conn.query(
-                    'INSERT INTO compartment_status (box_id, compartment_id, is_open, timestamp) VALUES (?, ?, ?, NOW())',
-                    [boxId, compartment.id, compartment.isOpen ? 1 : 0]
-                );
-            }
-        }
-
-        res.json({ success: true, message: 'Data saved to database' });
-    } catch (error) {
-        console.error('Error saving sensor data:', error);
-        res.status(500).json({ success: false, error: error.message });
-    } finally {
-        if (conn) conn.release();
-    }
 });
 
 // 404 처리
@@ -532,7 +549,7 @@ app.use((err, req, res, next) => {
     });
 });
 
-// 데이터베이스 초기화 (첫 실행 시)
+// 데이터베이스 초기화
 async function initDatabase() {
     if (!pool) {
         console.log('Database not configured - running in memory mode');
@@ -562,39 +579,9 @@ async function initDatabase() {
                 user_id INT NOT NULL,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 event_type VARCHAR(50) DEFAULT 'MEDICATION_TAKEN',
+                notes TEXT NULL,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
                 INDEX idx_user_timestamp (user_id, timestamp)
-            )
-        `);
-        
-        // 기존 테이블들도 생성
-        await conn.query(`
-            CREATE TABLE IF NOT EXISTS sensor_logs (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                box_id VARCHAR(50),
-                temperature FLOAT,
-                humidity FLOAT,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-        
-        await conn.query(`
-            CREATE TABLE IF NOT EXISTS compartment_status (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                box_id VARCHAR(50),
-                compartment_id INT,
-                is_open BOOLEAN,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-        
-        await conn.query(`
-            CREATE TABLE IF NOT EXISTS medication_schedule (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                box_id VARCHAR(50),
-                scheduled_time DATETIME,
-                is_taken BOOLEAN DEFAULT 0,
-                taken_time DATETIME
             )
         `);
         
@@ -621,6 +608,7 @@ app.listen(PORT, async () => {
 ║   POST /api/auth/signup                ║
 ║   POST /api/auth/login                 ║
 ║   GET  /api/auth/verify                ║
+║   POST /api/auth/logout                ║
 ╠════════════════════════════════════════╣
 ║   User Endpoints:                      ║
 ║   GET  /api/medication-logs            ║
@@ -632,7 +620,6 @@ app.listen(PORT, async () => {
 ║   GET  /value     (센서값 조회)         ║
 ║   POST /value     (센서값 업데이트)     ║
 ║   GET  /health                         ║
-║   POST /api/sensor-data                ║
 ╚════════════════════════════════════════╝
     `);
     
