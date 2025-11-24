@@ -17,7 +17,7 @@
             --text-light: #F1F5EF;
             --text-dark: #333333;
             --accent-color: #E8F5E9;
-            --curve-radius: 35px; /* [수정] 곡률을 사진처럼 더 둥글게 조정 */
+            --curve-radius: 35px;
         }
 
         * {
@@ -154,9 +154,7 @@
             overflow: hidden;
         }
 
-        /* ==========================================================================
-           [사이드바 스타일 수정 - 애니메이션 및 디자인 개선]
-           ========================================================================== */
+        /* 사이드바 스타일 */
         .sidebar-container {
             width: 90px;
             background-color: transparent;
@@ -164,60 +162,48 @@
             flex-direction: column;
             height: 100%;
             padding-bottom: 20px;
-            
-            /* [기존 코드] 우측 상단 둥글게 설정 */
             border-top-right-radius: var(--curve-radius); 
-            
             padding-top: 20px; 
             position: relative;
-        
-            /* [추가!] 이 속성이 핵심입니다. 
-               둥근 모서리 바깥으로 나가는 흰색 배경(::before)을 잘라버립니다. */
             overflow: hidden; 
         }
 
-        /* 움직이는 커브 배경 (Active Indicator) */
         .active-indicator {
             position: absolute;
             left: 0;
+            top: 20px;
             width: 100%;
-            height: 90px; /* 아이템 높이 */
+            height: 90px;
             background: transparent;
             z-index: 0;
-            /* [수정됨] 애니메이션 속도감 개선: 끝부분을 더 빠르게 정착시킴 */
             transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        /* 인디케이터 위쪽 덮개 (하얀색 배경) */
         .active-indicator::before {
             content: '';
             position: absolute;
             bottom: 100%;
             right: 0;
             width: 100%;
-            height: 120vh; /* 위쪽을 넉넉하게 덮음 */
+            height: 120vh;
             background-color: var(--sidebar-bg);
-            /* 사진과 같은 둥근 모서리 처리 */
             border-bottom-right-radius: var(--curve-radius);
             transition: opacity 0.3s;
         }
 
-        /* 인디케이터 아래쪽 덮개 (하얀색 배경) */
         .active-indicator::after {
             content: '';
             position: absolute;
             top: 100%;
             right: 0;
             width: 100%;
-            height: 120vh; /* 아래쪽을 넉넉하게 덮음 */
+            height: 120vh;
             background-color: var(--sidebar-bg);
-            /* 사진과 같은 둥근 모서리 처리 */
             border-top-right-radius: var(--curve-radius);
         }
 
-        /* [수정됨] 맨 위 아이템이 선택되었을 때 위쪽 바 숨기기 */
         .active-indicator.is-first::before {
-            opacity: 0; /* 투명하게 처리하여 녹색 배경 노출 */
+            opacity: 0;
         }
 
         .sidebar-item {
@@ -254,15 +240,14 @@
             background: var(--text-light);
             color: var(--app-bg);
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            /* 튀어오르는 효과 제거됨 (제자리 색상 변경) */
         }
 
         .sidebar-filler {
             flex: 1;
             background: transparent;
         }
-        /* ========================================================================== */
 
+        /* 메인 컨텐츠 영역 */
         .main-content {
             flex: 1;
             padding: 0 25px 30px 10px;
@@ -332,6 +317,7 @@
             font-size: 0.9rem;
         }
 
+        /* [수정됨] 4분할 그리드 레이아웃 */
         .summary-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -339,20 +325,30 @@
             margin-bottom: 25px;
         }
 
-        .stat-card {
-            background: rgba(255, 255, 255, 0.95);
+        /* [추가됨] 복약 상태 카드 스타일 */
+        .med-status-card {
+            background: white;
             border-radius: 25px;
             padding: 20px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 140px;
+            height: 150px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
-        .stat-card:hover { transform: translateY(-3px); }
 
-        .stat-icon {
+        .med-status-card:hover { transform: translateY(-3px); }
+
+        /* 복용 완료 상태 스타일 */
+        .med-status-card.taken {
+            background: var(--accent-color);
+            border: 2px solid var(--app-bg);
+        }
+
+        .card-icon {
             width: 40px;
             height: 40px;
             border-radius: 12px;
@@ -361,14 +357,60 @@
             justify-content: center;
             font-size: 1.2rem;
             margin-bottom: 10px;
+            background: #f5f6fa;
+            color: #999;
+            transition: all 0.3s;
         }
-        .stat-icon.green { background: #E8F5E9; color: #2E7D32; }
-        .stat-icon.orange { background: #FFF3E0; color: #EF6C00; }
-        .stat-icon.blue { background: #E3F2FD; color: #1976D2; }
 
-        .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--text-dark); }
-        .stat-label { font-size: 0.8rem; color: #666; font-weight: 500; }
+        .med-status-card.taken .card-icon {
+            background: var(--app-bg);
+            color: white;
+        }
 
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+
+        .card-status {
+            font-size: 0.85rem;
+            color: #888;
+            font-weight: 500;
+        }
+
+        .med-status-card.taken .card-status {
+            color: var(--app-bg);
+            font-weight: 700;
+        }
+
+        .card-time {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-top: auto;
+            font-family: 'Merriweather', serif;
+        }
+
+        /* 체크 마크 (복용 완료시 표시) */
+        .check-mark {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: var(--app-bg);
+            font-size: 1.2rem;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .med-status-card.taken .check-mark {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* 기존 차트 섹션 등 */
         .chart-section {
             background: white;
             border-radius: 25px;
@@ -391,7 +433,7 @@
         }
         .section-title { font-size: 1.1rem; font-weight: 600; color: var(--text-dark); }
 
-        /* 약물 관리 섹션 */
+        /* 약물 리스트 등 기존 스타일 유지 */
         .medication-list {
             background: white;
             border-radius: 25px;
@@ -438,7 +480,6 @@
         }
         .med-action:hover { background: var(--app-bg-dark); }
 
-        /* 알림 섹션 */
         .reminder-list {
             background: white;
             border-radius: 25px;
@@ -492,7 +533,6 @@
         input:checked + .toggle-slider { background-color: var(--app-bg); }
         input:checked + .toggle-slider:before { transform: translateX(25px); }
 
-        /* 프로필 섹션 */
         .profile-card {
             background: white;
             border-radius: 25px;
@@ -656,33 +696,44 @@
                     </div>
 
                     <div class="summary-grid">
-                        <div class="stat-card">
-                            <div class="stat-icon green"><i class="fa-solid fa-check"></i></div>
+                        <div class="med-status-card" id="medCard-1">
+                            <div class="check-mark"><i class="fa-solid fa-circle-check"></i></div>
+                            <div class="card-icon"><i class="fa-regular fa-sun"></i></div>
                             <div>
-                                <div class="stat-value" id="todayCount">-</div>
-                                <div class="stat-label">오늘 복용</div>
+                                <div class="card-title">아침 약</div>
+                                <div class="card-status" id="medStatus-1">대기중</div>
                             </div>
+                            <div class="card-time" id="medTime-1">08:00</div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-icon orange"><i class="fa-solid fa-fire"></i></div>
+
+                        <div class="med-status-card" id="medCard-2">
+                            <div class="check-mark"><i class="fa-solid fa-circle-check"></i></div>
+                            <div class="card-icon"><i class="fa-solid fa-cloud-sun"></i></div>
                             <div>
-                                <div class="stat-value" id="adherenceRate">-%</div>
-                                <div class="stat-label">순응도</div>
+                                <div class="card-title">점심 약</div>
+                                <div class="card-status" id="medStatus-2">대기중</div>
                             </div>
+                            <div class="card-time" id="medTime-2">13:00</div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-icon blue"><i class="fa-solid fa-calendar-check"></i></div>
+
+                        <div class="med-status-card" id="medCard-3">
+                            <div class="check-mark"><i class="fa-solid fa-circle-check"></i></div>
+                            <div class="card-icon"><i class="fa-regular fa-moon"></i></div>
                             <div>
-                                <div class="stat-value" id="streakDays">-</div>
-                                <div class="stat-label">연속 일수</div>
+                                <div class="card-title">저녁 약</div>
+                                <div class="card-status" id="medStatus-3">대기중</div>
                             </div>
+                            <div class="card-time" id="medTime-3">18:00</div>
                         </div>
-                        <div class="stat-card">
-                            <div class="stat-icon green"><i class="fa-solid fa-pills"></i></div>
+
+                        <div class="med-status-card" id="medCard-4">
+                            <div class="check-mark"><i class="fa-solid fa-circle-check"></i></div>
+                            <div class="card-icon"><i class="fa-solid fa-bed"></i></div>
                             <div>
-                                <div class="stat-value" id="totalCount">-</div>
-                                <div class="stat-label">총 복용</div>
+                                <div class="card-title">자기전</div>
+                                <div class="card-status" id="medStatus-4">대기중</div>
                             </div>
+                            <div class="card-time" id="medTime-4">22:00</div>
                         </div>
                     </div>
 
@@ -919,7 +970,7 @@
             }
         }
 
-        // [수정됨] 센서 데이터 표시 함수
+        // 센서 데이터 표시 함수 (상단 큰 카드)
         function updateSensorDisplay(data) {
             const sensorArea = document.getElementById('sensorDataArea');
             
@@ -962,11 +1013,10 @@
                 
                 const data = await response.json();
                 
-                // 통계 업데이트
-                document.getElementById('todayCount').textContent = data.today.count || '0';
-                document.getElementById('adherenceRate').textContent = `${data.adherenceRate || 0}%`;
-                document.getElementById('streakDays').textContent = data.adherenceMetrics?.currentStreak || '0';
-                document.getElementById('totalCount').textContent = data.totalCount || '0';
+                // [추가됨] 4개 복약 카드 상태 업데이트
+                if (data.sensors) {
+                    updateMedicationStatus(data.sensors);
+                }
                 
                 // 프로필 통계 업데이트
                 document.getElementById('profileTotalDays').textContent = data.adherenceMetrics?.totalDays || '0';
@@ -982,6 +1032,37 @@
                 showNotification('데이터를 불러오는데 실패했습니다.', 'error');
             } finally {
                 overlay.classList.remove('show');
+            }
+        }
+
+        // [신규] 복약 상태 카드 업데이트 함수
+        function updateMedicationStatus(sensors) {
+            // 1~4번 센서에 대해 카드 업데이트
+            for (let i = 1; i <= 4; i++) {
+                const sensor = sensors[i];
+                if (!sensor) continue;
+
+                const card = document.getElementById(`medCard-${i}`);
+                const statusText = document.getElementById(`medStatus-${i}`);
+                const timeText = document.getElementById(`medTime-${i}`);
+
+                if (sensor.todayOpened) {
+                    // 오늘 복용 완료한 경우
+                    card.classList.add('taken');
+                    statusText.textContent = '복용 완료';
+                    
+                    // 복용 시간 표시 (timestamp 파싱)
+                    const takenTime = new Date(sensor.lastOpened);
+                    const hours = String(takenTime.getHours()).padStart(2, '0');
+                    const minutes = String(takenTime.getMinutes()).padStart(2, '0');
+                    timeText.textContent = `${hours}:${minutes}`;
+                } else {
+                    // 아직 안 먹은 경우
+                    card.classList.remove('taken');
+                    statusText.textContent = '대기중';
+                    // 예정 시간 표시 (targetTime)
+                    timeText.textContent = sensor.targetTime || '00:00';
+                }
             }
         }
 
@@ -1043,17 +1124,13 @@
             });
         }
 
-        // [수정됨] 인디케이터 이동 함수 (중복 제거)
+        // 인디케이터 이동 함수
         function moveIndicator(index) {
             const indicator = document.querySelector('.active-indicator');
             const sidebarItems = document.querySelectorAll('.sidebar-item');
             
-            // 인디케이터 이동 (top padding 20px 고려하지 않고 item height만 계산)
-            // sidebar-container padding-top: 20px, indicator top: 10px (css 보정필요 없음, relative 이동)
-            // 정확한 위치를 위해 인덱스 * 90px
             indicator.style.transform = `translateY(${index * 90}px)`;
             
-            // [핵심] 맨 위 아이템(index 0) 선택 시, 위쪽 덮개(::before) 숨기기 클래스 추가
             if (index === 0) {
                 indicator.classList.add('is-first');
             } else {
@@ -1063,15 +1140,12 @@
 
         // 섹션 전환 함수
         function switchSection(section) {
-            // 현재 섹션 비활성화
             document.querySelectorAll('.page-section').forEach(s => {
                 s.classList.remove('active');
             });
             
-            // 새 섹션 활성화
             document.getElementById(`${section}Section`).classList.add('active');
             
-            // 사이드바 아이템 활성 상태 업데이트 및 인덱스 찾기
             const sidebarItems = document.querySelectorAll('.sidebar-item');
             let activeIndex = 0;
             
@@ -1083,12 +1157,9 @@
                 }
             });
             
-            // 인디케이터 이동
             moveIndicator(activeIndex);
 
             currentSection = section;
-            
-            // 드롭다운 닫기
             document.getElementById('userDropdown').classList.remove('show');
         }
 
@@ -1125,7 +1196,6 @@
                 
                 const data = await response.json();
                 
-                // JSON으로 다운로드
                 const blob = new Blob([JSON.stringify(data, null, 2)], 
                                      { type: 'application/json' });
                 const url = window.URL.createObjectURL(blob);
@@ -1143,7 +1213,6 @@
 
         // 알림 표시
         function showNotification(message, type = 'info') {
-            // 간단한 알림 구현 (토스트)
             console.log(`[${type}] ${message}`);
         }
 
