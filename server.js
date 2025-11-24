@@ -34,26 +34,63 @@ app.use(express.static('public'));
 let currentSensorValue = { 
     a: 0,  // 센서값 (0: 정상, 1: 감지)
     timestamp: new Date().toISOString(),
-    count: 0  // 총 감지 횟수
+    count: 0,  // 총 감지 횟수
+    lastDetection: null,  // 마지막 감지 시간
+    dailyCount: 0,  // 오늘 감지 횟수
+    connectionStatus: 'waiting'  // waiting, connected, disconnected
 };
+
+// 복약 기록 저장용 메모리 (DB 없을 때 사용)
+let medicationHistory = [];
 
 // GET: 현재 센서값 조회 (웹 대시보드용)
 app.get('/value', (req, res) => {
     console.log('GET /value - 현재값:', currentSensorValue);
+    
+    // 연결 상태 업데이트
+    currentSensorValue.connectionStatus = 'connected';
+    
     res.json(currentSensorValue);
 });
 
 // POST: Arduino에서 센서값 업데이트
 app.post('/value', (req, res) => {
     const { a } = req.body;
+    const now = new Date();
     
     // 감지 횟수 증가 (1로 변경될 때만)
     if (a === 1 && currentSensorValue.a === 0) {
         currentSensorValue.count++;
+        currentSensorValue.dailyCount++;
+        currentSensorValue.lastDetection = now.toISOString();
+        
+        // 복약 기록 추가
+        medicationHistory.push({
+            timestamp: now.toISOString(),
+            type: 'detection',
+            value: a,
+            hour: now.getHours(),
+            date: now.toLocaleDateString('ko-KR')
+        });
+        
+        // 최대 100개까지만 메모리에 보관
+        if (medicationHistory.length > 100) {
+            medicationHistory = medicationHistory.slice(-100);
+        }
+    } else if (a === 0 && currentSensorValue.a === 1) {
+        // 약통이 다시 제자리로 돌아옴
+        medicationHistory.push({
+            timestamp: now.toISOString(),
+            type: 'return',
+            value: a,
+            hour: now.getHours(),
+            date: now.toLocaleDateString('ko-KR')
+        });
     }
     
     currentSensorValue.a = a;
-    currentSensorValue.timestamp = new Date().toISOString();
+    currentSensorValue.timestamp = now.toISOString();
+    currentSensorValue.connectionStatus = 'connected';
     
     console.log('POST /value - 업데이트:', currentSensorValue);
     
@@ -61,6 +98,85 @@ app.post('/value', (req, res) => {
         success: true, 
         data: currentSensorValue,
         message: 'Sensor value updated'
+    });
+});
+
+// ===== 새로운 엔드포인트 =====
+
+// GET: 복약 통계 조회
+app.get('/api/stats', (req, res) => {
+    const today = new Date();
+    const todayStr = today.toLocaleDateString('ko-KR');
+    
+    // 오늘의 복약 기록 필터링
+    const todayRecords = medicationHistory.filter(record => 
+        record.date === todayStr && record.type === 'detection'
+    );
+    
+    // 시간대별 복약 체크
+    const morningTaken = todayRecords.some(r => r.hour >= 6 && r.hour < 11);
+    const afternoonTaken = todayRecords.some(r => r.hour >= 11 && r.hour < 16);
+    const eveningTaken = todayRecords.some(r => r.hour >= 16 && r.hour < 22);
+    
+    // 주간 통계 계산
+    const weeklyStats = [];
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toLocaleDateString('ko-KR');
+        const dayRecords = medicationHistory.filter(r => 
+            r.date === dateStr && r.type === 'detection'
+        );
+        
+        weeklyStats.push({
+            date: dateStr,
+            day: ['일', '월', '화', '수', '목', '금', '토'][date.getDay()],
+            count: dayRecords.length
+        });
+    }
+    
+    res.json({
+        success: true,
+        today: {
+            total: todayRecords.length,
+            morning: morningTaken,
+            afternoon: afternoonTaken,
+            evening: eveningTaken
+        },
+        weekly: weeklyStats,
+        allTime: {
+            total: currentSensorValue.count,
+            lastDetection: currentSensorValue.lastDetection
+        }
+    });
+});
+
+// GET: 복약 히스토리 조회
+app.get('/api/history', (req, res) => {
+    const { limit = 20 } = req.query;
+    
+    const recentHistory = medicationHistory
+        .slice(-limit)
+        .reverse()
+        .map(record => ({
+            ...record,
+            timeAgo: getTimeAgo(new Date(record.timestamp))
+        }));
+    
+    res.json({
+        success: true,
+        data: recentHistory,
+        total: medicationHistory.length
+    });
+});
+
+// POST: 일일 카운터 리셋 (자정 자동 리셋용)
+app.post('/api/reset-daily', (req, res) => {
+    currentSensorValue.dailyCount = 0;
+    
+    res.json({
+        success: true,
+        message: 'Daily counter reset'
     });
 });
 
@@ -76,7 +192,8 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'ok', 
         timestamp: new Date().toISOString(),
-        sensorStatus: currentSensorValue
+        sensorStatus: currentSensorValue,
+        medicationRecords: medicationHistory.length
     });
 });
 
@@ -142,138 +259,6 @@ app.post('/api/sensor-data', async (req, res) => {
     }
 });
 
-// 최신 센서 데이터 조회 (DB 사용시)
-app.get('/api/sensor-data/latest/:boxId', async (req, res) => {
-    if (!pool) {
-        res.json({ 
-            success: true, 
-            sensor: currentSensorValue,
-            message: 'Using memory storage'
-        });
-        return;
-    }
-    
-    let conn;
-    try {
-        const { boxId } = req.params;
-        conn = await pool.getConnection();
-        
-        const sensorData = await conn.query(
-            'SELECT * FROM sensor_logs WHERE box_id = ? ORDER BY timestamp DESC LIMIT 1',
-            [boxId]
-        );
-
-        const compartmentData = await conn.query(
-            'SELECT * FROM compartment_status WHERE box_id = ? ORDER BY timestamp DESC LIMIT 4',
-            [boxId]
-        );
-
-        res.json({
-            success: true,
-            sensor: sensorData[0] || currentSensorValue,
-            compartments: compartmentData || []
-        });
-    } catch (error) {
-        console.error('Error fetching sensor data:', error);
-        res.status(500).json({ success: false, error: error.message });
-    } finally {
-        if (conn) conn.release();
-    }
-});
-
-// 센서 데이터 히스토리 조회 (최근 24시간)
-app.get('/api/sensor-data/history/:boxId', async (req, res) => {
-    if (!pool) {
-        res.json({ 
-            success: true, 
-            data: [currentSensorValue],
-            message: 'No database configured'
-        });
-        return;
-    }
-    
-    let conn;
-    try {
-        const { boxId } = req.params;
-        conn = await pool.getConnection();
-        
-        const history = await conn.query(
-            `SELECT * FROM sensor_logs 
-             WHERE box_id = ? AND timestamp > DATE_SUB(NOW(), INTERVAL 24 HOUR)
-             ORDER BY timestamp DESC`,
-            [boxId]
-        );
-
-        res.json({ success: true, data: history });
-    } catch (error) {
-        console.error('Error fetching history:', error);
-        res.status(500).json({ success: false, error: error.message });
-    } finally {
-        if (conn) conn.release();
-    }
-});
-
-// 복약 일정 조회
-app.get('/api/medication-schedule/:boxId', async (req, res) => {
-    if (!pool) {
-        res.json({ 
-            success: true, 
-            data: [],
-            message: 'No database configured'
-        });
-        return;
-    }
-    
-    let conn;
-    try {
-        const { boxId } = req.params;
-        conn = await pool.getConnection();
-        
-        const schedules = await conn.query(
-            `SELECT * FROM medication_schedule 
-             WHERE box_id = ? AND is_taken = 0
-             ORDER BY scheduled_time ASC`,
-            [boxId]
-        );
-
-        res.json({ success: true, data: schedules });
-    } catch (error) {
-        console.error('Error fetching schedule:', error);
-        res.status(500).json({ success: false, error: error.message });
-    } finally {
-        if (conn) conn.release();
-    }
-});
-
-// 복약 완료 처리
-app.post('/api/medication-schedule/complete', async (req, res) => {
-    if (!pool) {
-        res.json({ 
-            success: true, 
-            message: 'No database configured'
-        });
-        return;
-    }
-    
-    let conn;
-    try {
-        const { scheduleId } = req.body;
-        conn = await pool.getConnection();
-        
-        await conn.query(
-            'UPDATE medication_schedule SET is_taken = 1, taken_time = NOW() WHERE id = ?',
-            [scheduleId]
-        );
-
-        res.json({ success: true, message: 'Medication marked as taken' });
-    } catch (error) {
-        console.error('Error updating schedule:', error);
-        res.status(500).json({ success: false, error: error.message });
-    } finally {
-        if (conn) conn.release();
-    }
-});
-
 // 404 처리
 app.use((req, res) => {
     console.log('404 - Not Found:', req.method, req.url);
@@ -293,35 +278,80 @@ app.use((err, req, res, next) => {
     });
 });
 
+// Helper 함수들
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + '년 전';
+    
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + '개월 전';
+    
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + '일 전';
+    
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + '시간 전';
+    
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + '분 전';
+    
+    return '방금 전';
+}
+
+// 일일 카운터 자동 리셋 (매일 자정)
+function scheduleDailyReset() {
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    
+    const msUntilMidnight = tomorrow - now;
+    
+    setTimeout(() => {
+        currentSensorValue.dailyCount = 0;
+        console.log('일일 카운터가 리셋되었습니다');
+        
+        // 다음 날 자정에도 리셋되도록 재귀 호출
+        scheduleDailyReset();
+    }, msUntilMidnight);
+}
+
 // 서버 시작
 app.listen(PORT, () => {
     console.log(`
-╔════════════════════════════════════════╗
-║   🚀 COSS Server Started Successfully   ║
-╠════════════════════════════════════════╣
-║   Port: ${PORT}                           ║
-║   Environment: ${process.env.NODE_ENV || 'development'}         ║
-║   Time: ${new Date().toLocaleString()}     ║
-╠════════════════════════════════════════╣
-║   Endpoints:                           ║
-║   GET  /                               ║
-║   GET  /value     (센서값 조회)         ║
-║   POST /value     (센서값 업데이트)     ║
-║   GET  /health                         ║
-║   POST /api/sensor-data                ║
-╚════════════════════════════════════════╝
+╔════════════════════════════════════════════╗
+║   🚀 COSS Smart Medicine Box Server        ║
+╠════════════════════════════════════════════╣
+║   포트: ${PORT}                              ║
+║   환경: ${process.env.NODE_ENV || 'production'}           ║
+║   시간: ${new Date().toLocaleString('ko-KR')}  ║
+╠════════════════════════════════════════════╣
+║   주요 엔드포인트:                          ║
+║   GET  /                  (대시보드)        ║
+║   GET  /value             (센서값 조회)     ║
+║   POST /value             (센서값 업데이트) ║
+║   GET  /api/stats         (복약 통계)       ║
+║   GET  /api/history       (복약 기록)       ║
+║   GET  /health            (헬스체크)        ║
+╚════════════════════════════════════════════╝
     `);
     
     if (!pool) {
-        console.log('⚠️  Warning: No database configured. Using memory storage only.');
+        console.log('⚠️  경고: 데이터베이스가 구성되지 않았습니다. 메모리 저장소를 사용합니다.');
     }
+    
+    // 일일 리셋 스케줄러 시작
+    scheduleDailyReset();
+    console.log('📅 일일 카운터 자동 리셋 스케줄러가 활성화되었습니다.');
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-    console.log('SIGTERM signal received: closing HTTP server');
+    console.log('SIGTERM 신호 수신: HTTP 서버를 종료합니다');
     app.close(() => {
-        console.log('HTTP server closed');
+        console.log('HTTP 서버가 종료되었습니다');
         if (pool) {
             pool.end();
         }
