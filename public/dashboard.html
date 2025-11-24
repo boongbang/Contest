@@ -14,14 +14,10 @@
             --app-bg: #6B8E6B;
             --app-bg-dark: #556b57;
             --sidebar-bg: #f5f6fa;
-            --card-bg: #ffffff;
             --text-light: #F1F5EF;
             --text-dark: #333333;
             --accent-color: #E8F5E9;
-            --curve-radius: 40px;
-            --success-green: #4CAF50;
-            --warning-orange: #FF9800;
-            --error-red: #F44336;
+            --curve-radius: 35px; /* [수정] 곡률을 사진처럼 더 둥글게 조정 */
         }
 
         * {
@@ -60,6 +56,7 @@
             }
         }
 
+        /* 헤더 스타일 */
         .header {
             display: flex;
             justify-content: space-between;
@@ -83,6 +80,7 @@
             align-items: center;
         }
 
+        /* 센서 상태 표시 */
         .sensor-status {
             display: flex;
             align-items: center;
@@ -100,13 +98,8 @@
             animation: pulse 2s infinite;
         }
 
-        .status-dot.active {
-            background-color: #4CAF50;
-        }
-
-        .status-dot.inactive {
-            background-color: #F44336;
-        }
+        .status-dot.active { background-color: #4CAF50; }
+        .status-dot.inactive { background-color: #F44336; }
 
         @keyframes pulse {
             0% { opacity: 1; }
@@ -114,10 +107,8 @@
             100% { opacity: 1; }
         }
 
-        .user-menu {
-            position: relative;
-        }
-
+        /* 사용자 메뉴 */
+        .user-menu { position: relative; }
         .user-profile-icon {
             width: 40px;
             height: 40px;
@@ -142,11 +133,7 @@
             overflow: hidden;
             z-index: 100;
         }
-
-        .dropdown-menu.show {
-            display: block;
-        }
-
+        .dropdown-menu.show { display: block; }
         .dropdown-item {
             padding: 12px 20px;
             color: var(--text-dark);
@@ -157,15 +144,8 @@
             transition: background 0.3s;
             cursor: pointer;
         }
-
-        .dropdown-item:hover {
-            background: var(--accent-color);
-        }
-
-        .dropdown-divider {
-            height: 1px;
-            background: #e0e0e0;
-        }
+        .dropdown-item:hover { background: var(--accent-color); }
+        .dropdown-divider { height: 1px; background: #e0e0e0; }
 
         .content-body {
             display: flex;
@@ -174,10 +154,9 @@
             overflow: hidden;
         }
 
-        /* ---------------------------------------------------------
-           [사이드바 스타일 핵심 수정] 
-           슬라이딩 애니메이션 + 튀어오름 방지 + 흰색 박스 제거
-           --------------------------------------------------------- */
+        /* ==========================================================================
+           [사이드바 스타일 수정 - 애니메이션 및 디자인 개선]
+           ========================================================================== */
         .sidebar-container {
             width: 90px;
             background-color: transparent;
@@ -185,45 +164,53 @@
             flex-direction: column;
             height: 100%;
             padding-bottom: 20px;
-            padding-top: 10px;
-            position: relative; /* 인디케이터 위치 기준 */
+            /* 중요: 맨 위 아이템이 선택되었을 때 자연스럽게 하기 위해 패딩 조정 */
+            padding-top: 20px; 
+            position: relative;
         }
 
-        /* 움직이는 하얀색 배경 (Active Indicator) */
+        /* 움직이는 커브 배경 (Active Indicator) */
         .active-indicator {
             position: absolute;
-            top: 10px;
             left: 0;
             width: 100%;
-            height: 90px;
-            background: transparent; /* 중앙은 투명해서 뒤의 초록색이 보임 */
+            height: 90px; /* 아이템 높이 */
+            background: transparent;
             z-index: 0;
-            /* 스프링 효과 (Overshoot) 적용 */
-            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            /* [수정됨] 애니메이션 속도감 개선: 끝부분을 더 빠르게 정착시킴 */
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
-        /* 인디케이터 위쪽 덮개 (곡선 포함) */
+        /* 인디케이터 위쪽 덮개 (하얀색 배경) */
         .active-indicator::before {
             content: '';
             position: absolute;
             bottom: 100%;
             right: 0;
             width: 100%;
-            height: 1000px; /* 위쪽 전체를 덮음 */
+            height: 120vh; /* 위쪽을 넉넉하게 덮음 */
             background-color: var(--sidebar-bg);
+            /* 사진과 같은 둥근 모서리 처리 */
             border-bottom-right-radius: var(--curve-radius);
+            transition: opacity 0.3s;
         }
 
-        /* 인디케이터 아래쪽 덮개 (곡선 포함) */
+        /* 인디케이터 아래쪽 덮개 (하얀색 배경) */
         .active-indicator::after {
             content: '';
             position: absolute;
             top: 100%;
             right: 0;
             width: 100%;
-            height: 1000px; /* 아래쪽 전체를 덮음 */
+            height: 120vh; /* 아래쪽을 넉넉하게 덮음 */
             background-color: var(--sidebar-bg);
+            /* 사진과 같은 둥근 모서리 처리 */
             border-top-right-radius: var(--curve-radius);
+        }
+
+        /* [수정됨] 맨 위 아이템이 선택되었을 때 위쪽 바 숨기기 */
+        .active-indicator.is-first::before {
+            opacity: 0; /* 투명하게 처리하여 녹색 배경 노출 */
         }
 
         .sidebar-item {
@@ -234,13 +221,13 @@
             position: relative;
             cursor: pointer;
             color: #999;
-            z-index: 1; /* 인디케이터 위에 아이콘이 와야 함 */
-            /* 배경색 지정 없음 (투명) */
+            z-index: 1;
+            transition: color 0.3s;
         }
 
         .sidebar-item.active {
             color: var(--text-light);
-            background-color: transparent; /* 흰색 사각형 방지 */
+            background-color: transparent;
         }
 
         .icon-box {
@@ -253,7 +240,6 @@
             font-size: 1.2rem;
             background: white;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            /* 튀어오르는 transform 효과 제거, 색상만 변경 */
             transition: background 0.3s, color 0.3s, box-shadow 0.3s;
         }
 
@@ -261,15 +247,14 @@
             background: var(--text-light);
             color: var(--app-bg);
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            /* transform 없음 -> 제자리에 고정 */
+            /* 튀어오르는 효과 제거됨 (제자리 색상 변경) */
         }
 
         .sidebar-filler {
             flex: 1;
-            background: transparent; /* 인디케이터가 덮으므로 투명 */
+            background: transparent;
         }
-
-        /* --------------------------------------------------------- */
+        /* ========================================================================== */
 
         .main-content {
             flex: 1;
@@ -278,36 +263,21 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
-        
-        .main-content::-webkit-scrollbar { 
-            display: none; 
-        }
+        .main-content::-webkit-scrollbar { display: none; }
 
         .page-section {
             display: none;
             animation: fadeInUp 0.5s forwards;
         }
+        .page-section.active { display: block; }
 
-        .page-section.active {
-            display: block;
-        }
-
-        /* 대시보드 섹션 */
         .welcome-text {
             color: var(--text-light);
             margin-bottom: 25px;
-            padding-left: 15px; /* 텍스트 오른쪽 이동 */
+            padding-left: 15px;
         }
-        
-        .welcome-text h2 { 
-            font-family: 'Merriweather', serif; 
-            font-size: 1.8rem; 
-        }
-        
-        .welcome-text p { 
-            font-size: 0.9rem; 
-            opacity: 0.8; 
-        }
+        .welcome-text h2 { font-family: 'Merriweather', serif; font-size: 1.8rem; }
+        .welcome-text p { font-size: 0.9rem; opacity: 0.8; }
 
         .sensor-card {
             background: var(--app-bg-dark);
@@ -324,30 +294,20 @@
             align-items: center;
             margin-bottom: 20px;
         }
-
-        .sensor-title {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
+        .sensor-title { font-size: 1.1rem; opacity: 0.9; }
         .sensor-value-display {
             display: flex;
             align-items: baseline;
             gap: 10px;
             margin-bottom: 15px;
         }
-
         .sensor-big-value {
             font-size: 3rem;
             font-weight: 700;
             font-family: 'Merriweather', serif;
         }
-
-        .sensor-unit {
-            font-size: 1rem;
-            opacity: 0.8;
-        }
-
+        .sensor-unit { font-size: 1rem; opacity: 0.8; }
+        
         .sensor-state {
             padding: 8px 16px;
             background: rgba(255,255,255,0.2);
@@ -355,16 +315,8 @@
             display: inline-block;
             font-size: 0.9rem;
         }
-
-        .sensor-state.detected {
-            background: rgba(244, 67, 54, 0.2);
-            color: #ffcdd2;
-        }
-
-        .sensor-state.clear {
-            background: rgba(76, 175, 80, 0.2);
-            color: #c8e6c9;
-        }
+        .sensor-state.detected { background: rgba(244, 67, 54, 0.2); color: #ffcdd2; }
+        .sensor-state.clear { background: rgba(76, 175, 80, 0.2); color: #c8e6c9; }
 
         .no-data-message {
             text-align: center;
@@ -391,10 +343,7 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
             transition: transform 0.2s;
         }
-        
-        .stat-card:hover { 
-            transform: translateY(-3px); 
-        }
+        .stat-card:hover { transform: translateY(-3px); }
 
         .stat-icon {
             width: 40px;
@@ -406,33 +355,12 @@
             font-size: 1.2rem;
             margin-bottom: 10px;
         }
-        
-        .stat-icon.green { 
-            background: #E8F5E9; 
-            color: #2E7D32; 
-        }
-        
-        .stat-icon.orange { 
-            background: #FFF3E0; 
-            color: #EF6C00; 
-        }
-        
-        .stat-icon.blue { 
-            background: #E3F2FD; 
-            color: #1976D2; 
-        }
+        .stat-icon.green { background: #E8F5E9; color: #2E7D32; }
+        .stat-icon.orange { background: #FFF3E0; color: #EF6C00; }
+        .stat-icon.blue { background: #E3F2FD; color: #1976D2; }
 
-        .stat-value { 
-            font-size: 1.6rem; 
-            font-weight: 700; 
-            color: var(--text-dark); 
-        }
-        
-        .stat-label { 
-            font-size: 0.8rem; 
-            color: #666; 
-            font-weight: 500; 
-        }
+        .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--text-dark); }
+        .stat-label { font-size: 0.8rem; color: #666; font-weight: 500; }
 
         .chart-section {
             background: white;
@@ -441,7 +369,6 @@
             margin-bottom: 25px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
-        
         .chart-container {
             position: relative;
             height: 200px;
@@ -455,12 +382,7 @@
             align-items: center;
             margin-bottom: 20px;
         }
-        
-        .section-title { 
-            font-size: 1.1rem; 
-            font-weight: 600; 
-            color: var(--text-dark); 
-        }
+        .section-title { font-size: 1.1rem; font-weight: 600; color: var(--text-dark); }
 
         /* 약물 관리 섹션 */
         .medication-list {
@@ -470,7 +392,6 @@
             margin-bottom: 25px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
-
         .med-item {
             display: flex;
             align-items: center;
@@ -481,17 +402,8 @@
             border-radius: 15px;
             transition: transform 0.2s;
         }
-
-        .med-item:hover {
-            transform: translateX(5px);
-        }
-
-        .med-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
+        .med-item:hover { transform: translateX(5px); }
+        .med-info { display: flex; align-items: center; gap: 15px; }
         .med-icon {
             width: 40px;
             height: 40px;
@@ -502,18 +414,9 @@
             justify-content: center;
             color: var(--app-bg);
         }
-
-        .med-details h4 {
-            font-size: 1rem;
-            color: var(--text-dark);
-            margin-bottom: 3px;
-        }
-
-        .med-details p {
-            font-size: 0.85rem;
-            color: #666;
-        }
-
+        .med-details h4 { font-size: 1rem; color: var(--text-dark); margin-bottom: 3px; }
+        .med-details p { font-size: 0.85rem; color: #666; }
+        
         .med-action {
             padding: 8px 16px;
             background: var(--app-bg);
@@ -523,14 +426,10 @@
             font-size: 0.85rem;
             cursor: pointer;
             transition: background 0.3s;
-            /* 버튼 깨짐 방지 */
             white-space: nowrap;
             flex-shrink: 0;
         }
-
-        .med-action:hover {
-            background: var(--app-bg-dark);
-        }
+        .med-action:hover { background: var(--app-bg-dark); }
 
         /* 알림 섹션 */
         .reminder-list {
@@ -540,7 +439,6 @@
             margin-bottom: 25px;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
-
         .reminder-item {
             display: flex;
             align-items: center;
@@ -551,38 +449,17 @@
             background: var(--accent-color);
             border-radius: 8px;
         }
-
-        .reminder-time {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--app-bg);
-        }
-
-        .reminder-details {
-            flex: 1;
-        }
-
-        .reminder-title {
-            font-size: 0.95rem;
-            color: var(--text-dark);
-            margin-bottom: 3px;
-        }
-
-        .reminder-desc {
-            font-size: 0.85rem;
-            color: #666;
-        }
+        .reminder-time { font-size: 1.2rem; font-weight: 600; color: var(--app-bg); }
+        .reminder-details { flex: 1; }
+        .reminder-title { font-size: 0.95rem; color: var(--text-dark); margin-bottom: 3px; }
+        .reminder-desc { font-size: 0.85rem; color: #666; }
 
         .toggle-switch {
             position: relative;
             width: 50px;
             height: 25px;
         }
-
-        .toggle-switch input {
-            display: none;
-        }
-
+        .toggle-switch input { display: none; }
         .toggle-slider {
             position: absolute;
             cursor: pointer;
@@ -594,7 +471,6 @@
             transition: .4s;
             border-radius: 25px;
         }
-
         .toggle-slider:before {
             position: absolute;
             content: "";
@@ -606,14 +482,8 @@
             transition: .4s;
             border-radius: 50%;
         }
-
-        input:checked + .toggle-slider {
-            background-color: var(--app-bg);
-        }
-
-        input:checked + .toggle-slider:before {
-            transform: translateX(25px);
-        }
+        input:checked + .toggle-slider { background-color: var(--app-bg); }
+        input:checked + .toggle-slider:before { transform: translateX(25px); }
 
         /* 프로필 섹션 */
         .profile-card {
@@ -624,7 +494,6 @@
             text-align: center;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
-
         .profile-avatar {
             width: 100px;
             height: 100px;
@@ -637,41 +506,17 @@
             font-size: 3rem;
             color: var(--app-bg);
         }
-
-        .profile-name {
-            font-size: 1.5rem;
-            color: var(--text-dark);
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-
-        .profile-email {
-            color: #666;
-            margin-bottom: 20px;
-        }
-
+        .profile-name { font-size: 1.5rem; color: var(--text-dark); margin-bottom: 5px; font-weight: 600; }
+        .profile-email { color: #666; margin-bottom: 20px; }
         .profile-stats {
             display: flex;
             justify-content: space-around;
             padding: 20px 0;
             border-top: 1px solid #e0e0e0;
         }
-
-        .profile-stat {
-            text-align: center;
-        }
-
-        .profile-stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--app-bg);
-        }
-
-        .profile-stat-label {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: 5px;
-        }
+        .profile-stat { text-align: center; }
+        .profile-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--app-bg); }
+        .profile-stat-label { font-size: 0.85rem; color: #666; margin-top: 5px; }
 
         .action-button {
             width: 100%;
@@ -685,30 +530,17 @@
             cursor: pointer;
             transition: background 0.3s;
         }
-
-        .action-button:hover {
-            background: var(--app-bg-dark);
-        }
-
+        .action-button:hover { background: var(--app-bg-dark); }
         .action-button.secondary {
             background: white;
             color: var(--app-bg);
             border: 2px solid var(--app-bg);
         }
-
-        .action-button.secondary:hover {
-            background: var(--accent-color);
-        }
+        .action-button.secondary:hover { background: var(--accent-color); }
 
         @keyframes fadeInUp {
-            from { 
-                opacity: 0; 
-                transform: translateY(20px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .loading-overlay {
@@ -725,11 +557,7 @@
             flex-direction: column;
             color: white;
         }
-
-        .loading-overlay.show {
-            display: flex;
-        }
-
+        .loading-overlay.show { display: flex; }
         .spinner {
             width: 50px;
             height: 50px;
@@ -739,7 +567,6 @@
             animation: spin 1s linear infinite;
             margin-bottom: 20px;
         }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -1018,14 +845,13 @@
             sensorCheckInterval = setInterval(checkSensorStatus, 5000);
             checkSensorStatus(); // 즉시 한번 실행
             
-            // [추가됨] 사이드바 인디케이터 위치 초기화
+            // 사이드바 인디케이터 위치 초기화
             const sidebarItems = document.querySelectorAll('.sidebar-item');
             let activeIndex = 0;
             sidebarItems.forEach((item, index) => {
                 if (item.classList.contains('active')) activeIndex = index;
             });
-            const indicator = document.querySelector('.active-indicator');
-            if(indicator) indicator.style.transform = `translateY(${activeIndex * 90}px)`;
+            moveIndicator(activeIndex); // 초기 위치 설정
         });
 
         // 센서 상태 확인
@@ -1190,7 +1016,25 @@
             });
         }
 
-        // 섹션 전환 함수 (수정됨: 슬라이딩 인디케이터 로직 적용)
+        // [수정됨] 인디케이터 이동 함수 (중복 제거)
+        function moveIndicator(index) {
+            const indicator = document.querySelector('.active-indicator');
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            
+            // 인디케이터 이동 (top padding 20px 고려하지 않고 item height만 계산)
+            // sidebar-container padding-top: 20px, indicator top: 10px (css 보정필요 없음, relative 이동)
+            // 정확한 위치를 위해 인덱스 * 90px
+            indicator.style.transform = `translateY(${index * 90}px)`;
+            
+            // [핵심] 맨 위 아이템(index 0) 선택 시, 위쪽 덮개(::before) 숨기기 클래스 추가
+            if (index === 0) {
+                indicator.classList.add('is-first');
+            } else {
+                indicator.classList.remove('is-first');
+            }
+        }
+
+        // 섹션 전환 함수
         function switchSection(section) {
             // 현재 섹션 비활성화
             document.querySelectorAll('.page-section').forEach(s => {
@@ -1212,10 +1056,8 @@
                 }
             });
             
-            // [핵심] 인디케이터 슬라이드 이동 (90px * 인덱스)
-            const indicator = document.querySelector('.active-indicator');
-            // Y축으로 (인덱스 * 90)px 만큼 이동
-            indicator.style.transform = `translateY(${activeIndex * 90}px)`;
+            // 인디케이터 이동
+            moveIndicator(activeIndex);
 
             currentSection = section;
             
