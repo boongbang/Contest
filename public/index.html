@@ -3,8 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IR 센서 모니터링 대시보드</title>
+    <title>COSS - 스마트 약통 관리 시스템</title>
+    
+    <!-- 폰트 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
     <style>
+        :root {
+            /* Clean & Care 색상 팔레트 */
+            --main-color: #2A9D8F;
+            --sub-color: #E9C46A;
+            --point-color: #E76F51;
+            --bg-color: #F4F7F6;
+            --text-color: #264653;
+            --white: #FFFFFF;
+            --success: #52C41A;
+            --warning: #FAAD14;
+            --error: #FF4D4F;
+            --shadow: rgba(38, 70, 83, 0.08);
+            --shadow-hover: rgba(38, 70, 83, 0.15);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,271 +33,726 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            line-height: 1.6;
+            font-size: 16px;
         }
 
+        /* 컨테이너 */
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 0;
+            background: var(--white);
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 40px var(--shadow);
         }
 
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 28px;
-        }
-
-        .sensor-display {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            text-align: center;
-            color: white;
+        /* 헤더 */
+        .header {
+            background: linear-gradient(135deg, var(--main-color) 0%, #238B7F 100%);
+            color: var(--white);
+            padding: 30px 24px;
+            border-radius: 0 0 30px 30px;
             position: relative;
             overflow: hidden;
         }
 
-        .sensor-display::before {
+        .header::before {
             content: '';
             position: absolute;
             top: -50%;
             right: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: pulse 3s ease-in-out infinite;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            animation: float 15s ease-in-out infinite;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.1); opacity: 1; }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
         }
 
-        .sensor-value {
-            font-size: 72px;
-            font-weight: bold;
-            margin: 20px 0;
+        .greeting {
             position: relative;
             z-index: 1;
         }
 
-        .sensor-label {
-            font-size: 18px;
+        .greeting h1 {
+            font-size: 20px;
+            font-weight: 300;
+            margin-bottom: 8px;
+            opacity: 0.95;
+        }
+
+        .greeting .name {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .greeting .subtitle {
+            font-size: 14px;
             opacity: 0.9;
-            margin-bottom: 10px;
         }
 
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
+        /* 상태 히어로 카드 */
+        .status-hero {
+            margin: -40px 24px 24px;
+            background: var(--white);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 10px 30px var(--shadow);
+            position: relative;
+            z-index: 10;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .status-hero:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px var(--shadow-hover);
+        }
+
+        .status-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .status-icon {
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            margin-left: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        .status-icon.completed {
+            background: rgba(82, 196, 26, 0.1);
+            color: var(--success);
+        }
+
+        .status-icon.pending {
+            background: rgba(250, 173, 20, 0.1);
+            color: var(--warning);
+        }
+
+        .status-icon.detected {
+            background: rgba(231, 111, 81, 0.1);
+            color: var(--point-color);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .status-text h2 {
+            font-size: 18px;
+            margin-bottom: 4px;
+            color: var(--text-color);
+        }
+
+        .status-text p {
+            font-size: 14px;
+            color: rgba(38, 70, 83, 0.7);
+        }
+
+        /* 실시간 센서 상태 */
+        .sensor-status {
+            margin: 0 24px 24px;
+            padding: 20px;
+            background: linear-gradient(145deg, #f8f9fa, #e8eaec);
+            border-radius: 16px;
+            border: 1px solid rgba(42, 157, 143, 0.1);
+        }
+
+        .sensor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .sensor-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .sensor-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .sensor-indicator.active {
+            background: rgba(82, 196, 26, 0.1);
+            color: var(--success);
+        }
+
+        .sensor-indicator.inactive {
+            background: rgba(255, 77, 79, 0.1);
+            color: var(--error);
+        }
+
+        .sensor-indicator::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
             animation: blink 2s infinite;
-        }
-
-        .status-indicator.active {
-            background: #4ade80;
-            box-shadow: 0 0 10px #4ade80;
-        }
-
-        .status-indicator.inactive {
-            background: #f87171;
-            box-shadow: 0 0 10px #f87171;
         }
 
         @keyframes blink {
             0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            50% { opacity: 0.3; }
         }
 
-        .info-grid {
+        .sensor-value-display {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .sensor-value-display .value {
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--main-color);
+        }
+
+        .sensor-value-display .unit {
+            font-size: 16px;
+            color: rgba(38, 70, 83, 0.6);
+        }
+
+        /* 통계 그리드 */
+        .stats-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 12px;
         }
 
-        .info-card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 20px;
-            border-left: 4px solid #667eea;
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(42, 157, 143, 0.1);
         }
 
-        .info-card h3 {
-            color: #667eea;
-            font-size: 14px;
-            margin-bottom: 8px;
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--main-color);
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(38, 70, 83, 0.6);
+            margin-bottom: 4px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
-        .info-card p {
-            color: #333;
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .stat-value.highlight {
+            color: var(--main-color);
+        }
+
+        /* 약 복용 카드 */
+        .medication-section {
+            padding: 0 24px 24px;
+        }
+
+        .section-title {
             font-size: 18px;
             font-weight: 600;
-        }
-
-        .controls {
+            margin-bottom: 16px;
+            color: var(--text-color);
             display: flex;
-            gap: 15px;
-            justify-content: center;
+            align-items: center;
+            gap: 8px;
         }
 
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 25px;
+        .medication-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .medication-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 6px 20px var(--shadow-hover);
+            border-color: var(--main-color);
+        }
+
+        .medication-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: linear-gradient(135deg, rgba(42, 157, 143, 0.1) 0%, rgba(42, 157, 143, 0.05) 100%);
+            color: var(--main-color);
+        }
+
+        .medication-info {
+            flex: 1;
+        }
+
+        .medication-name {
             font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-color);
+        }
+
+        .medication-time {
+            font-size: 13px;
+            color: rgba(38, 70, 83, 0.7);
+        }
+
+        .medication-status {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .medication-status.taken {
+            background: rgba(82, 196, 26, 0.1);
+            color: var(--success);
+        }
+
+        .medication-status.pending {
+            background: rgba(250, 173, 20, 0.1);
+            color: var(--warning);
+        }
+
+        .medication-status.missed {
+            background: rgba(231, 111, 81, 0.1);
+            color: var(--point-color);
+        }
+
+        /* 컨트롤 버튼 */
+        .control-section {
+            padding: 0 24px 100px;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 16px;
+            border-radius: 16px;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-weight: 600;
+            position: relative;
+            overflow: hidden;
         }
 
-        button:hover {
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .control-btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .control-btn.primary {
+            background: linear-gradient(135deg, var(--main-color) 0%, #238B7F 100%);
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(42, 157, 143, 0.3);
+        }
+
+        .control-btn.primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 20px rgba(42, 157, 143, 0.4);
         }
 
-        button:active {
-            transform: translateY(0);
+        .control-btn.secondary {
+            background: var(--white);
+            color: var(--main-color);
+            border: 2px solid var(--main-color);
         }
 
-        button:disabled {
+        .control-btn.secondary:hover {
+            background: rgba(42, 157, 143, 0.05);
+        }
+
+        .control-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
-        .connection-status {
+        /* 하단 네비게이션 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--white);
+            border-top: 1px solid rgba(38, 70, 83, 0.1);
+            padding: 12px 0;
+            z-index: 100;
+        }
+
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            color: var(--main-color);
+        }
+
+        .nav-item.active {
+            color: var(--main-color);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: var(--main-color);
+            border-radius: 0 0 3px 3px;
+        }
+
+        .nav-icon {
+            font-size: 22px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        /* 알림 메시지 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--white);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px var(--shadow-hover);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .notification.success {
+            border-left: 4px solid var(--success);
+        }
+
+        .notification.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .notification.error {
+            border-left: 4px solid var(--error);
+        }
+
+        /* 타임스탬프 */
+        .last-update {
             text-align: center;
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 10px;
-            background: #f0f0f0;
+            padding: 12px 24px;
+            font-size: 12px;
+            color: rgba(38, 70, 83, 0.5);
         }
 
-        .connection-status.connected {
-            background: #d4edda;
-            color: #155724;
+        /* 로딩 스피너 */
+        .loading-spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(42, 157, 143, 0.1);
+            border-top-color: var(--main-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
         }
 
-        .connection-status.disconnected {
-            background: #f8d7da;
-            color: #721c24;
+        .loading-spinner.active {
+            display: block;
         }
 
-        .timestamp {
-            text-align: center;
-            color: #666;
-            font-size: 14px;
-            margin-top: 10px;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
-        .detection-state {
-            display: inline-block;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-weight: 600;
-            margin-top: 15px;
-        }
-
-        .detection-state.detected {
-            background: rgba(248, 113, 113, 0.2);
-            color: #dc2626;
-        }
-
-        .detection-state.clear {
-            background: rgba(74, 222, 128, 0.2);
-            color: #16a34a;
-        }
-
+        /* 반응형 */
         @media (max-width: 480px) {
-            .info-grid {
-                grid-template-columns: 1fr;
+            .container {
+                border-radius: 0;
             }
             
-            .sensor-value {
-                font-size: 56px;
+            .header {
+                border-radius: 0 0 20px 20px;
+            }
+        }
+
+        /* 다크 모드 지원 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #1a1a1a;
+                --white: #2a2a2a;
+                --text-color: #f0f0f0;
+                --shadow: rgba(0, 0, 0, 0.3);
+                --shadow-hover: rgba(0, 0, 0, 0.5);
             }
             
-            h1 {
-                font-size: 24px;
+            .stat-card {
+                border-color: rgba(42, 157, 143, 0.3);
+            }
+            
+            .medication-card {
+                background: #2a2a2a;
+            }
+            
+            .sensor-status {
+                background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            }
+            
+            .bottom-nav {
+                background: #2a2a2a;
+                border-top-color: rgba(255, 255, 255, 0.1);
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🚨 IR 센서 모니터링 대시보드</h1>
-        
-        <div class="sensor-display">
-            <div class="sensor-label">
-                센서 상태
-                <span id="statusIndicator" class="status-indicator inactive"></span>
-            </div>
-            <div class="sensor-value" id="sensorValue">-</div>
-            <div id="detectionState" class="detection-state clear">대기 중</div>
-        </div>
-
-        <div class="info-grid">
-            <div class="info-card">
-                <h3>서버 URL</h3>
-                <p id="serverUrl">설정 필요</p>
-            </div>
-            <div class="info-card">
-                <h3>업데이트 주기</h3>
-                <p id="updateInterval">1초</p>
-            </div>
-            <div class="info-card">
-                <h3>총 감지 횟수</h3>
-                <p id="detectionCount">0</p>
-            </div>
-            <div class="info-card">
-                <h3>연결 시간</h3>
-                <p id="connectionTime">00:00:00</p>
+        <!-- 헤더 -->
+        <div class="header">
+            <div class="greeting">
+                <h1>안녕하세요!</h1>
+                <div class="name">COSS 사용자님</div>
+                <div class="subtitle">오늘도 건강한 하루 보내세요 💊</div>
             </div>
         </div>
 
-        <div class="controls">
-            <button id="connectBtn" onclick="toggleConnection()">연결 시작</button>
-            <button onclick="resetCounter()">카운터 초기화</button>
-            <button onclick="setServerUrl()">서버 설정</button>
+        <!-- 상태 히어로 카드 -->
+        <div class="status-hero">
+            <div class="status-content">
+                <div class="status-icon pending" id="mainStatusIcon">
+                    ⏰
+                </div>
+                <div class="status-text">
+                    <h2 id="mainStatusTitle">센서 연결 대기 중</h2>
+                    <p id="mainStatusMessage">약통 센서와 연결을 시도하고 있습니다</p>
+                </div>
+            </div>
         </div>
 
-        <div id="connectionStatus" class="connection-status disconnected">
-            연결 대기 중...
+        <!-- 실시간 센서 상태 -->
+        <div class="sensor-status">
+            <div class="sensor-header">
+                <div class="sensor-title">📡 실시간 센서 상태</div>
+                <div class="sensor-indicator inactive" id="connectionIndicator">
+                    연결 끊김
+                </div>
+            </div>
+            <div class="sensor-value-display">
+                <span class="value" id="sensorValue">-</span>
+                <span class="unit">상태값</span>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">감지 횟수</div>
+                    <div class="stat-value highlight" id="detectionCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">연결 시간</div>
+                    <div class="stat-value" id="connectionTime">00:00</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">현재 상태</div>
+                    <div class="stat-value" id="currentState">대기</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">업데이트</div>
+                    <div class="stat-value" id="updateRate">1초</div>
+                </div>
+            </div>
         </div>
 
-        <div class="timestamp" id="timestamp">
+        <!-- 약 복용 현황 -->
+        <div class="medication-section">
+            <div class="section-title">
+                💊 오늘의 복약 일정
+            </div>
+            <div class="medication-card">
+                <div class="medication-icon">💊</div>
+                <div class="medication-info">
+                    <div class="medication-name">아침 약</div>
+                    <div class="medication-time">08:00 복용 예정</div>
+                </div>
+                <div class="medication-status pending" id="morningStatus">대기중</div>
+            </div>
+            <div class="medication-card">
+                <div class="medication-icon">💊</div>
+                <div class="medication-info">
+                    <div class="medication-name">점심 약</div>
+                    <div class="medication-time">13:00 복용 예정</div>
+                </div>
+                <div class="medication-status pending" id="afternoonStatus">대기중</div>
+            </div>
+            <div class="medication-card">
+                <div class="medication-icon">💊</div>
+                <div class="medication-info">
+                    <div class="medication-name">저녁 약</div>
+                    <div class="medication-time">19:00 복용 예정</div>
+                </div>
+                <div class="medication-status pending" id="eveningStatus">대기중</div>
+            </div>
+        </div>
+
+        <!-- 컨트롤 버튼 -->
+        <div class="control-section">
+            <div class="control-buttons">
+                <button class="control-btn primary" id="connectBtn" onclick="toggleConnection()">
+                    🔗 서버 연결
+                </button>
+                <button class="control-btn secondary" onclick="resetCounter()">
+                    🔄 카운터 초기화
+                </button>
+            </div>
+        </div>
+
+        <!-- 마지막 업데이트 시간 -->
+        <div class="last-update" id="lastUpdate">
             마지막 업데이트: -
+        </div>
+
+        <!-- 로딩 스피너 -->
+        <div class="loading-spinner" id="loadingSpinner"></div>
+
+        <!-- 하단 네비게이션 -->
+        <div class="bottom-nav">
+            <div class="nav-items">
+                <div class="nav-item active">
+                    <div class="nav-icon">🏠</div>
+                    <div class="nav-label">홈</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">📊</div>
+                    <div class="nav-label">통계</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">📅</div>
+                    <div class="nav-label">캘린더</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">⚙️</div>
+                    <div class="nav-label">설정</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 알림 메시지 -->
+        <div class="notification" id="notification">
+            <span id="notificationIcon">✅</span>
+            <span id="notificationMessage">알림 메시지</span>
         </div>
     </div>
 
     <script>
+        // 전역 변수
         let isConnected = false;
         let intervalId = null;
-        let serverUrl = localStorage.getItem('serverUrl') || 'http://localhost:3000';
+        // 서버 URL을 고정값으로 설정 (서버 설정 버튼 제거)
+        const serverUrl = 'https://port-0-coss-mi0kk25df8c7e306.sel3.cloudtype.app';
         let detectionCount = 0;
         let connectionStartTime = null;
         let connectionTimer = null;
+        let lastSensorValue = -1;
 
-        // 초기 서버 URL 표시
-        document.getElementById('serverUrl').textContent = serverUrl || '설정 필요';
+        // 페이지 로드 시 자동 연결
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                connect();
+            }, 1000);
+        });
 
         function toggleConnection() {
             if (isConnected) {
@@ -287,43 +763,57 @@
         }
 
         function connect() {
-            if (!serverUrl) {
-                alert('먼저 서버 URL을 설정해주세요.');
-                setServerUrl();
-                return;
-            }
-
+            showNotification('서버 연결을 시도하고 있습니다...', 'info');
+            
             isConnected = true;
             connectionStartTime = Date.now();
-            document.getElementById('connectBtn').textContent = '연결 중지';
-            document.getElementById('connectionStatus').className = 'connection-status connected';
-            document.getElementById('connectionStatus').textContent = '서버 연결됨';
-            document.getElementById('statusIndicator').className = 'status-indicator active';
-
+            
+            // UI 업데이트
+            document.getElementById('connectBtn').innerHTML = '🔌 연결 끊기';
+            document.getElementById('connectionIndicator').className = 'sensor-indicator active';
+            document.getElementById('connectionIndicator').textContent = '연결됨';
+            
+            // 메인 상태 업데이트
+            updateMainStatus('connected');
+            
+            // 로딩 스피너 표시
+            document.getElementById('loadingSpinner').classList.add('active');
+            
             // 연결 시간 타이머 시작
             connectionTimer = setInterval(updateConnectionTime, 1000);
-
+            
             // 데이터 폴링 시작
             fetchSensorData();
             intervalId = setInterval(fetchSensorData, 1000);
+            
+            setTimeout(() => {
+                document.getElementById('loadingSpinner').classList.remove('active');
+                showNotification('서버와 성공적으로 연결되었습니다!', 'success');
+            }, 1500);
         }
 
         function disconnect() {
             isConnected = false;
-            document.getElementById('connectBtn').textContent = '연결 시작';
-            document.getElementById('connectionStatus').className = 'connection-status disconnected';
-            document.getElementById('connectionStatus').textContent = '연결 해제됨';
-            document.getElementById('statusIndicator').className = 'status-indicator inactive';
-
+            
+            // UI 업데이트
+            document.getElementById('connectBtn').innerHTML = '🔗 서버 연결';
+            document.getElementById('connectionIndicator').className = 'sensor-indicator inactive';
+            document.getElementById('connectionIndicator').textContent = '연결 끊김';
+            
+            // 메인 상태 업데이트
+            updateMainStatus('disconnected');
+            
             if (intervalId) {
                 clearInterval(intervalId);
                 intervalId = null;
             }
-
+            
             if (connectionTimer) {
                 clearInterval(connectionTimer);
                 connectionTimer = null;
             }
+            
+            showNotification('서버 연결이 해제되었습니다', 'warning');
         }
 
         async function fetchSensorData() {
@@ -344,73 +834,189 @@
 
             } catch (error) {
                 console.error('데이터 가져오기 실패:', error);
-                document.getElementById('connectionStatus').className = 'connection-status disconnected';
-                document.getElementById('connectionStatus').textContent = '연결 오류: ' + error.message;
+                if (isConnected) {
+                    showNotification('서버 연결 오류가 발생했습니다', 'error');
+                }
             }
         }
 
         function updateDisplay(data) {
             const sensorValue = data.a !== undefined ? data.a : '-';
-            const currentValue = document.getElementById('sensorValue').textContent;
             
-            // 값이 변경되었고 1로 변경된 경우 카운트 증가
-            if (currentValue !== sensorValue.toString() && sensorValue === 1) {
-                detectionCount++;
-                document.getElementById('detectionCount').textContent = detectionCount;
-            }
-
+            // 센서값 업데이트
             document.getElementById('sensorValue').textContent = sensorValue;
             
-            // 감지 상태 업데이트
-            const detectionState = document.getElementById('detectionState');
-            if (sensorValue === 1) {
-                detectionState.textContent = '🔴 장애물 감지됨';
-                detectionState.className = 'detection-state detected';
-            } else {
-                detectionState.textContent = '🟢 정상';
-                detectionState.className = 'detection-state clear';
+            // 값이 변경되었고 1로 변경된 경우 (약통 제거 감지)
+            if (lastSensorValue !== sensorValue && sensorValue === 1) {
+                detectionCount++;
+                document.getElementById('detectionCount').textContent = detectionCount;
+                
+                // 약통 제거 알림
+                showNotification('약통이 제거되었습니다! 약을 복용하세요.', 'warning');
+                
+                // 메인 상태 업데이트
+                updateMainStatus('detected');
+                
+                // 복약 상태 업데이트 (시간대에 따라)
+                updateMedicationStatus();
+            } else if (lastSensorValue === 1 && sensorValue === 0) {
+                // 약통이 다시 제자리로 돌아옴
+                showNotification('약통이 제자리에 놓였습니다.', 'success');
+                updateMainStatus('returned');
             }
-
+            
+            lastSensorValue = sensorValue;
+            
+            // 현재 상태 텍스트 업데이트
+            const currentState = document.getElementById('currentState');
+            if (sensorValue === 1) {
+                currentState.textContent = '감지';
+                currentState.style.color = 'var(--point-color)';
+            } else if (sensorValue === 0) {
+                currentState.textContent = '정상';
+                currentState.style.color = 'var(--success)';
+            } else {
+                currentState.textContent = '대기';
+                currentState.style.color = 'var(--text-color)';
+            }
+            
             // 타임스탬프 업데이트
             const now = new Date();
             const timeString = now.toLocaleTimeString('ko-KR');
-            document.getElementById('timestamp').textContent = `마지막 업데이트: ${timeString}`;
+            document.getElementById('lastUpdate').textContent = `마지막 업데이트: ${timeString}`;
+        }
+
+        function updateMainStatus(status) {
+            const icon = document.getElementById('mainStatusIcon');
+            const title = document.getElementById('mainStatusTitle');
+            const message = document.getElementById('mainStatusMessage');
+            
+            switch(status) {
+                case 'connected':
+                    icon.className = 'status-icon completed';
+                    icon.textContent = '✅';
+                    title.textContent = '센서 연결 완료';
+                    message.textContent = '약통 모니터링이 시작되었습니다';
+                    break;
+                case 'detected':
+                    icon.className = 'status-icon detected';
+                    icon.textContent = '💊';
+                    title.textContent = '약통이 제거됨';
+                    message.textContent = '약을 복용 중이신가요?';
+                    break;
+                case 'returned':
+                    icon.className = 'status-icon completed';
+                    icon.textContent = '✅';
+                    title.textContent = '복약 완료';
+                    message.textContent = '약통이 제자리에 있습니다';
+                    break;
+                case 'disconnected':
+                    icon.className = 'status-icon pending';
+                    icon.textContent = '⏰';
+                    title.textContent = '센서 연결 대기 중';
+                    message.textContent = '서버와 연결이 끊어졌습니다';
+                    break;
+            }
+        }
+
+        function updateMedicationStatus() {
+            const now = new Date();
+            const hours = now.getHours();
+            
+            if (hours >= 6 && hours < 11) {
+                // 아침 약 복용
+                const morningStatus = document.getElementById('morningStatus');
+                morningStatus.className = 'medication-status taken';
+                morningStatus.textContent = '복용완료';
+            } else if (hours >= 11 && hours < 16) {
+                // 점심 약 복용
+                const afternoonStatus = document.getElementById('afternoonStatus');
+                afternoonStatus.className = 'medication-status taken';
+                afternoonStatus.textContent = '복용완료';
+            } else if (hours >= 16 && hours < 22) {
+                // 저녁 약 복용
+                const eveningStatus = document.getElementById('eveningStatus');
+                eveningStatus.className = 'medication-status taken';
+                eveningStatus.textContent = '복용완료';
+            }
         }
 
         function updateConnectionTime() {
             if (!connectionStartTime) return;
             
             const elapsed = Date.now() - connectionStartTime;
-            const hours = Math.floor(elapsed / 3600000);
-            const minutes = Math.floor((elapsed % 3600000) / 60000);
+            const minutes = Math.floor(elapsed / 60000);
             const seconds = Math.floor((elapsed % 60000) / 1000);
             
-            const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             document.getElementById('connectionTime').textContent = timeString;
         }
 
         function resetCounter() {
             detectionCount = 0;
             document.getElementById('detectionCount').textContent = '0';
+            
+            // 복약 상태 초기화
+            document.querySelectorAll('.medication-status').forEach(status => {
+                status.className = 'medication-status pending';
+                status.textContent = '대기중';
+            });
+            
+            showNotification('카운터가 초기화되었습니다', 'info');
         }
 
-        function setServerUrl() {
-            const newUrl = prompt('서버 URL을 입력하세요 (예: http://your-server.cloudtype.app):', serverUrl);
-            if (newUrl) {
-                serverUrl = newUrl;
-                localStorage.setItem('serverUrl', serverUrl);
-                document.getElementById('serverUrl').textContent = serverUrl;
-                
-                // 연결 중이었다면 재연결
-                if (isConnected) {
-                    disconnect();
-                    setTimeout(connect, 100);
-                }
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            const icon = document.getElementById('notificationIcon');
+            const messageElement = document.getElementById('notificationMessage');
+            
+            // 아이콘 설정
+            switch(type) {
+                case 'success':
+                    icon.textContent = '✅';
+                    notification.className = 'notification success show';
+                    break;
+                case 'warning':
+                    icon.textContent = '⚠️';
+                    notification.className = 'notification warning show';
+                    break;
+                case 'error':
+                    icon.textContent = '❌';
+                    notification.className = 'notification error show';
+                    break;
+                default:
+                    icon.textContent = 'ℹ️';
+                    notification.className = 'notification show';
             }
+            
+            messageElement.textContent = message;
+            
+            // 3초 후 자동 숨김
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
         }
 
-        // 페이지 로드 시 자동 연결 (옵션)
-        // window.addEventListener('load', connect);
+        // 네비게이션 아이템 클릭 이벤트
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                const label = this.querySelector('.nav-label').textContent;
+                showNotification(`${label} 메뉴는 준비 중입니다`, 'info');
+            });
+        });
+
+        // 약 카드 클릭 이벤트
+        document.querySelectorAll('.medication-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const medName = this.querySelector('.medication-name').textContent;
+                showNotification(`${medName} 상세 정보는 준비 중입니다`, 'info');
+            });
+        });
     </script>
 </body>
 </html>
