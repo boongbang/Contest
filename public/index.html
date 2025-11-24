@@ -3,159 +3,571 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COSS - 시작하기</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>COSS - 스마트 약통 관리 시스템</title>
     <style>
-        :root {
-            --primary: #4F46E5;
-            --primary-light: #818CF8;
-            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; }
-        
+
         body {
-            background: var(--bg-gradient);
-            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
         }
 
-        .auth-card {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+        .auth-container {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             padding: 40px;
-            border-radius: 24px;
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: slideIn 0.4s ease-out;
         }
 
-        .logo-area { text-align: center; margin-bottom: 30px; }
-        .logo-icon { font-size: 40px; color: var(--primary); margin-bottom: 10px; }
-        .logo-text { font-size: 24px; font-weight: 800; color: #1F2937; }
-        .logo-desc { color: #6B7280; font-size: 14px; margin-top: 5px; }
-
-        .input-group { margin-bottom: 15px; position: relative; }
-        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #9CA3AF; }
-        .input-field {
-            width: 100%;
-            padding: 14px 14px 14px 45px;
-            border: 2px solid #E5E7EB;
-            border-radius: 12px;
-            font-size: 15px;
-            transition: 0.3s;
-            background: #F9FAFB;
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        .input-field:focus { border-color: var(--primary); outline: none; background: white; }
 
-        .btn-primary {
-            width: 100%;
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .logo h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tab {
+            flex: 1;
             padding: 15px;
-            background: var(--primary);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #999;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .tab.active {
+            color: #667eea;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            animation: expandWidth 0.3s ease-out;
+        }
+
+        @keyframes expandWidth {
+            from { width: 0; left: 50%; }
+            to { width: 100%; left: 0; }
+        }
+
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.3s;
-            margin-top: 10px;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4); }
 
-        .toggle-form { text-align: center; margin-top: 20px; font-size: 14px; color: #6B7280; }
-        .toggle-form span { color: var(--primary); font-weight: 600; cursor: pointer; }
-        
-        .hidden { display: none; }
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            display: block;
+        }
+
+        .form-footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .form-footer a:hover {
+            color: #764ba2;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        button.loading .button-text {
+            display: none;
+        }
+
+        button.loading .loading-spinner {
+            display: block;
+        }
+
+        .password-requirements {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .feature-text {
+            font-size: 12px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
-    <div class="auth-card">
-        <div class="logo-area">
-            <div class="logo-icon"><i class="fa-solid fa-pills"></i></div>
-            <h1 class="logo-text">COSS</h1>
-            <p class="logo-desc">스마트한 복약 관리의 시작</p>
+    <div class="auth-container">
+        <div class="logo">
+            <div class="logo-icon">💊</div>
+            <h1>COSS</h1>
+            <p>스마트 약통 관리 시스템</p>
         </div>
 
-        <form id="loginForm" onsubmit="handleAuth(event, 'login')">
-            <div class="input-group">
-                <i class="fa-regular fa-envelope"></i>
-                <input type="email" id="loginEmail" class="input-field" placeholder="이메일" required>
-            </div>
-            <div class="input-group">
-                <i class="fa-solid fa-lock"></i>
-                <input type="password" id="loginPw" class="input-field" placeholder="비밀번호" required>
-            </div>
-            <button type="submit" class="btn-primary">로그인</button>
-            <div class="toggle-form">
-                계정이 없으신가요? <span onclick="toggleMode()">회원가입</span>
-            </div>
-        </form>
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('login')">로그인</div>
+            <div class="tab" onclick="switchTab('signup')">회원가입</div>
+        </div>
 
-        <form id="signupForm" class="hidden" onsubmit="handleAuth(event, 'signup')">
-            <div class="input-group">
-                <i class="fa-regular fa-user"></i>
-                <input type="text" id="signName" class="input-field" placeholder="이름" required>
+        <!-- 로그인 폼 -->
+        <div id="loginForm" class="form-container active">
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="loginEmail">이메일</label>
+                    <input type="email" id="loginEmail" required placeholder="example@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">비밀번호</label>
+                    <input type="password" id="loginPassword" required placeholder="비밀번호 입력">
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="rememberMe">
+                    <label for="rememberMe">로그인 상태 유지</label>
+                </div>
+                <button type="submit">
+                    <span class="button-text">로그인</span>
+                    <div class="loading-spinner"></div>
+                </button>
+            </form>
+            <div id="loginMessage" class="message"></div>
+            <div class="form-footer">
+                계정이 없으신가요? <a href="#" onclick="switchTab('signup')">회원가입</a>
             </div>
-            <div class="input-group">
-                <i class="fa-regular fa-envelope"></i>
-                <input type="email" id="signEmail" class="input-field" placeholder="이메일" required>
+            
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-text">실시간 통계</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⏰</div>
+                    <div class="feature-text">복약 알림</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📈</div>
+                    <div class="feature-text">순응도 분석</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📱</div>
+                    <div class="feature-text">모바일 지원</div>
+                </div>
             </div>
-            <div class="input-group">
-                <i class="fa-solid fa-lock"></i>
-                <input type="password" id="signPw" class="input-field" placeholder="비밀번호 (8자 이상)" required>
+        </div>
+
+        <!-- 회원가입 폼 -->
+        <div id="signupForm" class="form-container">
+            <form onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label for="signupName">이름</label>
+                    <input type="text" id="signupName" required placeholder="실명 입력">
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">이메일</label>
+                    <input type="email" id="signupEmail" required placeholder="example@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">비밀번호</label>
+                    <input type="password" id="signupPassword" required placeholder="8자 이상">
+                    <div class="password-requirements">
+                        * 8자 이상, 영문과 숫자 포함
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="signupPasswordConfirm">비밀번호 확인</label>
+                    <input type="password" id="signupPasswordConfirm" required placeholder="비밀번호 재입력">
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="agreeTerms" required>
+                    <label for="agreeTerms">이용약관 및 개인정보처리방침에 동의합니다</label>
+                </div>
+                <button type="submit">
+                    <span class="button-text">회원가입</span>
+                    <div class="loading-spinner"></div>
+                </button>
+            </form>
+            <div id="signupMessage" class="message"></div>
+            <div class="form-footer">
+                이미 계정이 있으신가요? <a href="#" onclick="switchTab('login')">로그인</a>
             </div>
-            <button type="submit" class="btn-primary">회원가입</button>
-            <div class="toggle-form">
-                이미 계정이 있으신가요? <span onclick="toggleMode()">로그인</span>
-            </div>
-        </form>
+        </div>
     </div>
 
     <script>
-        const SERVER = 'https://port-0-coss-mi0kk25df8c7e306.sel3.cloudtype.app'; // 실제 서버 주소로 변경 확인
+        const SERVER_URL = 'https://port-0-coss-mi0kk25df8c7e306.sel3.cloudtype.app';
 
-        function toggleMode() {
-            document.getElementById('loginForm').classList.toggle('hidden');
-            document.getElementById('signupForm').classList.toggle('hidden');
+        // 페이지 로드 시 저장된 토큰 확인
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                verifyToken(token);
+            }
+        });
+
+        async function verifyToken(token) {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/auth/verify`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    window.location.href = '/dashboard.html';
+                } else {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userInfo');
+                }
+            } catch (error) {
+                console.error('Token verification failed:', error);
+            }
         }
 
-        async function handleAuth(e, type) {
-            e.preventDefault();
-            const btn = e.target.querySelector('button');
-            const originalText = btn.innerText;
-            btn.innerText = '처리중...';
-            btn.disabled = true;
+        function switchTab(tab) {
+            const tabs = document.querySelectorAll('.tab');
+            const forms = document.querySelectorAll('.form-container');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            forms.forEach(f => f.classList.remove('active'));
+            
+            if (tab === 'login') {
+                tabs[0].classList.add('active');
+                document.getElementById('loginForm').classList.add('active');
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('signupForm').classList.add('active');
+            }
+        }
 
-            const endpoint = type === 'login' ? '/api/auth/login' : '/api/auth/signup';
-            const body = type === 'login' 
-                ? { email: document.getElementById('loginEmail').value, password: document.getElementById('loginPw').value }
-                : { name: document.getElementById('signName').value, email: document.getElementById('signEmail').value, password: document.getElementById('signPw').value };
-
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            const button = event.target.querySelector('button');
+            const message = document.getElementById('loginMessage');
+            
+            button.classList.add('loading');
+            button.disabled = true;
+            message.className = 'message';
+            
             try {
-                const res = await fetch(SERVER + endpoint, {
-                    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+                const response = await fetch(`${SERVER_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password, rememberMe })
                 });
-                const data = await res.json();
+
+                const data = await response.json();
                 
-                if (res.ok) {
-                    if (type === 'login') {
-                        localStorage.setItem('coss_token', data.token);
-                        localStorage.setItem('coss_user', JSON.stringify(data.user));
-                        location.href = 'dashboard.html';
-                    } else {
-                        alert('가입 성공! 로그인해주세요.');
-                        toggleMode();
-                    }
+                if (response.ok) {
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('userInfo', JSON.stringify(data.user));
+                    
+                    message.className = 'message success';
+                    message.textContent = '로그인 성공! 대시보드로 이동합니다...';
+                    
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 1000);
                 } else {
-                    alert(data.error || '오류가 발생했습니다.');
+                    message.className = 'message error';
+                    message.textContent = data.error || '로그인에 실패했습니다.';
                 }
-            } catch (err) { alert('서버 연결 실패'); }
-            finally { btn.innerText = originalText; btn.disabled = false; }
+            } catch (error) {
+                message.className = 'message error';
+                message.textContent = '서버 연결에 실패했습니다.';
+            } finally {
+                button.classList.remove('loading');
+                button.disabled = false;
+            }
+        }
+
+        async function handleSignup(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+            const agreeTerms = document.getElementById('agreeTerms').checked;
+            
+            const button = event.target.querySelector('button');
+            const message = document.getElementById('signupMessage');
+            
+            if (password !== passwordConfirm) {
+                message.className = 'message error';
+                message.textContent = '비밀번호가 일치하지 않습니다.';
+                return;
+            }
+            
+            if (password.length < 8) {
+                message.className = 'message error';
+                message.textContent = '비밀번호는 8자 이상이어야 합니다.';
+                return;
+            }
+            
+            if (!agreeTerms) {
+                message.className = 'message error';
+                message.textContent = '이용약관에 동의해주세요.';
+                return;
+            }
+            
+            button.classList.add('loading');
+            button.disabled = true;
+            message.className = 'message';
+            
+            try {
+                const response = await fetch(`${SERVER_URL}/api/auth/signup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    message.className = 'message success';
+                    message.textContent = '회원가입이 완료되었습니다! 로그인해주세요.';
+                    
+                    setTimeout(() => {
+                        switchTab('login');
+                        document.getElementById('loginEmail').value = email;
+                    }, 2000);
+                } else {
+                    message.className = 'message error';
+                    message.textContent = data.error || '회원가입에 실패했습니다.';
+                }
+            } catch (error) {
+                message.className = 'message error';
+                message.textContent = '서버 연결에 실패했습니다.';
+            } finally {
+                button.classList.remove('loading');
+                button.disabled = false;
+            }
         }
     </script>
 </body>
