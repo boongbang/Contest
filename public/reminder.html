@@ -5,1178 +5,281 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COSS - 알림 설정</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* 기존 스타일 유지 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f5f6fa; min-height: 100vh; }
+        
+        /* 사이드바 스타일 */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 250px; background: white; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05); z-index: 1000; }
+        .sidebar-header { padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .sidebar-logo { display: flex; align-items: center; gap: 10px; font-size: 24px; font-weight: bold; }
+        .sidebar-menu { padding: 20px 0; }
+        .menu-item { display: flex; align-items: center; gap: 15px; padding: 15px 20px; color: #666; text-decoration: none; transition: all 0.3s ease; }
+        .menu-item:hover { background: #f5f6fa; color: #667eea; }
+        .menu-item.active { background: rgba(102, 126, 234, 0.1); color: #667eea; border-left: 4px solid #667eea; }
+        .menu-icon { font-size: 20px; width: 24px; text-align: center; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f5f6fa;
-            min-height: 100vh;
-        }
+        /* 메인 컨텐츠 */
+        .main-content { margin-left: 250px; min-height: 100vh; }
+        .top-header { background: white; padding: 20px 30px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; font-weight: 600; color: #333; }
+        .reminder-content { padding: 30px; }
 
-        /* 사이드바 */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 250px;
-            background: white;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-            z-index: 1000;
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar-header {
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .sidebar-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .sidebar-menu {
-            padding: 20px 0;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 15px 20px;
-            color: #666;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .menu-item:hover {
-            background: #f5f6fa;
-            color: #667eea;
-        }
-
-        .menu-item.active {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-        }
-
-        .menu-item.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: #667eea;
-        }
-
-        .menu-icon {
-            font-size: 20px;
-            width: 24px;
-            text-align: center;
-        }
-
-        .main-content {
-            margin-left: 250px;
-            min-height: 100vh;
-        }
-
-        .top-header {
-            background: white;
-            padding: 20px 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .page-title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .reminder-content {
-            padding: 30px;
-        }
-
-        /* 알림 설정 카드 */
-        .settings-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-
-        .card-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .card-subtitle {
-            font-size: 14px;
-            color: #666;
-            margin-top: 5px;
-        }
+        /* 카드 및 리스트 스타일 */
+        .settings-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); margin-bottom: 20px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f0f0; }
+        .card-title { font-size: 20px; font-weight: 600; color: #333; }
+        
+        .add-reminder-btn { padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        
+        .reminder-item { display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #f8f9fa; border-radius: 10px; margin-bottom: 10px; }
+        .reminder-info { display: flex; gap: 15px; align-items: center; }
+        .reminder-icon { width: 40px; height: 40px; background: #e0e7ff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .reminder-text h4 { margin-bottom: 5px; color: #333; }
+        .reminder-text p { color: #666; font-size: 14px; }
+        
+        .reminder-actions button { padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; margin-left: 5px; }
+        .btn-delete { background: #fee2e2; color: #dc2626; }
 
         /* 토글 스위치 */
-        .toggle-switch {
-            position: relative;
-            width: 50px;
-            height: 26px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: 0.4s;
-            border-radius: 34px;
-        }
-
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 20px;
-            width: 20px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: 0.4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .toggle-slider {
-            background-color: #667eea;
-        }
-
-        input:checked + .toggle-slider:before {
-            transform: translateX(24px);
-        }
-
-        /* 알림 리스트 */
-        .reminder-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .reminder-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px;
-            background: #f5f6fa;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .reminder-item:hover {
-            background: #eef0f7;
-            transform: translateX(5px);
-        }
-
-        .reminder-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex: 1;
-        }
-
-        .reminder-icon {
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 20px;
-        }
-
-        .reminder-details {
-            flex: 1;
-        }
-
-        .reminder-med-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .reminder-time {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .reminder-actions {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .edit-btn, .delete-btn {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .edit-btn {
-            background: #e7e9f5;
-            color: #667eea;
-        }
-
-        .edit-btn:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .delete-btn {
-            background: #fee2e2;
-            color: #ef4444;
-        }
-
-        .delete-btn:hover {
-            background: #ef4444;
-            color: white;
-        }
-
-        /* 알림 추가 버튼 */
-        .add-reminder-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .add-reminder-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        /* 알림 설정 섹션 */
-        .settings-section {
-            margin-bottom: 30px;
-        }
-
-        .settings-grid {
-            display: grid;
-            gap: 20px;
-        }
-
-        .setting-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .setting-row:last-child {
-            border-bottom: none;
-        }
-
-        .setting-label {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .setting-title {
-            font-size: 16px;
-            font-weight: 500;
-            color: #333;
-        }
-
-        .setting-description {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .setting-control {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .select-input {
-            padding: 8px 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 14px;
-            background: white;
-            cursor: pointer;
-        }
-
-        /* 통계 카드 */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .stat-icon {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-
-        .stat-value {
-            font-size: 28px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: #666;
-        }
+        .toggle-switch { position: relative; width: 50px; height: 26px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .toggle-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .toggle-slider { background-color: #667eea; }
+        input:checked + .toggle-slider:before { transform: translateX(24px); }
 
         /* 모달 */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            color: #333;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .form-select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 16px;
-            background: white;
-            cursor: pointer;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 30px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 14px 20px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-secondary {
-            background: #e5e7eb;
-            color: #333;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        /* 알림 음 선택 */
-        .sound-options {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-
-        .sound-option {
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .sound-option:hover {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.05);
-        }
-
-        .sound-option.selected {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
-
-        .sound-icon {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        .sound-name {
-            font-size: 14px;
-            color: #333;
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; }
+        .form-group { margin-bottom: 15px; }
+        .form-label { display: block; margin-bottom: 5px; font-weight: 500; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-secondary { background: #e5e7eb; color: #333; }
 
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .mobile-menu-toggle {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1001;
-            background: white;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        @media (max-width: 768px) {
-            .mobile-menu-toggle {
-                display: block;
-            }
+            .sidebar { display: none; } /* 모바일 메뉴 생략 */
+            .main-content { margin-left: 0; }
         }
     </style>
 </head>
 <body>
-    <button class="mobile-menu-toggle" onclick="toggleSidebar()">☰</button>
-
-    <!-- 사이드바 -->
-    <nav class="sidebar" id="sidebar">
+    <nav class="sidebar">
         <div class="sidebar-header">
-            <div class="sidebar-logo">
-                <span>💊</span>
-                <span>COSS</span>
-            </div>
+            <div class="sidebar-logo"><span>💊</span><span>COSS</span></div>
         </div>
         <div class="sidebar-menu">
-            <a href="/dashboard.html" class="menu-item">
-                <span class="menu-icon">📊</span>
-                <span>대시보드</span>
-            </a>
-            <a href="/medication.html" class="menu-item">
-                <span class="menu-icon">💊</span>
-                <span>복약 관리</span>
-            </a>
-            <a href="/reports.html" class="menu-item">
-                <span class="menu-icon">📈</span>
-                <span>상세 리포트</span>
-            </a>
-            <a href="/reminder.html" class="menu-item active">
-                <span class="menu-icon">⏰</span>
-                <span>알림 설정</span>
-            </a>
-            <a href="/profile.html" class="menu-item">
-                <span class="menu-icon">👤</span>
-                <span>프로필</span>
-            </a>
-            <a href="#" class="menu-item" onclick="logout()">
-                <span class="menu-icon">🚪</span>
-                <span>로그아웃</span>
-            </a>
+            <a href="/dashboard.html" class="menu-item"><span>📊</span> 대시보드</a>
+            <a href="/medication.html" class="menu-item"><span>💊</span> 복약 관리</a>
+            <a href="/reports.html" class="menu-item"><span>📈</span> 상세 리포트</a>
+            <a href="/reminder.html" class="menu-item active"><span>⏰</span> 알림 설정</a>
+            <a href="/profile.html" class="menu-item"><span>👤</span> 프로필</a>
+            <a href="#" class="menu-item" onclick="logout()"><span>🚪</span> 로그아웃</a>
         </div>
     </nav>
 
-    <!-- 메인 콘텐츠 -->
     <div class="main-content">
         <header class="top-header">
             <h1 class="page-title">알림 설정</h1>
-            <div class="user-info">
-                <span id="userName">김철수님</span>
-            </div>
+            <span id="userName">사용자님</span>
         </header>
 
         <div class="reminder-content">
-            <!-- 알림 통계 -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">⏰</div>
-                    <div class="stat-value" id="totalReminders">0</div>
-                    <div class="stat-label">전체 알림</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">✅</div>
-                    <div class="stat-value" id="activeReminders">0</div>
-                    <div class="stat-label">활성 알림</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">📱</div>
-                    <div class="stat-value" id="todayReminders">0</div>
-                    <div class="stat-label">오늘 예정</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🔕</div>
-                    <div class="stat-value" id="snoozedReminders">0</div>
-                    <div class="stat-label">일시정지</div>
-                </div>
-            </div>
-
-            <!-- 전체 알림 설정 -->
             <div class="settings-card">
                 <div class="card-header">
-                    <div>
-                        <h3 class="card-title">전체 알림 설정</h3>
-                        <p class="card-subtitle">모든 알림에 적용되는 설정입니다</p>
+                    <h3 class="card-title">기본 설정</h3>
+                </div>
+                <div class="reminder-item">
+                    <div class="reminder-info">
+                        <div class="reminder-text">
+                            <h4>전체 알림 켜기</h4>
+                            <p>모든 복약 알림을 활성화합니다.</p>
+                        </div>
                     </div>
                     <label class="toggle-switch">
-                        <input type="checkbox" id="masterToggle" checked>
+                        <input type="checkbox" id="masterToggle" onchange="saveGlobalSettings()">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
-                <div class="settings-grid">
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">알림 방식</span>
-                            <span class="setting-description">알림을 받을 방법을 선택하세요</span>
-                        </div>
-                        <div class="setting-control">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="pushNotification" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                            <span>푸시 알림</span>
+                <div class="reminder-item">
+                    <div class="reminder-info">
+                        <div class="reminder-text">
+                            <h4>방해 금지 모드</h4>
+                            <p>22:00 ~ 07:00 사이 알림 끄기</p>
                         </div>
                     </div>
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">알림음</span>
-                            <span class="setting-description">알림 소리를 설정하세요</span>
-                        </div>
-                        <div class="setting-control">
-                            <select class="select-input" id="notificationSound">
-                                <option value="default">기본음</option>
-                                <option value="chime">차임벨</option>
-                                <option value="bell">종소리</option>
-                                <option value="vibrate">진동만</option>
-                                <option value="silent">무음</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">반복 알림</span>
-                            <span class="setting-description">무시 시 재알림 간격</span>
-                        </div>
-                        <div class="setting-control">
-                            <select class="select-input" id="snoozeInterval">
-                                <option value="0">반복 안함</option>
-                                <option value="5">5분 후</option>
-                                <option value="10" selected>10분 후</option>
-                                <option value="15">15분 후</option>
-                                <option value="30">30분 후</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">방해 금지 시간</span>
-                            <span class="setting-description">알림을 받지 않을 시간대</span>
-                        </div>
-                        <div class="setting-control">
-                            <input type="time" class="form-input" id="dndStart" value="22:00" style="width: auto;">
-                            <span>~</span>
-                            <input type="time" class="form-input" id="dndEnd" value="07:00" style="width: auto;">
-                        </div>
-                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="dndToggle" onchange="saveGlobalSettings()">
+                        <span class="toggle-slider"></span>
+                    </label>
                 </div>
             </div>
 
-            <!-- 약물별 알림 -->
             <div class="settings-card">
                 <div class="card-header">
-                    <div>
-                        <h3 class="card-title">약물별 알림</h3>
-                        <p class="card-subtitle">각 약물의 복약 시간 알림입니다</p>
-                    </div>
-                    <button class="add-reminder-btn" onclick="openAddReminderModal()">
-                        <span>➕</span>
-                        <span>알림 추가</span>
-                    </button>
+                    <h3 class="card-title">약물별 알림 목록</h3>
+                    <button class="add-reminder-btn" onclick="openModal()">+ 알림 추가</button>
                 </div>
-                <div class="reminder-list" id="reminderList">
-                    <!-- 동적으로 생성 -->
-                </div>
-            </div>
-
-            <!-- 스마트 알림 -->
-            <div class="settings-card">
-                <div class="card-header">
-                    <div>
-                        <h3 class="card-title">스마트 알림</h3>
-                        <p class="card-subtitle">AI 기반 맞춤형 알림 기능</p>
-                    </div>
-                </div>
-                <div class="settings-grid">
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">적응형 알림</span>
-                            <span class="setting-description">복약 패턴을 학습하여 최적 시간에 알림</span>
-                        </div>
-                        <div class="setting-control">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="adaptiveReminder">
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">위치 기반 알림</span>
-                            <span class="setting-description">집 도착 시 자동 알림</span>
-                        </div>
-                        <div class="setting-control">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="locationReminder">
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">날씨 연동 알림</span>
-                            <span class="setting-description">날씨에 따른 복약 권장사항 알림</span>
-                        </div>
-                        <div class="setting-control">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="weatherReminder">
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="setting-row">
-                        <div class="setting-label">
-                            <span class="setting-title">복약 누락 예측</span>
-                            <span class="setting-description">누락 위험이 높을 때 사전 알림</span>
-                        </div>
-                        <div class="setting-control">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="predictiveReminder" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
+                <div id="reminderList">
+                    <p style="text-align:center; color:#999; padding:20px;">로딩 중...</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 알림 추가 모달 -->
-    <div class="modal" id="addReminderModal">
+    <div class="modal" id="addModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">알림 추가</h2>
-                <button class="modal-close" onclick="closeModal()">✕</button>
+            <h3>새 알림 추가</h3>
+            <div class="form-group">
+                <label class="form-label">약물 선택</label>
+                <select id="medSelect" class="form-control">
+                    <option value="">선택하세요</option>
+                </select>
             </div>
-            <form id="reminderForm">
-                <div class="form-group">
-                    <label class="form-label" for="reminderMed">약물 선택</label>
-                    <select class="form-select" id="reminderMed" required>
-                        <option value="">약물을 선택하세요</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="reminderTime">알림 시간</label>
-                    <input type="time" class="form-input" id="reminderTime" required>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="reminderRepeat">반복 설정</label>
-                    <select class="form-select" id="reminderRepeat" required>
-                        <option value="daily">매일</option>
-                        <option value="weekdays">평일만</option>
-                        <option value="weekends">주말만</option>
-                        <option value="custom">사용자 지정</option>
-                    </select>
-                </div>
-
-                <div class="form-group" id="customDays" style="display: none;">
-                    <label class="form-label">요일 선택</label>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <label><input type="checkbox" name="days" value="0"> 일</label>
-                        <label><input type="checkbox" name="days" value="1"> 월</label>
-                        <label><input type="checkbox" name="days" value="2"> 화</label>
-                        <label><input type="checkbox" name="days" value="3"> 수</label>
-                        <label><input type="checkbox" name="days" value="4"> 목</label>
-                        <label><input type="checkbox" name="days" value="5"> 금</label>
-                        <label><input type="checkbox" name="days" value="6"> 토</label>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="reminderMessage">알림 메시지 (선택)</label>
-                    <input type="text" class="form-input" id="reminderMessage" placeholder="예: 식후 30분 후에 복용하세요">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">알림음</label>
-                    <div class="sound-options">
-                        <div class="sound-option selected" data-sound="default">
-                            <div class="sound-icon">🔔</div>
-                            <div class="sound-name">기본음</div>
-                        </div>
-                        <div class="sound-option" data-sound="chime">
-                            <div class="sound-icon">🎵</div>
-                            <div class="sound-name">차임벨</div>
-                        </div>
-                        <div class="sound-option" data-sound="bell">
-                            <div class="sound-icon">🔕</div>
-                            <div class="sound-name">종소리</div>
-                        </div>
-                        <div class="sound-option" data-sound="silent">
-                            <div class="sound-icon">🔇</div>
-                            <div class="sound-name">무음</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">취소</button>
-                    <button type="submit" class="btn btn-primary">저장</button>
-                </div>
-            </form>
+            <div class="form-group">
+                <label class="form-label">알림 시간</label>
+                <input type="time" id="remindTime" class="form-control">
+            </div>
+            <div class="form-group">
+                <label class="form-label">메시지</label>
+                <input type="text" id="remindMsg" class="form-control" placeholder="예: 식후 30분">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+                <button class="btn btn-primary" onclick="saveReminder()">저장</button>
+            </div>
         </div>
     </div>
 
     <script>
-        const SERVER_URL = 'https://port-0-coss-mi0kk25df8c7e306.sel3.cloudtype.app';
-        let authToken = null;
-        let userInfo = null;
-        let reminders = [];
-        let medications = [];
+        const SERVER_URL = ''; // 동일 도메인 사용
+        const token = localStorage.getItem('authToken');
 
+        // 초기화
         window.addEventListener('load', () => {
-            checkAuth();
-        });
-
-        async function checkAuth() {
-            authToken = localStorage.getItem('authToken');
-            const userInfoStr = localStorage.getItem('userInfo');
-            
-            if (!authToken) {
+            if (!token) {
+                alert('로그인이 필요합니다.');
                 window.location.href = '/';
                 return;
             }
             
-            userInfo = JSON.parse(userInfoStr);
-            document.getElementById('userName').textContent = `${userInfo.name}님`;
-            
-            loadReminders();
-            loadMedications();
-            loadSettings();
-        }
-
-        async function loadReminders() {
-            try {
-                const response = await fetch(`${SERVER_URL}/api/reminders`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    reminders = data.data || [];
-                    renderReminders();
-                    updateStats();
-                }
-            } catch (error) {
-                console.error('Failed to load reminders:', error);
+            // 사용자 이름 표시
+            const userStr = localStorage.getItem('userInfo');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                document.getElementById('userName').textContent = user.name + '님';
             }
+
+            loadGlobalSettings();
+            loadMedications(); // 모달용 약물 목록
+            loadReminders();   // 알림 목록
+        });
+
+        // 1. 글로벌 설정 로드/저장 (LocalStorage)
+        function loadGlobalSettings() {
+            const settings = JSON.parse(localStorage.getItem('reminderSettings')) || { master: true, dnd: false };
+            document.getElementById('masterToggle').checked = settings.master;
+            document.getElementById('dndToggle').checked = settings.dnd;
         }
 
-        async function loadMedications() {
-            try {
-                const response = await fetch(`${SERVER_URL}/api/medications`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    medications = data.data || [];
-                    updateMedicationSelect();
-                }
-            } catch (error) {
-                console.error('Failed to load medications:', error);
-            }
-        }
-
-        function updateMedicationSelect() {
-            const select = document.getElementById('reminderMed');
-            select.innerHTML = '<option value="">약물을 선택하세요</option>';
-            
-            medications.forEach(med => {
-                const option = document.createElement('option');
-                option.value = med.id;
-                option.textContent = `${med.name} (${med.dosage})`;
-                select.appendChild(option);
-            });
-        }
-
-        function renderReminders() {
-            const list = document.getElementById('reminderList');
-            
-            if (reminders.length === 0) {
-                list.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: #666;">
-                        <div style="font-size: 48px; margin-bottom: 10px;">⏰</div>
-                        <div style="font-size: 18px;">아직 설정된 알림이 없습니다</div>
-                        <div style="font-size: 14px; margin-top: 5px;">위의 '알림 추가' 버튼을 눌러 시작하세요</div>
-                    </div>
-                `;
-                return;
-            }
-            
-            list.innerHTML = reminders.map(reminder => `
-                <div class="reminder-item">
-                    <div class="reminder-info">
-                        <div class="reminder-icon">💊</div>
-                        <div class="reminder-details">
-                            <div class="reminder-med-name">${reminder.medication_name}</div>
-                            <div class="reminder-time">⏰ ${reminder.time} | ${getRepeatText(reminder.repeat_type)}</div>
-                        </div>
-                    </div>
-                    <div class="reminder-actions">
-                        <label class="toggle-switch">
-                            <input type="checkbox" ${reminder.is_active ? 'checked' : ''} 
-                                   onchange="toggleReminder(${reminder.id}, this.checked)">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <button class="edit-btn" onclick="editReminder(${reminder.id})">수정</button>
-                        <button class="delete-btn" onclick="deleteReminder(${reminder.id})">삭제</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function getRepeatText(repeatType) {
-            const types = {
-                'daily': '매일',
-                'weekdays': '평일',
-                'weekends': '주말',
-                'custom': '사용자 지정'
-            };
-            return types[repeatType] || '매일';
-        }
-
-        function updateStats() {
-            const total = reminders.length;
-            const active = reminders.filter(r => r.is_active).length;
-            const today = reminders.filter(r => {
-                const reminderHour = parseInt(r.time.split(':')[0]);
-                const currentHour = new Date().getHours();
-                return reminderHour >= currentHour;
-            }).length;
-            const snoozed = reminders.filter(r => r.is_snoozed).length;
-            
-            document.getElementById('totalReminders').textContent = total;
-            document.getElementById('activeReminders').textContent = active;
-            document.getElementById('todayReminders').textContent = today;
-            document.getElementById('snoozedReminders').textContent = snoozed || 0;
-        }
-
-        async function loadSettings() {
-            // 저장된 설정 불러오기
-            const settings = localStorage.getItem('reminderSettings');
-            if (settings) {
-                const parsed = JSON.parse(settings);
-                document.getElementById('masterToggle').checked = parsed.masterToggle !== false;
-                document.getElementById('pushNotification').checked = parsed.pushNotification !== false;
-                document.getElementById('notificationSound').value = parsed.notificationSound || 'default';
-                document.getElementById('snoozeInterval').value = parsed.snoozeInterval || '10';
-                document.getElementById('dndStart').value = parsed.dndStart || '22:00';
-                document.getElementById('dndEnd').value = parsed.dndEnd || '07:00';
-                document.getElementById('adaptiveReminder').checked = parsed.adaptiveReminder || false;
-                document.getElementById('locationReminder').checked = parsed.locationReminder || false;
-                document.getElementById('weatherReminder').checked = parsed.weatherReminder || false;
-                document.getElementById('predictiveReminder').checked = parsed.predictiveReminder !== false;
-            }
-        }
-
-        function saveSettings() {
+        function saveGlobalSettings() {
             const settings = {
-                masterToggle: document.getElementById('masterToggle').checked,
-                pushNotification: document.getElementById('pushNotification').checked,
-                notificationSound: document.getElementById('notificationSound').value,
-                snoozeInterval: document.getElementById('snoozeInterval').value,
-                dndStart: document.getElementById('dndStart').value,
-                dndEnd: document.getElementById('dndEnd').value,
-                adaptiveReminder: document.getElementById('adaptiveReminder').checked,
-                locationReminder: document.getElementById('locationReminder').checked,
-                weatherReminder: document.getElementById('weatherReminder').checked,
-                predictiveReminder: document.getElementById('predictiveReminder').checked
+                master: document.getElementById('masterToggle').checked,
+                dnd: document.getElementById('dndToggle').checked
             };
-            
             localStorage.setItem('reminderSettings', JSON.stringify(settings));
         }
 
-        // 설정 변경 시 자동 저장
-        document.querySelectorAll('input, select').forEach(element => {
-            element.addEventListener('change', saveSettings);
-        });
-
-        function openAddReminderModal() {
-            document.getElementById('addReminderModal').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('addReminderModal').classList.remove('active');
-            document.getElementById('reminderForm').reset();
-        }
-
-        // 반복 설정 변경 시
-        document.getElementById('reminderRepeat').addEventListener('change', (e) => {
-            document.getElementById('customDays').style.display = 
-                e.target.value === 'custom' ? 'block' : 'none';
-        });
-
-        // 알림음 선택
-        document.querySelectorAll('.sound-option').forEach(option => {
-            option.addEventListener('click', () => {
-                document.querySelectorAll('.sound-option').forEach(o => o.classList.remove('selected'));
-                option.classList.add('selected');
-            });
-        });
-
-        // 알림 폼 제출
-        document.getElementById('reminderForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const selectedSound = document.querySelector('.sound-option.selected').dataset.sound;
-            const repeatType = document.getElementById('reminderRepeat').value;
-            let repeatDays = [];
-            
-            if (repeatType === 'custom') {
-                const checkedDays = document.querySelectorAll('input[name="days"]:checked');
-                repeatDays = Array.from(checkedDays).map(cb => cb.value);
-            }
-            
-            const reminderData = {
-                medication_id: document.getElementById('reminderMed').value,
-                time: document.getElementById('reminderTime').value,
-                repeat_type: repeatType,
-                repeat_days: repeatDays,
-                message: document.getElementById('reminderMessage').value,
-                sound: selectedSound,
-                is_active: true
-            };
-            
+        // 2. 약물 목록 불러오기 (DB -> Select Box)
+        async function loadMedications() {
             try {
-                const response = await fetch(`${SERVER_URL}/api/reminders`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
-                    body: JSON.stringify(reminderData)
+                const res = await fetch('/api/medications', {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
+                const data = await res.json();
+                const select = document.getElementById('medSelect');
+                select.innerHTML = '<option value="">선택하세요</option>';
                 
-                if (response.ok) {
-                    closeModal();
-                    loadReminders();
-                    alert('알림이 추가되었습니다!');
+                if (data.success) {
+                    data.data.forEach(med => {
+                        const option = document.createElement('option');
+                        option.value = med.id;
+                        option.textContent = med.name;
+                        select.appendChild(option);
+                    });
                 }
-            } catch (error) {
-                console.error('Failed to add reminder:', error);
-                alert('알림 추가에 실패했습니다.');
-            }
-        });
-
-        async function toggleReminder(reminderId, isActive) {
-            try {
-                const response = await fetch(`${SERVER_URL}/api/reminders/${reminderId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}`
-                    },
-                    body: JSON.stringify({ is_active: isActive })
-                });
-                
-                if (response.ok) {
-                    loadReminders();
-                }
-            } catch (error) {
-                console.error('Failed to toggle reminder:', error);
+            } catch (e) {
+                console.error('약물 목록 로드 실패', e);
             }
         }
 
-        async function deleteReminder(reminderId) {
-            if (!confirm('이 알림을 삭제하시겠습니까?')) return;
+        // 3. 알림 목록 불러오기 (DB)
+        async function loadReminders() {
+            const listDiv = document.getElementById('reminderList');
+            // API 엔드포인트가 없다면 medications 테이블의 schedule을 대신 보여주는 방식으로 구현 가능
+            // 여기서는 /api/medications 정보를 바탕으로 알림 리스트를 재구성합니다.
             
             try {
-                const response = await fetch(`${SERVER_URL}/api/reminders/${reminderId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
+                const res = await fetch('/api/medications', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (!data.success || data.data.length === 0) {
+                    listDiv.innerHTML = '<p style="text-align:center; padding:20px;">등록된 알림이 없습니다.</p>';
+                    return;
+                }
+
+                let html = '';
+                data.data.forEach(med => {
+                    // 각 약물에 설정된 스케줄이 있다면 표시
+                    if (med.schedule && med.schedule.length > 0) {
+                        med.schedule.forEach(time => {
+                            html += `
+                                <div class="reminder-item">
+                                    <div class="reminder-info">
+                                        <div class="reminder-icon">⏰</div>
+                                        <div class="reminder-text">
+                                            <h4>${med.name}</h4>
+                                            <p>${time} 알림</p>
+                                        </div>
+                                    </div>
+                                    <div class="reminder-actions">
+                                        <button class="btn-delete" onclick="alert('복약 관리 페이지에서 수정해주세요.')">관리</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
                     }
                 });
                 
-                if (response.ok) {
-                    loadReminders();
-                    alert('알림이 삭제되었습니다.');
-                }
-            } catch (error) {
-                console.error('Failed to delete reminder:', error);
+                if (html === '') html = '<p style="text-align:center;">설정된 복약 시간이 없습니다.</p>';
+                listDiv.innerHTML = html;
+
+            } catch (e) {
+                listDiv.innerHTML = '<p style="color:red; text-align:center;">로드 실패</p>';
             }
         }
 
-        function editReminder(reminderId) {
-            alert('수정 기능은 준비 중입니다.');
-        }
+        // 4. 모달 관련
+        function openModal() { document.getElementById('addModal').classList.add('active'); }
+        function closeModal() { document.getElementById('addModal').classList.remove('active'); }
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
+        // 5. 알림 저장 (사실상 약물 스케줄 추가 로직)
+        async function saveReminder() {
+            // 이 예제에서는 단순 UI 구현. 실제로는 약물 수정 API를 호출해야 함.
+            alert('복약 관리 페이지에서 약물을 수정하여 시간을 추가해주세요.');
+            closeModal();
         }
 
         function logout() {
-            if (confirm('로그아웃 하시겠습니까?')) {
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('userInfo');
-                window.location.href = '/';
-            }
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+            window.location.href = '/';
         }
     </script>
 </body>
