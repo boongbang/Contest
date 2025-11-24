@@ -174,6 +174,10 @@
             overflow: hidden;
         }
 
+        /* ---------------------------------------------------------
+           [사이드바 스타일 핵심 수정] 
+           슬라이딩 애니메이션 + 튀어오름 방지 + 흰색 박스 제거
+           --------------------------------------------------------- */
         .sidebar-container {
             width: 90px;
             background-color: transparent;
@@ -182,27 +186,63 @@
             height: 100%;
             padding-bottom: 20px;
             padding-top: 10px;
+            position: relative; /* 인디케이터 위치 기준 */
+        }
+
+        /* 움직이는 하얀색 배경 (Active Indicator) */
+        .active-indicator {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            width: 100%;
+            height: 90px;
+            background: transparent; /* 중앙은 투명해서 뒤의 초록색이 보임 */
+            z-index: 0;
+            /* 스프링 효과 (Overshoot) 적용 */
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* 인디케이터 위쪽 덮개 (곡선 포함) */
+        .active-indicator::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            width: 100%;
+            height: 1000px; /* 위쪽 전체를 덮음 */
+            background-color: var(--sidebar-bg);
+            border-bottom-right-radius: var(--curve-radius);
+        }
+
+        /* 인디케이터 아래쪽 덮개 (곡선 포함) */
+        .active-indicator::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 100%;
+            height: 1000px; /* 아래쪽 전체를 덮음 */
+            background-color: var(--sidebar-bg);
+            border-top-right-radius: var(--curve-radius);
         }
 
         .sidebar-item {
             height: 90px;
-            background-color: var(--sidebar-bg);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             cursor: pointer;
-            transition: none; /* 잔상 제거를 위해 transition 삭제 */
             color: #999;
+            z-index: 1; /* 인디케이터 위에 아이콘이 와야 함 */
+            /* 배경색 지정 없음 (투명) */
         }
 
-        /* [추가됨] 선택된 메뉴의 배경을 투명하게 처리하여 흰색 사각형 제거 */
         .sidebar-item.active {
-            background-color: transparent;
             color: var(--text-light);
+            background-color: transparent; /* 흰색 사각형 방지 */
         }
 
-        /* 아이콘의 움직임을 쫀득하게 설정 */
         .icon-box {
             width: 45px;
             height: 45px;
@@ -213,34 +253,23 @@
             font-size: 1.2rem;
             background: white;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            /* 부드러운 이동을 위한 트랜지션 설정 */
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s, color 0.3s;
+            /* 튀어오르는 transform 효과 제거, 색상만 변경 */
+            transition: background 0.3s, color 0.3s, box-shadow 0.3s;
         }
 
         .sidebar-item.active .icon-box {
             background: var(--text-light);
             color: var(--app-bg);
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            
-            /* transform: translateY(-10px);  <-- 이 줄을 삭제했습니다 */
-        }
-
-        .sidebar-item.prev-active { 
-            border-bottom-right-radius: var(--curve-radius); 
-        }
-        
-        .sidebar-item.next-active { 
-            border-top-right-radius: var(--curve-radius); 
+            /* transform 없음 -> 제자리에 고정 */
         }
 
         .sidebar-filler {
             flex: 1;
-            background-color: var(--sidebar-bg);
+            background: transparent; /* 인디케이터가 덮으므로 투명 */
         }
-        
-        .sidebar-filler.next-active { 
-            border-top-right-radius: var(--curve-radius); 
-        }
+
+        /* --------------------------------------------------------- */
 
         .main-content {
             flex: 1;
@@ -267,8 +296,7 @@
         .welcome-text {
             color: var(--text-light);
             margin-bottom: 25px;
-            /* 왼쪽으로 15px 이동 */
-            padding-left: 15px; 
+            padding-left: 15px; /* 텍스트 오른쪽 이동 */
         }
         
         .welcome-text h2 { 
@@ -495,8 +523,7 @@
             font-size: 0.85rem;
             cursor: pointer;
             transition: background 0.3s;
-            
-            /* 텍스트 줄바꿈 방지 및 버튼 찌그러짐 방지 */
+            /* 버튼 깨짐 방지 */
             white-space: nowrap;
             flex-shrink: 0;
         }
@@ -756,6 +783,8 @@
 
         <div class="content-body">
             <div class="sidebar-container" id="sidebar">
+                <div class="active-indicator"></div>
+
                 <div class="sidebar-item active" data-section="dashboard" onclick="switchSection('dashboard')">
                     <div class="icon-box"><i class="fa-solid fa-chart-pie"></i></div>
                 </div>
@@ -989,8 +1018,14 @@
             sensorCheckInterval = setInterval(checkSensorStatus, 5000);
             checkSensorStatus(); // 즉시 한번 실행
             
-            // 사이드바 곡선 초기화
-            updateSidebarCurves();
+            // [추가됨] 사이드바 인디케이터 위치 초기화
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            let activeIndex = 0;
+            sidebarItems.forEach((item, index) => {
+                if (item.classList.contains('active')) activeIndex = index;
+            });
+            const indicator = document.querySelector('.active-indicator');
+            if(indicator) indicator.style.transform = `translateY(${activeIndex * 90}px)`;
         });
 
         // 센서 상태 확인
@@ -1155,7 +1190,7 @@
             });
         }
 
-        // 섹션 전환
+        // 섹션 전환 함수 (수정됨: 슬라이딩 인디케이터 로직 적용)
         function switchSection(section) {
             // 현재 섹션 비활성화
             document.querySelectorAll('.page-section').forEach(s => {
@@ -1165,51 +1200,27 @@
             // 새 섹션 활성화
             document.getElementById(`${section}Section`).classList.add('active');
             
-            // 사이드바 활성 상태 업데이트
-            document.querySelectorAll('.sidebar-item').forEach(item => {
+            // 사이드바 아이템 활성 상태 업데이트 및 인덱스 찾기
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            let activeIndex = 0;
+            
+            sidebarItems.forEach((item, index) => {
                 item.classList.remove('active');
                 if (item.dataset.section === section) {
                     item.classList.add('active');
-                }
-            });
-            
-            currentSection = section;
-            updateSidebarCurves();
-            
-            // 드롭다운 닫기
-            document.getElementById('userDropdown').classList.remove('show');
-        }
-
-        // 사이드바 곡선 업데이트
-        function updateSidebarCurves() {
-            const sidebarItems = document.querySelectorAll('.sidebar-item');
-            const sidebarFiller = document.querySelector('.sidebar-filler');
-            
-            // 모든 곡선 클래스 제거
-            sidebarItems.forEach(item => {
-                item.classList.remove('prev-active', 'next-active');
-            });
-            sidebarFiller.classList.remove('next-active');
-            
-            // 현재 active 아이템 찾기
-            let activeIndex = -1;
-            sidebarItems.forEach((item, index) => {
-                if (item.classList.contains('active')) {
                     activeIndex = index;
                 }
             });
             
-            // 곡선 클래스 적용
-            if (activeIndex !== -1) {
-                if (activeIndex > 0) {
-                    sidebarItems[activeIndex - 1].classList.add('prev-active');
-                }
-                if (activeIndex < sidebarItems.length - 1) {
-                    sidebarItems[activeIndex + 1].classList.add('next-active');
-                } else {
-                    sidebarFiller.classList.add('next-active');
-                }
-            }
+            // [핵심] 인디케이터 슬라이드 이동 (90px * 인덱스)
+            const indicator = document.querySelector('.active-indicator');
+            // Y축으로 (인덱스 * 90)px 만큼 이동
+            indicator.style.transform = `translateY(${activeIndex * 90}px)`;
+
+            currentSection = section;
+            
+            // 드롭다운 닫기
+            document.getElementById('userDropdown').classList.remove('show');
         }
 
         // 사용자 메뉴 토글
