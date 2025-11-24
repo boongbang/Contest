@@ -351,7 +351,7 @@
             padding: 10px 0;
             overflow-x: auto;
             display: flex;
-            justify-content: center; /* 중앙 정렬 */
+            justify-content: center;
         }
 
         .heatmap-months {
@@ -359,7 +359,7 @@
             gap: 10px;
             margin-bottom: 10px;
             padding-left: 30px;
-            display: none; /* 공간 절약을 위해 월 표시 숨김 또는 간소화 */
+            display: none;
         }
 
         .heatmap-grid {
@@ -377,7 +377,7 @@
         }
 
         .heatmap-weekday {
-            height: 10px; /* 사이즈 축소 */
+            height: 10px;
             font-size: 9px;
             color: #999;
             display: flex;
@@ -397,8 +397,8 @@
         }
 
         .heatmap-day {
-            width: 10px;  /* 12px -> 10px 로 축소 */
-            height: 10px; /* 12px -> 10px 로 축소 */
+            width: 10px;
+            height: 10px;
             background: #e5e7eb;
             border-radius: 2px;
             cursor: pointer;
@@ -708,7 +708,9 @@
     <div class="tooltip" id="tooltip"></div>
 
     <script>
-        const SERVER_URL = 'https://port-0-coss-mi0kk25df8c7e306.sel3.cloudtype.app';
+        // ✅ 수정됨: 고정 URL이 아닌 현재 브라우저의 접속 주소를 사용하도록 변경
+        const SERVER_URL = window.location.origin;
+        
         let authToken = null;
         let userInfo = null;
         let medicationHistory = [];
@@ -720,106 +722,113 @@
         });
 
         async function checkAuth() {
-            authToken = localStorage.getItem('authToken');
-            const userInfoStr = localStorage.getItem('userInfo');
+            // LocalStorage와 SessionStorage 모두 확인
+            authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            const userInfoStr = localStorage.getItem('userInfo') || sessionStorage.getItem('userInfo');
             
             if (!authToken) {
-                window.location.href = '/';
+                window.location.href = '/index.html';
                 return;
             }
             
             try {
-                const response = await fetch(`${SERVER_URL}/api/auth/verify`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
-
-                if (!response.ok) {
-                    localStorage.removeItem('authToken');
-                    localStorage.removeItem('userInfo');
-                    window.location.href = '/';
-                    return;
+                // 이 엔드포인트가 없을 수도 있으므로 (server.js 확인 결과 없음), 
+                // 대신 대시보드 데이터를 바로 호출하여 토큰 유효성 검증
+                await loadDashboardData();
+                
+                if (userInfoStr) {
+                    userInfo = JSON.parse(userInfoStr);
+                    initializeDashboard();
+                } else {
+                    // 사용자 정보가 없으면 다시 로그인
+                    window.location.href = '/index.html';
                 }
-
-                userInfo = JSON.parse(userInfoStr);
-                initializeDashboard();
                 
             } catch (error) {
                 console.error('Auth check failed:', error);
-                window.location.href = '/';
+                // 토큰 만료 시 로그아웃 처리
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userInfo');
+                sessionStorage.removeItem('authToken');
+                sessionStorage.removeItem('userInfo');
+                window.location.href = '/index.html';
             }
         }
 
         function initializeDashboard() {
             // 사용자 정보 표시
-            document.getElementById('userName').textContent = `${userInfo.name}님`;
-            document.getElementById('userAvatar').textContent = userInfo.name.charAt(0);
+            if (userInfo && userInfo.name) {
+                document.getElementById('userName').textContent = `${userInfo.name}님`;
+                document.getElementById('userAvatar').textContent = userInfo.name.charAt(0);
+            }
             
-            // 데이터 로드 및 차트 초기화
-            loadDashboardData();
+            // 차트 초기화
             initializeCharts();
             
-            // 실시간 업데이트 시작
+            // 실시간 업데이트 시작 (5초 간격)
             setInterval(updateRealTimeData, 5000);
         }
 
         async function loadDashboardData() {
             try {
-                // 복약 로그 가져오기
-                const logsResponse = await fetch(`${SERVER_URL}/api/medication-logs`, {
+                // 대시보드 통계 가져오기
+                const response = await fetch(`${SERVER_URL}/api/dashboard/stats`, {
                     headers: {
                         'Authorization': `Bearer ${authToken}`
                     }
                 });
                 
-                if (logsResponse.ok) {
-                    const logsData = await logsResponse.json();
-                    medicationHistory = logsData.data;
+                if (!response.ok) {
+                    throw new Error('Failed to fetch dashboard stats');
                 }
 
-                // 통계 가져오기
-                const statsResponse = await fetch(`${SERVER_URL}/api/medication-stats`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
+                const data = await response.json();
                 
-                if (statsResponse.ok) {
-                    const statsData = await statsResponse.json();
-                    updateStats(statsData.data);
+                // 데이터 저장 및 UI 업데이트
+                updateStats(data);
+                
+                // 센서값 동기화
+                if (data.current) {
+                    currentSensorValue = data.current.value;
                 }
-
-                // 센서값 가져오기
-                const sensorResponse = await fetch(`${SERVER_URL}/value`);
-                if (sensorResponse.ok) {
-                    const sensorData = await sensorResponse.json();
-                    currentSensorValue = sensorData.a;
-                }
-
-                updateCharts();
                 
             } catch (error) {
                 console.error('Failed to load dashboard data:', error);
+                throw error; // 상위 catch 블록으로 전달
             }
         }
 
-        function updateStats(stats) {
-            document.getElementById('todayCount').textContent = `${stats.today_count}회`;
-            document.getElementById('adherenceRate').textContent = `${stats.adherence_rate}%`;
-            document.getElementById('streakDays').textContent = `${stats.streak_days}일`;
+        function updateStats(data) {
+            // 오늘의 복약
+            if (data.today) {
+                document.getElementById('todayCount').textContent = `${data.today.count}회`;
+            }
             
-            const monthlyAdherence = Math.round((stats.month_count / 30) * 100);
-            document.getElementById('monthlyAdherence').textContent = `${monthlyAdherence}%`;
-            document.getElementById('adherenceGauge').style.setProperty('--percentage', `${monthlyAdherence * 3.6}deg`);
+            // 주간 순응도 및 기타 통계
+            if (data.adherenceRate !== undefined) {
+                document.getElementById('adherenceRate').textContent = `${data.adherenceRate}%`;
+                
+                // 게이지 업데이트
+                document.getElementById('monthlyAdherence').textContent = `${data.adherenceRate}%`;
+                document.getElementById('adherenceGauge').style.setProperty('--percentage', `${data.adherenceRate * 3.6}deg`);
+            }
             
-            document.getElementById('totalDays').textContent = stats.month_count;
-            document.getElementById('missedDays').textContent = 30 - stats.month_count;
+            // 연속 복약일 (계산 로직 필요하거나 API에서 받아옴)
+            // 임시로 0일 또는 API 데이터 사용
+            
+            // 복약/누락일
+            if (data.totalCount !== undefined) {
+                document.getElementById('totalDays').textContent = data.weekly ? data.weekly.length : 0;
+            }
+            
+            // 시간대별 데이터 업데이트 (API에서 받지 않았다면 스킵)
+            updateCharts(data);
         }
 
         function initializeCharts() {
             // 시간대별 분포 차트 초기화
             const hourBars = document.getElementById('hourBars');
+            hourBars.innerHTML = ''; // 초기화
             for (let i = 0; i < 24; i++) {
                 const bar = document.createElement('div');
                 bar.className = 'hour-bar';
@@ -837,7 +846,7 @@
             weeksContainer.innerHTML = '';
             
             const today = new Date();
-            const totalWeeks = 26; // 약 6개월 (53주 -> 26주로 축소)
+            const totalWeeks = 26; // 약 6개월
             
             // 시작일 계산: 오늘로부터 26주 전
             const startDate = new Date(today);
@@ -861,7 +870,8 @@
 
                     if (currentDate <= today) {
                         // 여기에 실제 데이터 연동 로직 추가 가능
-                        const level = Math.floor(Math.random() * 5); // 임시 랜덤 데이터
+                        // 임시로 랜덤 데이터 대신 빈 상태 또는 로직 추가
+                        const level = Math.floor(Math.random() * 2); // 0 or 1 for visual test
                         dayDiv.classList.add(`level-${level}`);
                         dayDiv.addEventListener('mouseover', showTooltip);
                         dayDiv.addEventListener('mouseout', hideTooltip);
@@ -877,21 +887,10 @@
             }
         }
 
-        function updateCharts() {
-            // 시간대별 분포 업데이트
-            const hourCounts = new Array(24).fill(0);
-            medicationHistory.forEach(log => {
-                const hour = new Date(log.timestamp).getHours();
-                hourCounts[hour]++;
-            });
-            
-            const maxCount = Math.max(...hourCounts, 1);
-            const bars = document.querySelectorAll('.hour-bar');
-            
-            bars.forEach((bar, index) => {
-                const percentage = (hourCounts[index] / maxCount) * 100;
-                bar.style.height = `${Math.max(percentage, 5)}%`;
-            });
+        function updateCharts(data) {
+            // 데이터가 있으면 차트 업데이트 로직 수행
+            // 현재 API 응답에 시간대별 데이터가 포함되어 있지 않으므로 
+            // reports.html의 로직을 참고하여 추후 구현 필요
         }
 
         async function updateRealTimeData() {
@@ -899,11 +898,11 @@
                 const response = await fetch(`${SERVER_URL}/value`);
                 if (response.ok) {
                     const data = await response.json();
-                    if (data.a !== currentSensorValue && data.a === 1) {
+                    if (data.value !== currentSensorValue && data.value === 1) {
                         showNotification('복약이 감지되었습니다!');
-                        await loadDashboardData();
+                        await loadDashboardData(); // 데이터 새로고침
                     }
-                    currentSensorValue = data.a;
+                    currentSensorValue = data.value;
                 }
             } catch (error) {
                 console.error('Failed to update real-time data:', error);
@@ -914,7 +913,7 @@
             const tooltip = document.getElementById('tooltip');
             const date = event.target.dataset.date;
             if (date) {
-                tooltip.textContent = `${date}: 복약 완료`;
+                tooltip.textContent = `${date}`;
                 tooltip.style.left = `${event.pageX + 10}px`;
                 tooltip.style.top = `${event.pageY - 30}px`;
                 tooltip.classList.add('show');
@@ -928,6 +927,7 @@
 
         function showNotification(message) {
             console.log(message);
+            // 여기에 실제 UI 알림 로직 추가 가능
         }
 
         function toggleSidebar() {
@@ -938,7 +938,9 @@
             if (confirm('로그아웃 하시겠습니까?')) {
                 localStorage.removeItem('authToken');
                 localStorage.removeItem('userInfo');
-                window.location.href = '/';
+                sessionStorage.removeItem('authToken');
+                sessionStorage.removeItem('userInfo');
+                window.location.href = '/index.html';
             }
         }
     </script>
