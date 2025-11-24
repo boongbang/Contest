@@ -192,10 +192,11 @@
             justify-content: center;
             position: relative;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: none;
             color: #999;
         }
-
+        
+        /* [수정됨] 아이콘의 움직임을 쫀득하게 설정 */
         .icon-box {
             width: 45px;
             height: 45px;
@@ -204,14 +205,21 @@
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
-            transition: all 0.3s;
             background: white;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            
+            /* 부드러운 이동을 위한 트랜지션 설정 */
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s, color 0.3s;
         }
 
-        .sidebar-item.active {
-            background-color: transparent;
-            color: var(--text-light);
+        /* [수정됨] 선택 시 아이콘이 위로 10px 떠오름 */
+        .sidebar-item.active .icon-box {
+            background: var(--text-light);
+            color: var(--app-bg);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            
+            /* 기존 scale(1.1) 대신 위로 이동 적용 */
+            transform: translateY(-10px); 
         }
 
         .sidebar-item.active .icon-box {
