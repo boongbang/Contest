@@ -4,725 +4,254 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COSS - 상세 리포트</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        /* 기본 스타일 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f5f6fa; min-height: 100vh; }
+        
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 250px; background: white; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05); }
+        .sidebar-header { padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .sidebar-logo { display: flex; align-items: center; gap: 10px; font-size: 24px; font-weight: bold; }
+        .sidebar-menu { padding: 20px 0; }
+        .menu-item { display: flex; align-items: center; gap: 15px; padding: 15px 20px; color: #666; text-decoration: none; transition: all 0.3s ease; }
+        .menu-item:hover { background: #f5f6fa; color: #667eea; }
+        .menu-item.active { background: rgba(102, 126, 234, 0.1); color: #667eea; border-left: 4px solid #667eea; }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #f5f6fa;
-            min-height: 100vh;
-        }
+        .main-content { margin-left: 250px; min-height: 100vh; }
+        .top-header { background: white; padding: 20px 30px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center; }
+        .page-title { font-size: 24px; font-weight: 600; color: #333; }
+        .reports-content { padding: 30px; }
 
-        /* 사이드바 */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 250px;
-            background: white;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
-            z-index: 1000;
-        }
+        /* 필터 섹션 */
+        .filter-section { background: white; padding: 20px; border-radius: 15px; display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-end; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .filter-group { display: flex; flex-direction: column; gap: 5px; }
+        .filter-label { font-size: 14px; color: #666; }
+        .filter-input { padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+        .btn-filter { padding: 8px 20px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; height: 35px; }
 
-        .sidebar-header {
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .sidebar-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .sidebar-menu {
-            padding: 20px 0;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 15px 20px;
-            color: #666;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .menu-item:hover {
-            background: #f5f6fa;
-            color: #667eea;
-        }
-
-        .menu-item.active {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-        }
-
-        .menu-item.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: #667eea;
-        }
-
-        .menu-icon {
-            font-size: 20px;
-            width: 24px;
-            text-align: center;
-        }
-
-        .main-content {
-            margin-left: 250px;
-            min-height: 100vh;
-        }
-
-        .top-header {
-            background: white;
-            padding: 20px 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .page-title {
-            font-size: 24px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .reports-content {
-            padding: 30px;
-        }
-
-        /* 리포트 필터 */
-        .report-filters {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .filter-label {
-            font-size: 12px;
-            color: #666;
-        }
-
-        .filter-input {
-            padding: 8px 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .filter-btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .filter-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .export-btn {
-            padding: 10px 20px;
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-left: auto;
-        }
-
-        /* 리포트 카드들 */
-        .report-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 20px;
-        }
-
-        .report-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        .report-card.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .report-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .report-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .report-subtitle {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        /* 통계 표 */
-        .stats-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .stats-table th {
-            text-align: left;
-            padding: 12px;
-            background: #f5f6fa;
-            font-size: 12px;
-            color: #666;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .stats-table td {
-            padding: 12px;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 14px;
-        }
-
-        .stats-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .metric-value {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .metric-change {
-            font-size: 12px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            display: inline-block;
-        }
-
-        .metric-change.positive {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .metric-change.negative {
-            background: #fee2e2;
-            color: #991b1b;
-        }
+        /* 리포트 그리드 */
+        .report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .report-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .card-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; color: #333; }
+        
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        .stat-label { color: #666; }
+        .stat-value { font-weight: bold; color: #333; font-size: 18px; }
+        .stat-change { font-size: 12px; padding: 2px 6px; border-radius: 4px; }
+        .positive { background: #d1fae5; color: #065f46; }
+        .negative { background: #fee2e2; color: #991b1b; }
 
         /* 차트 컨테이너 */
-        .chart-container {
-            height: 300px;
-            margin: 20px 0;
-        }
-
-        /* 예측 섹션 */
-        .prediction-section {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .prediction-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .prediction-icon {
-            font-size: 24px;
-        }
-
-        .prediction-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .prediction-content {
-            font-size: 14px;
-            color: #666;
-            line-height: 1.6;
-        }
-
-        .prediction-score {
-            font-size: 32px;
-            font-weight: bold;
-            color: #667eea;
-            margin: 15px 0;
-        }
-
-        /* 인사이트 카드 */
-        .insights-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .insight-card {
-            background: #f5f6fa;
-            border-radius: 10px;
-            padding: 15px;
-            border-left: 4px solid #667eea;
-        }
-
-        .insight-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        .insight-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .insight-description {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        /* 진행 막대 */
-        .progress-bar {
-            background: #e5e7eb;
-            border-radius: 10px;
-            height: 10px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            transition: width 0.5s ease;
-        }
+        .chart-container { position: relative; height: 300px; width: 100%; }
 
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-
-            .report-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .report-filters {
-                flex-direction: column;
-            }
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+            .filter-section { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
 <body>
-    <!-- 사이드바 -->
     <nav class="sidebar">
         <div class="sidebar-header">
-            <div class="sidebar-logo">
-                <span>💊</span>
-                <span>COSS</span>
-            </div>
+            <div class="sidebar-logo"><span>💊</span><span>COSS</span></div>
         </div>
         <div class="sidebar-menu">
-            <a href="/dashboard.html" class="menu-item">
-                <span class="menu-icon">📊</span>
-                <span>대시보드</span>
-            </a>
-            <a href="/medication.html" class="menu-item">
-                <span class="menu-icon">💊</span>
-                <span>복약 관리</span>
-            </a>
-            <a href="/reports.html" class="menu-item active">
-                <span class="menu-icon">📈</span>
-                <span>상세 리포트</span>
-            </a>
-            <a href="/reminder.html" class="menu-item">
-                <span class="menu-icon">⏰</span>
-                <span>알림 설정</span>
-            </a>
-            <a href="/profile.html" class="menu-item">
-                <span class="menu-icon">👤</span>
-                <span>프로필</span>
-            </a>
-            <a href="#" class="menu-item" onclick="logout()">
-                <span class="menu-icon">🚪</span>
-                <span>로그아웃</span>
-            </a>
+            <a href="/dashboard.html" class="menu-item"><span>📊</span> 대시보드</a>
+            <a href="/medication.html" class="menu-item"><span>💊</span> 복약 관리</a>
+            <a href="/reports.html" class="menu-item active"><span>📈</span> 상세 리포트</a>
+            <a href="/reminder.html" class="menu-item"><span>⏰</span> 알림 설정</a>
+            <a href="/profile.html" class="menu-item"><span>👤</span> 프로필</a>
+            <a href="#" class="menu-item" onclick="logout()"><span>🚪</span> 로그아웃</a>
         </div>
     </nav>
 
-    <!-- 메인 콘텐츠 -->
     <div class="main-content">
         <header class="top-header">
             <h1 class="page-title">상세 리포트</h1>
-            <div class="user-info">
-                <span id="userName">김철수님</span>
-            </div>
+            <span id="userName">사용자님</span>
         </header>
 
         <div class="reports-content">
-            <!-- 필터 섹션 -->
-            <div class="report-filters">
-                <div class="filter-group">
-                    <label class="filter-label">기간</label>
-                    <select class="filter-input" id="periodFilter">
-                        <option value="7">최근 7일</option>
-                        <option value="30" selected>최근 30일</option>
-                        <option value="90">최근 3개월</option>
-                        <option value="365">최근 1년</option>
-                    </select>
-                </div>
+            <div class="filter-section">
                 <div class="filter-group">
                     <label class="filter-label">시작일</label>
-                    <input type="date" class="filter-input" id="startDate">
+                    <input type="date" id="startDate" class="filter-input">
                 </div>
                 <div class="filter-group">
                     <label class="filter-label">종료일</label>
-                    <input type="date" class="filter-input" id="endDate">
+                    <input type="date" id="endDate" class="filter-input">
                 </div>
-                <button class="filter-btn" onclick="applyFilters()">필터 적용</button>
-                <button class="export-btn" onclick="exportReport()">📥 리포트 내보내기</button>
+                <button class="btn-filter" onclick="loadReportData()">조회</button>
             </div>
 
-            <!-- 리포트 그리드 -->
             <div class="report-grid">
-                <!-- 순응도 분석 -->
                 <div class="report-card">
-                    <div class="report-header">
+                    <h3 class="card-title">복약 순응도 지표</h3>
+                    <div class="stat-row">
+                        <span class="stat-label">PDC (복약일 비율)</span>
                         <div>
-                            <h3 class="report-title">복약 순응도 분석</h3>
-                            <p class="report-subtitle">PDC & MPR 기준</p>
+                            <span class="stat-value" id="pdcValue">0%</span>
+                            <span class="stat-change positive">Good</span>
                         </div>
                     </div>
-                    <table class="stats-table">
-                        <thead>
-                            <tr>
-                                <th>지표</th>
-                                <th>값</th>
-                                <th>변화</th>
-                                <th>목표</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>PDC (Proportion of Days Covered)</td>
-                                <td class="metric-value" id="pdcValue">85%</td>
-                                <td><span class="metric-change positive">+5%</span></td>
-                                <td>80%</td>
-                            </tr>
-                            <tr>
-                                <td>MPR (Medication Possession Ratio)</td>
-                                <td class="metric-value" id="mprValue">92%</td>
-                                <td><span class="metric-change positive">+3%</span></td>
-                                <td>90%</td>
-                            </tr>
-                            <tr>
-                                <td>CMG (Continuous Measure Gap)</td>
-                                <td class="metric-value" id="cmgValue">2일</td>
-                                <td><span class="metric-change positive">-1일</span></td>
-                                <td>< 3일</td>
-                            </tr>
-                            <tr>
-                                <td>시간 일관성 지수</td>
-                                <td class="metric-value" id="consistencyValue">78%</td>
-                                <td><span class="metric-change negative">-2%</span></td>
-                                <td>85%</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- 패턴 분석 -->
-                <div class="report-card">
-                    <div class="report-header">
+                    <div class="stat-row">
+                        <span class="stat-label">MPR (약물 소지율)</span>
                         <div>
-                            <h3 class="report-title">복약 패턴 분석</h3>
-                            <p class="report-subtitle">행동 패턴 및 경향</p>
+                            <span class="stat-value" id="mprValue">0%</span>
                         </div>
                     </div>
-                    <div class="insights-grid">
-                        <div class="insight-card">
-                            <div class="insight-title">최다 복약 시간</div>
-                            <div class="insight-value">08:30</div>
-                            <div class="insight-description">오전 복약률 85%</div>
-                        </div>
-                        <div class="insight-card">
-                            <div class="insight-title">주말 효과</div>
-                            <div class="insight-value">-15%</div>
-                            <div class="insight-description">주말 순응도 하락</div>
-                        </div>
-                        <div class="insight-card">
-                            <div class="insight-title">연속 성공</div>
-                            <div class="insight-value">12일</div>
-                            <div class="insight-description">최장 연속 복약</div>
-                        </div>
-                        <div class="insight-card">
-                            <div class="insight-title">회복 탄력성</div>
-                            <div class="insight-value">82%</div>
-                            <div class="insight-description">누락 후 복귀율</div>
+                    <div class="stat-row">
+                        <span class="stat-label">시간 일관성</span>
+                        <div>
+                            <span class="stat-value" id="consistencyValue">0%</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- 예측 분석 -->
-                <div class="report-card full-width">
-                    <div class="report-header">
-                        <div>
-                            <h3 class="report-title">예측 분석 & 권장사항</h3>
-                            <p class="report-subtitle">AI 기반 패턴 예측</p>
-                        </div>
+                <div class="report-card">
+                    <h3 class="card-title">AI 분석 및 권장</h3>
+                    <div style="margin-bottom: 15px;">
+                        <strong>예상 순응도:</strong>
+                        <span id="nextWeekPred" style="color: #667eea; font-weight:bold;">분석 중...</span>
                     </div>
-                    <div class="prediction-section">
-                        <div class="prediction-header">
-                            <span class="prediction-icon">🤖</span>
-                            <span class="prediction-title">다음 주 순응도 예측</span>
-                        </div>
-                        <div class="prediction-score">88%</div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 88%"></div>
-                        </div>
-                        <div class="prediction-content">
-                            <p><strong>주요 위험 요인:</strong></p>
-                            <ul style="margin-left: 20px; margin-top: 10px;">
-                                <li>주말 복약 패턴 불규칙 (토요일 오전 복약률 45%)</li>
-                                <li>저녁 복약 시간 변동성 높음 (표준편차 2.3시간)</li>
-                                <li>최근 3일간 복약 시간 지연 경향</li>
-                            </ul>
-                            <p style="margin-top: 15px;"><strong>개선 권장사항:</strong></p>
-                            <ul style="margin-left: 20px; margin-top: 10px;">
-                                <li>주말 오전 알림 강화 설정</li>
-                                <li>저녁 복약 시간 고정 (20:00 권장)</li>
-                                <li>스마트워치 연동으로 실시간 알림</li>
-                            </ul>
-                        </div>
+                    <div id="recommendations" style="font-size: 14px; color: #555; line-height: 1.6;">
+                        데이터를 불러오는 중입니다...
                     </div>
                 </div>
+            </div>
 
-                <!-- 비교 분석 -->
-                <div class="report-card">
-                    <div class="report-header">
-                        <div>
-                            <h3 class="report-title">기간별 비교</h3>
-                            <p class="report-subtitle">월간 추세 분석</p>
-                        </div>
-                    </div>
-                    <div class="chart-container" id="trendChart">
-                        <!-- 차트 영역 -->
-                        <canvas id="comparisonChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- 약물별 순응도 -->
-                <div class="report-card">
-                    <div class="report-header">
-                        <div>
-                            <h3 class="report-title">약물별 순응도</h3>
-                            <p class="report-subtitle">개별 약물 분석</p>
-                        </div>
-                    </div>
-                    <table class="stats-table">
-                        <thead>
-                            <tr>
-                                <th>약물명</th>
-                                <th>순응도</th>
-                                <th>누락 횟수</th>
-                                <th>상태</th>
-                            </tr>
-                        </thead>
-                        <tbody id="medicationStats">
-                            <tr>
-                                <td>아스피린 100mg</td>
-                                <td class="metric-value">95%</td>
-                                <td>2회</td>
-                                <td><span class="metric-change positive">우수</span></td>
-                            </tr>
-                            <tr>
-                                <td>메트포르민 500mg</td>
-                                <td class="metric-value">88%</td>
-                                <td>5회</td>
-                                <td><span class="metric-change positive">양호</span></td>
-                            </tr>
-                            <tr>
-                                <td>아토르바스타틴 20mg</td>
-                                <td class="metric-value">72%</td>
-                                <td>11회</td>
-                                <td><span class="metric-change negative">개선필요</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div class="report-card">
+                <h3 class="card-title">주간 복약 추세</h3>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const SERVER_URL = 'https://port-0-coss-mi0kk25df8c7e306.sel3.cloudtype.app';
-        let authToken = null;
-        let userInfo = null;
+        const SERVER_URL = '';
+        const token = localStorage.getItem('authToken');
+        let trendChart = null;
 
         window.addEventListener('load', () => {
-            checkAuth();
-        });
-
-        async function checkAuth() {
-            authToken = localStorage.getItem('authToken');
-            const userInfoStr = localStorage.getItem('userInfo');
-            
-            if (!authToken) {
+            if (!token) {
+                alert('로그인이 필요합니다.');
                 window.location.href = '/';
                 return;
             }
             
-            userInfo = JSON.parse(userInfoStr);
-            document.getElementById('userName').textContent = `${userInfo.name}님`;
+            // 날짜 기본값 (최근 30일)
+            const end = new Date();
+            const start = new Date();
+            start.setDate(end.getDate() - 30);
             
-            // 날짜 필터 기본값 설정
-            const endDate = new Date();
-            const startDate = new Date();
-            startDate.setDate(startDate.getDate() - 30);
-            
-            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
-            document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
-            
+            document.getElementById('endDate').value = end.toISOString().split('T')[0];
+            document.getElementById('startDate').value = start.toISOString().split('T')[0];
+
             loadReportData();
-            initializeCharts();
-        }
+        });
 
         async function loadReportData() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+
             try {
-                // 리포트 데이터 로드
-                const response = await fetch(`${SERVER_URL}/api/reports`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
+                // 1. 리포트 통계 API 호출
+                const res = await fetch(`/api/reports?start_date=${start}&end_date=${end}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    updateReportData(data);
+                const data = await res.json();
+
+                if (data.success) {
+                    // 수치 업데이트
+                    document.getElementById('pdcValue').textContent = `${data.pdc}%`;
+                    document.getElementById('mprValue').textContent = `${data.mpr}%`;
+                    document.getElementById('consistencyValue').textContent = `${data.consistency}%`;
+                    
+                    // 예측 데이터가 있다면 표시 (server.js 로직에 따라 다름)
+                    if (data.predictions) {
+                        document.getElementById('nextWeekPred').textContent = `${data.predictions.next_week_adherence || 0}%`;
+                        const recs = data.predictions.recommendations || [];
+                        const recHtml = recs.length > 0 
+                            ? '<ul>' + recs.map(r => `<li>${r}</li>`).join('') + '</ul>' 
+                            : '특이사항이 없습니다.';
+                        document.getElementById('recommendations').innerHTML = recHtml;
+                    }
                 }
-            } catch (error) {
-                console.error('Failed to load report data:', error);
+
+                // 2. 차트 데이터 로드 (로그 기반)
+                loadChartData(start, end);
+
+            } catch (e) {
+                console.error('리포트 로드 실패', e);
             }
         }
 
-        function updateReportData(data) {
-            // 순응도 지표 업데이트
-            document.getElementById('pdcValue').textContent = `${data.pdc || 85}%`;
-            document.getElementById('mprValue').textContent = `${data.mpr || 92}%`;
-            document.getElementById('cmgValue').textContent = `${data.cmg || 2}일`;
-            document.getElementById('consistencyValue').textContent = `${data.consistency || 78}%`;
-        }
-
-        function initializeCharts() {
-            // 비교 차트 초기화
-            const ctx = document.getElementById('comparisonChart');
-            if (ctx) {
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: ['1주', '2주', '3주', '4주'],
-                        datasets: [{
-                            label: '순응도',
-                            data: [82, 85, 88, 85],
-                            borderColor: '#667eea',
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100
-                            }
-                        }
-                    }
+        async function loadChartData(start, end) {
+            try {
+                const res = await fetch(`/api/medication-logs?start_date=${start}&end_date=${end}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
+                const result = await res.json();
+
+                if (result.success) {
+                    // 날짜별 복약 횟수 집계
+                    const logs = result.data;
+                    const dailyCounts = {};
+                    
+                    logs.forEach(log => {
+                        const date = log.timestamp.split('T')[0];
+                        dailyCounts[date] = (dailyCounts[date] || 0) + 1;
+                    });
+
+                    // 차트 데이터 포맷팅
+                    const labels = Object.keys(dailyCounts).sort();
+                    const values = labels.map(date => dailyCounts[date]);
+
+                    renderChart(labels, values);
+                }
+            } catch (e) {
+                console.error('차트 데이터 로드 실패', e);
             }
         }
 
-        function applyFilters() {
-            const period = document.getElementById('periodFilter').value;
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
+        function renderChart(labels, data) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
             
-            // 필터 적용 로직
-            loadReportData();
-        }
-
-        function exportReport() {
-            // 리포트 내보내기 기능
-            if (confirm('리포트를 PDF로 내보내시겠습니까?')) {
-                alert('리포트 내보내기 기능은 준비 중입니다.');
+            if (trendChart) {
+                trendChart.destroy();
             }
+
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '일일 복약 횟수',
+                        data: data,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
         }
 
         function logout() {
-            if (confirm('로그아웃 하시겠습니까?')) {
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('userInfo');
-                window.location.href = '/';
-            }
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+            window.location.href = '/';
         }
     </script>
 </body>
