@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COSS 스마트 약통 관리 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .sensor-status-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sensor-status-card .card-title {
+            color: white;
+            border-bottom-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .sensor-value {
+            font-size: 64px;
+            font-weight: bold;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .sensor-state {
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .sensor-state.detected {
+            background: rgba(248, 113, 113, 0.2);
+            color: #fff;
+        }
+
+        .sensor-state.clear {
+            background: rgba(74, 222, 128, 0.2);
+            color: #fff;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .metric-value.good {
+            color: #10b981;
+        }
+
+        .metric-value.warning {
+            color: #f59e0b;
+        }
+
+        .metric-value.danger {
+            color: #ef4444;
+        }
+
+        .adherence-gauge {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .gauge-circle {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .gauge-bg {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 180deg,
+                #10b981 0deg,
+                #10b981 var(--percentage),
+                #e5e7eb var(--percentage),
+                #e5e7eb 360deg
+            );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gauge-center {
+            width: 140px;
+            height: 140px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gauge-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .gauge-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .time-chart {
+            height: 200px;
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .hour-blocks {
+            display: grid;
+            grid-template-columns: repeat(24, 1fr);
+            gap: 2px;
+            height: 40px;
+            margin-top: 20px;
+        }
+
+        .hour-block {
+            background: #e5e7eb;
+            border-radius: 3px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .hour-block.taken {
+            background: #10b981;
+        }
+
+        .hour-block:hover {
+            transform: scale(1.2);
+            z-index: 10;
+        }
+
+        .weekday-chart {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .weekday {
+            text-align: center;
+        }
+
+        .weekday-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .weekday-bar {
+            height: 80px;
+            background: #e5e7eb;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .weekday-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            transition: height 0.5s ease;
+        }
+
+        .weekday-percent {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 600;
+            color: #333;
+            z-index: 1;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 8px;
+            animation: blink 2s infinite;
+        }
+
+        .status-indicator.active {
+            background: #10b981;
+            box-shadow: 0 0 10px #10b981;
+        }
+
+        .status-indicator.inactive {
+            background: #ef4444;
+            box-shadow: 0 0 10px #ef4444;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .alert.warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .alert.success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .timestamp {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>💊 COSS 스마트 약통 관리 시스템</h1>
+                    <p class="subtitle">실시간 복약 모니터링 및 순응도 분석 대시보드</p>
+                </div>
+                <div style="text-align: right;">
+                    <p style="color: #666; margin-bottom: 10px;">
+                        <span id="userName">사용자</span>님 환영합니다
+                    </p>
+                    <button onclick="logout()" style="padding: 8px 20px; font-size: 14px;">로그아웃</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <!-- 센서 상태 카드 -->
+            <div class="card sensor-status-card">
+                <h3 class="card-title">센서 상태 모니터<span id="statusIndicator" class="status-indicator inactive"></span></h3>
+                <div class="sensor-value" id="sensorValue">-</div>
+                <center>
+                    <div id="detectionState" class="sensor-state clear">대기 중</div>
+                </center>
+                <div class="timestamp" id="lastUpdate">마지막 업데이트: -</div>
+            </div>
+
+            <!-- 오늘의 복약 현황 -->
+            <div class="card">
+                <h3 class="card-title">오늘의 복약 현황</h3>
+                <div class="metric">
+                    <span class="metric-label">복약 횟수</span>
+                    <span class="metric-value" id="todayCount">0회</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">첫 복약 시간</span>
+                    <span class="metric-value" id="firstDose">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">마지막 복약 시간</span>
+                    <span class="metric-value" id="lastDose">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">평균 간격</span>
+                    <span class="metric-value" id="avgInterval">-</span>
+                </div>
+                <div id="todayAlert" class="alert" style="display: none;"></div>
+            </div>
+
+            <!-- 복약 순응도 -->
+            <div class="card">
+                <h3 class="card-title">복약 순응도 (PDC)</h3>
+                <div class="adherence-gauge">
+                    <div class="gauge-circle">
+                        <div class="gauge-bg" style="--percentage: 0deg;">
+                            <div class="gauge-center">
+                                <div class="gauge-value" id="adherencePercent">0%</div>
+                                <div class="gauge-label">최근 7일</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">연속 복약일</span>
+                        <span class="metric-value good" id="streak">0일</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">이번 주 성공률</span>
+                        <span class="metric-value" id="weekSuccess">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 시간대별 패턴 -->
+            <div class="card">
+                <h3 class="card-title">시간대별 복약 패턴 (24시간)</h3>
+                <div class="hour-blocks" id="hourChart"></div>
+                <div class="metric">
+                    <span class="metric-label">주요 복약 시간대</span>
+                    <span class="metric-value" id="peakHour">분석 중...</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">시간 일관성</span>
+                    <span class="metric-value" id="consistency">계산 중...</span>
+                </div>
+            </div>
+
+            <!-- 요일별 분석 -->
+            <div class="card">
+                <h3 class="card-title">요일별 복약 패턴</h3>
+                <div class="weekday-chart" id="weekdayChart"></div>
+                <div class="alert warning" id="weekendAlert" style="display: none;">
+                    주말 복약률이 평일보다 낮습니다. 주의가 필요합니다.
+                </div>
+            </div>
+
+            <!-- 통계 요약 -->
+            <div class="card">
+                <h3 class="card-title">전체 통계</h3>
+                <div class="metric">
+                    <span class="metric-label">총 복약 횟수</span>
+                    <span class="metric-value" id="totalCount">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">모니터링 시작</span>
+                    <span class="metric-value" id="startDate">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">최장 연속 복약</span>
+                    <span class="metric-value good" id="maxStreak">0일</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">최장 휴약 기간</span>
+                    <span class="metric-value danger" id="maxGap">0일</span>
+                </div>
+                <div class="controls">
+                    <button onclick="resetData()">데이터 초기화</button>
+                    <button onclick="exportData()">데이터 내보내기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 서버 URL 고정
+        const SERVER_URL = 'https://port-0-coss-mi0kk25df8c7e306.sel3.cloudtype.app';
+        
+        // 인증 토큰 및 사용자 정보
+        let authToken = null;
+        let userInfo = null;
+        
+        // 상태 관리 변수
+        let isConnected = false;
+        let intervalId = null;
+        let medicationHistory = [];
+        let currentSensorState = 0;
+        let removalStartTime = null;
+        let debounceTimer = null;
+        
+        // 초기화
+        window.addEventListener('load', () => {
+            checkAuth();
+        });
+
+        // 인증 확인
+        async function checkAuth() {
+            authToken = localStorage.getItem('authToken');
+            const userInfoStr = localStorage.getItem('userInfo');
+            
+            if (!authToken) {
+                // 로그인 페이지로 리다이렉트
+                window.location.href = '/';
+                return;
+            }
+            
+            try {
+                // 토큰 유효성 확인
+                const response = await fetch(`${SERVER_URL}/api/auth/verify`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userInfo');
+                    window.location.href = '/';
+                    return;
+                }
+
+                userInfo = JSON.parse(userInfoStr);
+                document.getElementById('userName').textContent = userInfo.name || userInfo.email;
+                
+                // 사용자 데이터 로드
+                await loadUserData();
+                initializeCharts();
+                connect();
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                window.location.href = '/';
+            }
+        }
+
+        // 로그아웃
+        function logout() {
+            if (confirm('정말 로그아웃 하시겠습니까?')) {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userInfo');
+                window.location.href = '/';
+            }
+        }
+
+        // 사용자별 데이터 로드
+        async function loadUserData() {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/medication-logs`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    medicationHistory = data.data.map(log => ({
+                        timestamp: new Date(log.timestamp).getTime(),
+                        date: new Date(log.timestamp).toLocaleDateString('ko-KR'),
+                        time: new Date(log.timestamp).toLocaleTimeString('ko-KR'),
+                        hour: new Date(log.timestamp).getHours()
+                    }));
+                    updateStatistics();
+                }
+            } catch (error) {
+                console.error('Failed to load user data:', error);
+            }
+        }
+
+        function connect() {
+            isConnected = true;
+            document.getElementById('statusIndicator').className = 'status-indicator active';
+            
+            // 데이터 폴링 시작
+            fetchSensorData();
+            intervalId = setInterval(fetchSensorData, 1000);
+        }
+
+        async function fetchSensorData() {
+            try {
+                const response = await fetch(`${SERVER_URL}/value`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('서버 응답 오류');
+                }
+
+                const data = await response.json();
+                processSensorData(data);
+
+            } catch (error) {
+                console.error('데이터 가져오기 실패:', error);
+                document.getElementById('statusIndicator').className = 'status-indicator inactive';
+            }
+        }
+
+        async function processSensorData(data) {
+            const sensorValue = data.a !== undefined ? data.a : 0;
+            const timestamp = new Date(data.timestamp || new Date());
+            
+            // UI 업데이트
+            document.getElementById('sensorValue').textContent = sensorValue;
+            document.getElementById('lastUpdate').textContent = 
+                `마지막 업데이트: ${timestamp.toLocaleTimeString('ko-KR')}`;
+            
+            // 센서 값이 0->1로 변경 (약통 제거)
+            if (currentSensorState === 0 && sensorValue === 1) {
+                removalStartTime = Date.now();
+                
+                // 디바운싱: 1초 후에 확인
+                if (debounceTimer) clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(async () => {
+                    if (currentSensorState === 1) { // 여전히 제거 상태면
+                        await recordMedication(removalStartTime);
+                    }
+                }, 1000);
+                
+                document.getElementById('detectionState').textContent = '💊 약통 제거됨';
+                document.getElementById('detectionState').className = 'sensor-state detected';
+            }
+            // 센서 값이 1->0으로 변경 (약통 복귀)
+            else if (currentSensorState === 1 && sensorValue === 0) {
+                if (debounceTimer) clearTimeout(debounceTimer);
+                
+                document.getElementById('detectionState').textContent = '✅ 약통 복귀됨';
+                document.getElementById('detectionState').className = 'sensor-state clear';
+                
+                // 복약 소요 시간 계산 (선택사항)
+                if (removalStartTime) {
+                    const duration = Date.now() - removalStartTime;
+                    console.log(`복약 소요 시간: ${Math.round(duration / 1000)}초`);
+                }
+            }
+            
+            currentSensorState = sensorValue;
+        }
+
+        async function recordMedication(timestamp) {
+            const medication = {
+                timestamp: timestamp,
+                date: new Date(timestamp).toLocaleDateString('ko-KR'),
+                time: new Date(timestamp).toLocaleTimeString('ko-KR'),
+                hour: new Date(timestamp).getHours()
+            };
+            
+            medicationHistory.push(medication);
+            
+            // 서버에 저장 (DB에 기록)
+            try {
+                await fetch(`${SERVER_URL}/api/medication-logs`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        timestamp: new Date(timestamp).toISOString()
+                    })
+                });
+            } catch (error) {
+                console.error('Failed to save medication log:', error);
+            }
+            
+            // 통계 업데이트
+            updateStatistics();
+            updateCharts();
+            
+            // 알림 표시
+            showNotification('복약이 기록되었습니다');
+        }
+
+        function updateStatistics() {
+            const today = new Date().toLocaleDateString('ko-KR');
+            const todayMeds = medicationHistory.filter(m => m.date === today);
+            
+            // 오늘의 복약 현황
+            document.getElementById('todayCount').textContent = `${todayMeds.length}회`;
+            
+            if (todayMeds.length > 0) {
+                document.getElementById('firstDose').textContent = todayMeds[0].time;
+                document.getElementById('lastDose').textContent = todayMeds[todayMeds.length - 1].time;
+                
+                // 평균 간격 계산
+                if (todayMeds.length > 1) {
+                    const intervals = [];
+                    for (let i = 1; i < todayMeds.length; i++) {
+                        intervals.push(todayMeds[i].timestamp - todayMeds[i-1].timestamp);
+                    }
+                    const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+                    const hours = Math.floor(avgInterval / 3600000);
+                    const minutes = Math.floor((avgInterval % 3600000) / 60000);
+                    document.getElementById('avgInterval').textContent = `${hours}시간 ${minutes}분`;
+                }
+            }
+            
+            // 복약 순응도 (PDC) 계산 - 최근 7일
+            const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            const recentMeds = medicationHistory.filter(m => m.timestamp > sevenDaysAgo);
+            const uniqueDays = new Set(recentMeds.map(m => m.date)).size;
+            const adherence = Math.round((uniqueDays / 7) * 100);
+            
+            document.getElementById('adherencePercent').textContent = `${adherence}%`;
+            document.querySelector('.gauge-bg').style.setProperty('--percentage', `${adherence * 3.6}deg`);
+            
+            // 연속 복약일 계산
+            const streak = calculateStreak();
+            document.getElementById('streak').textContent = `${streak}일`;
+            
+            // 이번 주 성공률
+            const weekSuccess = calculateWeekSuccess();
+            document.getElementById('weekSuccess').textContent = `${weekSuccess}%`;
+            
+            // 전체 통계
+            document.getElementById('totalCount').textContent = medicationHistory.length;
+            if (medicationHistory.length > 0) {
+                const startDate = new Date(medicationHistory[0].timestamp);
+                document.getElementById('startDate').textContent = startDate.toLocaleDateString('ko-KR');
+            }
+            
+            // 알림 조건 확인
+            checkAlerts(todayMeds.length);
+        }
+
+        function calculateStreak() {
+            if (medicationHistory.length === 0) return 0;
+            
+            let streak = 0;
+            const today = new Date();
+            const dates = [...new Set(medicationHistory.map(m => m.date))].sort().reverse();
+            
+            for (let i = 0; i < dates.length; i++) {
+                const date = new Date(dates[i]);
+                const expectedDate = new Date(today);
+                expectedDate.setDate(expectedDate.getDate() - i);
+                
+                if (date.toDateString() === expectedDate.toDateString()) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+            
+            return streak;
+        }
+
+        function calculateWeekSuccess() {
+            const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            const weekMeds = medicationHistory.filter(m => m.timestamp > weekAgo);
+            const uniqueDays = new Set(weekMeds.map(m => m.date)).size;
+            return Math.round((uniqueDays / 7) * 100);
+        }
+
+        function initializeCharts() {
+            // 시간대별 차트 초기화
+            const hourChart = document.getElementById('hourChart');
+            for (let i = 0; i < 24; i++) {
+                const block = document.createElement('div');
+                block.className = 'hour-block';
+                block.title = `${i}:00 - ${i + 1}:00`;
+                block.dataset.hour = i;
+                hourChart.appendChild(block);
+            }
+            
+            // 요일별 차트 초기화
+            const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+            const weekdayChart = document.getElementById('weekdayChart');
+            
+            weekdays.forEach((day, index) => {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'weekday';
+                dayDiv.innerHTML = `
+                    <div class="weekday-label">${day}</div>
+                    <div class="weekday-bar">
+                        <div class="weekday-fill" data-day="${index}"></div>
+                        <div class="weekday-percent">0%</div>
+                    </div>
+                `;
+                weekdayChart.appendChild(dayDiv);
+            });
+            
+            updateCharts();
+        }
+
+        function updateCharts() {
+            // 시간대별 패턴 업데이트
+            const hourCounts = new Array(24).fill(0);
+            medicationHistory.forEach(m => {
+                hourCounts[m.hour]++;
+            });
+            
+            const maxHourCount = Math.max(...hourCounts, 1);
+            const hourBlocks = document.querySelectorAll('.hour-block');
+            
+            hourBlocks.forEach((block, hour) => {
+                if (hourCounts[hour] > 0) {
+                    block.classList.add('taken');
+                    block.style.opacity = 0.3 + (hourCounts[hour] / maxHourCount) * 0.7;
+                } else {
+                    block.classList.remove('taken');
+                    block.style.opacity = 1;
+                }
+            });
+            
+            // 주요 복약 시간대 찾기
+            const peakHour = hourCounts.indexOf(Math.max(...hourCounts));
+            if (hourCounts[peakHour] > 0) {
+                document.getElementById('peakHour').textContent = `${peakHour}:00 - ${peakHour + 1}:00`;
+            }
+            
+            // 요일별 패턴 업데이트
+            const weekdayCounts = new Array(7).fill(0);
+            const weekdayTotals = new Array(7).fill(0);
+            
+            medicationHistory.forEach(m => {
+                const day = new Date(m.timestamp).getDay();
+                weekdayCounts[day]++;
+            });
+            
+            // 전체 기간 중 각 요일이 몇 번 있었는지 계산
+            if (medicationHistory.length > 0) {
+                const firstDate = new Date(medicationHistory[0].timestamp);
+                const lastDate = new Date();
+                const dayCount = Math.ceil((lastDate - firstDate) / (24 * 60 * 60 * 1000)) + 1;
+                
+                for (let i = 0; i < dayCount; i++) {
+                    const date = new Date(firstDate);
+                    date.setDate(date.getDate() + i);
+                    weekdayTotals[date.getDay()]++;
+                }
+            }
+            
+            // 요일별 차트 업데이트
+            document.querySelectorAll('.weekday-fill').forEach((fill, index) => {
+                const percent = weekdayTotals[index] > 0 ? 
+                    Math.round((weekdayCounts[index] / weekdayTotals[index]) * 100) : 0;
+                fill.style.height = `${percent}%`;
+                fill.parentElement.querySelector('.weekday-percent').textContent = `${percent}%`;
+            });
+            
+            // 주말 경고 확인
+            const weekendPercent = weekdayTotals[0] + weekdayTotals[6] > 0 ?
+                ((weekdayCounts[0] + weekdayCounts[6]) / (weekdayTotals[0] + weekdayTotals[6])) * 100 : 0;
+            const weekdayPercent = weekdayTotals.slice(1, 6).reduce((a, b) => a + b, 0) > 0 ?
+                (weekdayCounts.slice(1, 6).reduce((a, b) => a + b, 0) / 
+                weekdayTotals.slice(1, 6).reduce((a, b) => a + b, 0)) * 100 : 0;
+            
+            if (weekendPercent < weekdayPercent * 0.8 && medicationHistory.length > 7) {
+                document.getElementById('weekendAlert').style.display = 'block';
+            }
+        }
+
+        function checkAlerts(todayCount) {
+            const alertDiv = document.getElementById('todayAlert');
+            
+            if (todayCount === 0) {
+                alertDiv.className = 'alert warning';
+                alertDiv.textContent = '오늘 아직 복약하지 않았습니다.';
+                alertDiv.style.display = 'block';
+            } else if (todayCount >= 3) {
+                alertDiv.className = 'alert success';
+                alertDiv.textContent = '오늘의 복약을 잘 수행하고 있습니다!';
+                alertDiv.style.display = 'block';
+            } else {
+                alertDiv.style.display = 'none';
+            }
+        }
+
+        function showNotification(message) {
+            // 간단한 알림 표시 (실제로는 더 세련된 토스트 메시지 사용 가능)
+            console.log(message);
+        }
+
+        async function resetData() {
+            if (confirm('모든 복약 기록을 삭제하시겠습니까?')) {
+                try {
+                    const response = await fetch(`${SERVER_URL}/api/medication-logs/reset`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        medicationHistory = [];
+                        location.reload();
+                    }
+                } catch (error) {
+                    console.error('Failed to reset data:', error);
+                }
+            }
+        }
+
+        async function exportData() {
+            const dataStr = JSON.stringify(medicationHistory, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `medication_history_${userInfo.name}_${new Date().toISOString()}.json`;
+            link.click();
+        }
+    </script>
+</body>
+</html>
