@@ -3,29 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COSS - 스마트 약통 관리 시스템</title>
-    
-    <!-- 폰트 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    
+    <title>COSS 스마트 약통 관리 시스템</title>
     <style>
-        :root {
-            /* Clean & Care 색상 팔레트 */
-            --main-color: #2A9D8F;
-            --sub-color: #E9C46A;
-            --point-color: #E76F51;
-            --bg-color: #F4F7F6;
-            --text-color: #264653;
-            --white: #FFFFFF;
-            --success: #52C41A;
-            --warning: #FAAD14;
-            --error: #FF4D4F;
-            --shadow: rgba(38, 70, 83, 0.08);
-            --shadow-hover: rgba(38, 70, 83, 0.15);
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -33,792 +12,480 @@
         }
 
         body {
-            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-color);
-            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
             font-size: 16px;
         }
 
-        /* 컨테이너 */
-        .container {
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 0;
-            background: var(--white);
-            min-height: 100vh;
-            position: relative;
-            box-shadow: 0 0 40px var(--shadow);
-        }
-
-        /* 헤더 */
-        .header {
-            background: linear-gradient(135deg, var(--main-color) 0%, #238B7F 100%);
-            color: var(--white);
-            padding: 30px 24px;
-            border-radius: 0 0 30px 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
-            animation: float 15s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(30px, -30px) rotate(120deg); }
-            66% { transform: translate(-20px, 20px) rotate(240deg); }
-        }
-
-        .greeting {
-            position: relative;
-            z-index: 1;
-        }
-
-        .greeting h1 {
-            font-size: 20px;
-            font-weight: 300;
-            margin-bottom: 8px;
-            opacity: 0.95;
-        }
-
-        .greeting .name {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .greeting .subtitle {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        /* 상태 히어로 카드 */
-        .status-hero {
-            margin: -40px 24px 24px;
-            background: var(--white);
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: 0 10px 30px var(--shadow);
-            position: relative;
-            z-index: 10;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .status-hero:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 40px var(--shadow-hover);
-        }
-
-        .status-content {
-            display: flex;
-            align-items: center;
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 20px;
         }
 
-        .status-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            flex-shrink: 0;
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
-        .status-icon.completed {
-            background: rgba(82, 196, 26, 0.1);
-            color: var(--success);
-        }
-
-        .status-icon.pending {
-            background: rgba(250, 173, 20, 0.1);
-            color: var(--warning);
-        }
-
-        .status-icon.detected {
-            background: rgba(231, 111, 81, 0.1);
-            color: var(--point-color);
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .status-text h2 {
-            font-size: 18px;
-            margin-bottom: 4px;
-            color: var(--text-color);
-        }
-
-        .status-text p {
-            font-size: 14px;
-            color: rgba(38, 70, 83, 0.7);
-        }
-
-        /* 실시간 센서 상태 */
-        .sensor-status {
-            margin: 0 24px 24px;
-            padding: 20px;
-            background: linear-gradient(145deg, #f8f9fa, #e8eaec);
-            border-radius: 16px;
-            border: 1px solid rgba(42, 157, 143, 0.1);
-        }
-
-        .sensor-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .sensor-title {
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--text-color);
-        }
-
-        .sensor-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .sensor-indicator.active {
-            background: rgba(82, 196, 26, 0.1);
-            color: var(--success);
-        }
-
-        .sensor-indicator.inactive {
-            background: rgba(255, 77, 79, 0.1);
-            color: var(--error);
-        }
-
-        .sensor-indicator::before {
-            content: '';
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-            animation: blink 2s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .sensor-value-display {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .sensor-value-display .value {
-            font-size: 42px;
-            font-weight: 700;
-            color: var(--main-color);
-        }
-
-        .sensor-value-display .unit {
-            font-size: 16px;
-            color: rgba(38, 70, 83, 0.6);
-        }
-
-        /* 통계 그리드 */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-
-        .stat-card {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(42, 157, 143, 0.1);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--main-color);
-            box-shadow: 0 5px 15px var(--shadow);
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: rgba(38, 70, 83, 0.6);
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-color);
-        }
-
-        .stat-value.highlight {
-            color: var(--main-color);
-        }
-
-        /* 약 복용 카드 */
-        .medication-section {
-            padding: 0 24px 24px;
-        }
-
-        .section-title {
+        .card-title {
             font-size: 18px;
             font-weight: 600;
-            margin-bottom: 16px;
-            color: var(--text-color);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
         }
 
-        .medication-card {
-            background: var(--white);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 12px var(--shadow);
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-            cursor: pointer;
-        }
-
-        .medication-card:hover {
-            transform: translateX(4px);
-            box-shadow: 0 6px 20px var(--shadow-hover);
-            border-color: var(--main-color);
-        }
-
-        .medication-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            background: linear-gradient(135deg, rgba(42, 157, 143, 0.1) 0%, rgba(42, 157, 143, 0.05) 100%);
-            color: var(--main-color);
-        }
-
-        .medication-info {
-            flex: 1;
-        }
-
-        .medication-name {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: var(--text-color);
-        }
-
-        .medication-time {
-            font-size: 13px;
-            color: rgba(38, 70, 83, 0.7);
-        }
-
-        .medication-status {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .medication-status.taken {
-            background: rgba(82, 196, 26, 0.1);
-            color: var(--success);
-        }
-
-        .medication-status.pending {
-            background: rgba(250, 173, 20, 0.1);
-            color: var(--warning);
-        }
-
-        .medication-status.missed {
-            background: rgba(231, 111, 81, 0.1);
-            color: var(--point-color);
-        }
-
-        /* 컨트롤 버튼 */
-        .control-section {
-            padding: 0 24px 100px;
-        }
-
-        .control-buttons {
-            display: flex;
-            gap: 12px;
-        }
-
-        .control-btn {
-            flex: 1;
-            padding: 16px;
-            border-radius: 16px;
-            border: none;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .sensor-status-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             position: relative;
             overflow: hidden;
         }
 
-        .control-btn::before {
-            content: '';
+        .sensor-status-card .card-title {
+            color: white;
+            border-bottom-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .sensor-value {
+            font-size: 64px;
+            font-weight: bold;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .sensor-state {
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: 25px;
+            font-weight: 600;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .sensor-state.detected {
+            background: rgba(248, 113, 113, 0.2);
+            color: #fff;
+        }
+
+        .sensor-state.clear {
+            background: rgba(74, 222, 128, 0.2);
+            color: #fff;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .metric-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .metric-value.good {
+            color: #10b981;
+        }
+
+        .metric-value.warning {
+            color: #f59e0b;
+        }
+
+        .metric-value.danger {
+            color: #ef4444;
+        }
+
+        .adherence-gauge {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .gauge-circle {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .gauge-bg {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 180deg,
+                #10b981 0deg,
+                #10b981 var(--percentage),
+                #e5e7eb var(--percentage),
+                #e5e7eb 360deg
+            );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gauge-center {
+            width: 140px;
+            height: 140px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gauge-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .gauge-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .time-chart {
+            height: 200px;
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .hour-blocks {
+            display: grid;
+            grid-template-columns: repeat(24, 1fr);
+            gap: 2px;
+            height: 40px;
+            margin-top: 20px;
+        }
+
+        .hour-block {
+            background: #e5e7eb;
+            border-radius: 3px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .hour-block.taken {
+            background: #10b981;
+        }
+
+        .hour-block:hover {
+            transform: scale(1.2);
+            z-index: 10;
+        }
+
+        .weekday-chart {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .weekday {
+            text-align: center;
+        }
+
+        .weekday-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .weekday-bar {
+            height: 80px;
+            background: #e5e7eb;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .weekday-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            transition: height 0.5s ease;
+        }
+
+        .weekday-percent {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
             transform: translate(-50%, -50%);
-            transition: width 0.6s ease, height 0.6s ease;
+            font-weight: 600;
+            color: #333;
+            z-index: 1;
         }
 
-        .control-btn:active::before {
-            width: 300px;
-            height: 300px;
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
         }
 
-        .control-btn.primary {
-            background: linear-gradient(135deg, var(--main-color) 0%, #238B7F 100%);
-            color: var(--white);
-            box-shadow: 0 4px 15px rgba(42, 157, 143, 0.3);
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
         }
 
-        .control-btn.primary:hover {
+        button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(42, 157, 143, 0.4);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
         }
 
-        .control-btn.secondary {
-            background: var(--white);
-            color: var(--main-color);
-            border: 2px solid var(--main-color);
-        }
-
-        .control-btn.secondary:hover {
-            background: rgba(42, 157, 143, 0.05);
-        }
-
-        .control-btn:disabled {
+        button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
-        /* 하단 네비게이션 */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 480px;
-            background: var(--white);
-            border-top: 1px solid rgba(38, 70, 83, 0.1);
-            padding: 12px 0;
-            z-index: 100;
-        }
-
-        .nav-items {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-        }
-
-        .nav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            padding: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .nav-item:hover {
-            color: var(--main-color);
-        }
-
-        .nav-item.active {
-            color: var(--main-color);
-        }
-
-        .nav-item.active::before {
-            content: '';
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 3px;
-            background: var(--main-color);
-            border-radius: 0 0 3px 3px;
-        }
-
-        .nav-icon {
-            font-size: 22px;
-        }
-
-        .nav-label {
-            font-size: 11px;
-            font-weight: 500;
-        }
-
-        /* 알림 메시지 */
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background: var(--white);
-            padding: 16px 24px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px var(--shadow-hover);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-
-        .notification.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-
-        .notification.success {
-            border-left: 4px solid var(--success);
-        }
-
-        .notification.warning {
-            border-left: 4px solid var(--warning);
-        }
-
-        .notification.error {
-            border-left: 4px solid var(--error);
-        }
-
-        /* 타임스탬프 */
-        .last-update {
-            text-align: center;
-            padding: 12px 24px;
-            font-size: 12px;
-            color: rgba(38, 70, 83, 0.5);
-        }
-
-        /* 로딩 스피너 */
-        .loading-spinner {
-            display: none;
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(42, 157, 143, 0.1);
-            border-top-color: var(--main-color);
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+            margin-left: 8px;
+            animation: blink 2s infinite;
         }
 
-        .loading-spinner.active {
-            display: block;
+        .status-indicator.active {
+            background: #10b981;
+            box-shadow: 0 0 10px #10b981;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .status-indicator.inactive {
+            background: #ef4444;
+            box-shadow: 0 0 10px #ef4444;
         }
 
-        /* 반응형 */
-        @media (max-width: 480px) {
-            .container {
-                border-radius: 0;
-            }
-            
-            .header {
-                border-radius: 0 0 20px 20px;
-            }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
-        /* 다크 모드 지원 */
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-color: #1a1a1a;
-                --white: #2a2a2a;
-                --text-color: #f0f0f0;
-                --shadow: rgba(0, 0, 0, 0.3);
-                --shadow-hover: rgba(0, 0, 0, 0.5);
-            }
-            
-            .stat-card {
-                border-color: rgba(42, 157, 143, 0.3);
-            }
-            
-            .medication-card {
-                background: #2a2a2a;
-            }
-            
-            .sensor-status {
-                background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
-            }
-            
-            .bottom-nav {
-                background: #2a2a2a;
-                border-top-color: rgba(255, 255, 255, 0.1);
-            }
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .alert.warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .alert.success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .timestamp {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- 헤더 -->
+    <div class="main-container">
         <div class="header">
-            <div class="greeting">
-                <h1>안녕하세요!</h1>
-                <div class="name">COSS 사용자님</div>
-                <div class="subtitle">오늘도 건강한 하루 보내세요 💊</div>
-            </div>
+            <h1>💊 COSS 스마트 약통 관리 시스템</h1>
+            <p class="subtitle">실시간 복약 모니터링 및 순응도 분석 대시보드</p>
         </div>
 
-        <!-- 상태 히어로 카드 -->
-        <div class="status-hero">
-            <div class="status-content">
-                <div class="status-icon pending" id="mainStatusIcon">
-                    ⏰
-                </div>
-                <div class="status-text">
-                    <h2 id="mainStatusTitle">센서 연결 대기 중</h2>
-                    <p id="mainStatusMessage">약통 센서와 연결을 시도하고 있습니다</p>
-                </div>
+        <div class="dashboard">
+            <!-- 센서 상태 카드 -->
+            <div class="card sensor-status-card">
+                <h3 class="card-title">센서 상태 모니터<span id="statusIndicator" class="status-indicator inactive"></span></h3>
+                <div class="sensor-value" id="sensorValue">-</div>
+                <center>
+                    <div id="detectionState" class="sensor-state clear">대기 중</div>
+                </center>
+                <div class="timestamp" id="lastUpdate">마지막 업데이트: -</div>
             </div>
-        </div>
 
-        <!-- 실시간 센서 상태 -->
-        <div class="sensor-status">
-            <div class="sensor-header">
-                <div class="sensor-title">📡 실시간 센서 상태</div>
-                <div class="sensor-indicator inactive" id="connectionIndicator">
-                    연결 끊김
+            <!-- 오늘의 복약 현황 -->
+            <div class="card">
+                <h3 class="card-title">오늘의 복약 현황</h3>
+                <div class="metric">
+                    <span class="metric-label">복약 횟수</span>
+                    <span class="metric-value" id="todayCount">0회</span>
                 </div>
+                <div class="metric">
+                    <span class="metric-label">첫 복약 시간</span>
+                    <span class="metric-value" id="firstDose">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">마지막 복약 시간</span>
+                    <span class="metric-value" id="lastDose">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">평균 간격</span>
+                    <span class="metric-value" id="avgInterval">-</span>
+                </div>
+                <div id="todayAlert" class="alert" style="display: none;"></div>
             </div>
-            <div class="sensor-value-display">
-                <span class="value" id="sensorValue">-</span>
-                <span class="unit">상태값</span>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">감지 횟수</div>
-                    <div class="stat-value highlight" id="detectionCount">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">연결 시간</div>
-                    <div class="stat-value" id="connectionTime">00:00</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">현재 상태</div>
-                    <div class="stat-value" id="currentState">대기</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">업데이트</div>
-                    <div class="stat-value" id="updateRate">1초</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- 약 복용 현황 -->
-        <div class="medication-section">
-            <div class="section-title">
-                💊 오늘의 복약 일정
-            </div>
-            <div class="medication-card">
-                <div class="medication-icon">💊</div>
-                <div class="medication-info">
-                    <div class="medication-name">아침 약</div>
-                    <div class="medication-time">08:00 복용 예정</div>
+            <!-- 복약 순응도 -->
+            <div class="card">
+                <h3 class="card-title">복약 순응도 (PDC)</h3>
+                <div class="adherence-gauge">
+                    <div class="gauge-circle">
+                        <div class="gauge-bg" style="--percentage: 0deg;">
+                            <div class="gauge-center">
+                                <div class="gauge-value" id="adherencePercent">0%</div>
+                                <div class="gauge-label">최근 7일</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">연속 복약일</span>
+                        <span class="metric-value good" id="streak">0일</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">이번 주 성공률</span>
+                        <span class="metric-value" id="weekSuccess">0%</span>
+                    </div>
                 </div>
-                <div class="medication-status pending" id="morningStatus">대기중</div>
             </div>
-            <div class="medication-card">
-                <div class="medication-icon">💊</div>
-                <div class="medication-info">
-                    <div class="medication-name">점심 약</div>
-                    <div class="medication-time">13:00 복용 예정</div>
-                </div>
-                <div class="medication-status pending" id="afternoonStatus">대기중</div>
-            </div>
-            <div class="medication-card">
-                <div class="medication-icon">💊</div>
-                <div class="medication-info">
-                    <div class="medication-name">저녁 약</div>
-                    <div class="medication-time">19:00 복용 예정</div>
-                </div>
-                <div class="medication-status pending" id="eveningStatus">대기중</div>
-            </div>
-        </div>
 
-        <!-- 컨트롤 버튼 -->
-        <div class="control-section">
-            <div class="control-buttons">
-                <button class="control-btn primary" id="connectBtn" onclick="toggleConnection()">
-                    🔗 서버 연결
-                </button>
-                <button class="control-btn secondary" onclick="resetCounter()">
-                    🔄 카운터 초기화
-                </button>
-            </div>
-        </div>
-
-        <!-- 마지막 업데이트 시간 -->
-        <div class="last-update" id="lastUpdate">
-            마지막 업데이트: -
-        </div>
-
-        <!-- 로딩 스피너 -->
-        <div class="loading-spinner" id="loadingSpinner"></div>
-
-        <!-- 하단 네비게이션 -->
-        <div class="bottom-nav">
-            <div class="nav-items">
-                <div class="nav-item active">
-                    <div class="nav-icon">🏠</div>
-                    <div class="nav-label">홈</div>
+            <!-- 시간대별 패턴 -->
+            <div class="card">
+                <h3 class="card-title">시간대별 복약 패턴 (24시간)</h3>
+                <div class="hour-blocks" id="hourChart"></div>
+                <div class="metric">
+                    <span class="metric-label">주요 복약 시간대</span>
+                    <span class="metric-value" id="peakHour">분석 중...</span>
                 </div>
-                <div class="nav-item">
-                    <div class="nav-icon">📊</div>
-                    <div class="nav-label">통계</div>
-                </div>
-                <div class="nav-item">
-                    <div class="nav-icon">📅</div>
-                    <div class="nav-label">캘린더</div>
-                </div>
-                <div class="nav-item">
-                    <div class="nav-icon">⚙️</div>
-                    <div class="nav-label">설정</div>
+                <div class="metric">
+                    <span class="metric-label">시간 일관성</span>
+                    <span class="metric-value" id="consistency">계산 중...</span>
                 </div>
             </div>
-        </div>
 
-        <!-- 알림 메시지 -->
-        <div class="notification" id="notification">
-            <span id="notificationIcon">✅</span>
-            <span id="notificationMessage">알림 메시지</span>
+            <!-- 요일별 분석 -->
+            <div class="card">
+                <h3 class="card-title">요일별 복약 패턴</h3>
+                <div class="weekday-chart" id="weekdayChart"></div>
+                <div class="alert warning" id="weekendAlert" style="display: none;">
+                    주말 복약률이 평일보다 낮습니다. 주의가 필요합니다.
+                </div>
+            </div>
+
+            <!-- 통계 요약 -->
+            <div class="card">
+                <h3 class="card-title">전체 통계</h3>
+                <div class="metric">
+                    <span class="metric-label">총 복약 횟수</span>
+                    <span class="metric-value" id="totalCount">0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">모니터링 시작</span>
+                    <span class="metric-value" id="startDate">-</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">최장 연속 복약</span>
+                    <span class="metric-value good" id="maxStreak">0일</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">최장 휴약 기간</span>
+                    <span class="metric-value danger" id="maxGap">0일</span>
+                </div>
+                <div class="controls">
+                    <button onclick="resetData()">데이터 초기화</button>
+                    <button onclick="exportData()">데이터 내보내기</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // 전역 변수
+        // 서버 URL 고정
+        const SERVER_URL = 'https://port-0-coss-mi0kk25df8c7e306.sel3.cloudtype.app';
+        
+        // 상태 관리 변수
         let isConnected = false;
         let intervalId = null;
-        // 서버 URL을 고정값으로 설정 (서버 설정 버튼 제거)
-        const serverUrl = 'https://port-0-coss-mi0kk25df8c7e306.sel3.cloudtype.app';
-        let detectionCount = 0;
-        let connectionStartTime = null;
-        let connectionTimer = null;
-        let lastSensorValue = -1;
-
-        // 페이지 로드 시 자동 연결
+        let medicationHistory = JSON.parse(localStorage.getItem('medicationHistory')) || [];
+        let currentSensorState = 0;
+        let removalStartTime = null;
+        let debounceTimer = null;
+        
+        // 초기화
         window.addEventListener('load', () => {
-            setTimeout(() => {
-                connect();
-            }, 1000);
+            loadHistoricalData();
+            initializeCharts();
+            connect();
         });
 
-        function toggleConnection() {
-            if (isConnected) {
-                disconnect();
-            } else {
-                connect();
-            }
-        }
-
         function connect() {
-            showNotification('서버 연결을 시도하고 있습니다...', 'info');
-            
             isConnected = true;
-            connectionStartTime = Date.now();
-            
-            // UI 업데이트
-            document.getElementById('connectBtn').innerHTML = '🔌 연결 끊기';
-            document.getElementById('connectionIndicator').className = 'sensor-indicator active';
-            document.getElementById('connectionIndicator').textContent = '연결됨';
-            
-            // 메인 상태 업데이트
-            updateMainStatus('connected');
-            
-            // 로딩 스피너 표시
-            document.getElementById('loadingSpinner').classList.add('active');
-            
-            // 연결 시간 타이머 시작
-            connectionTimer = setInterval(updateConnectionTime, 1000);
+            document.getElementById('statusIndicator').className = 'status-indicator active';
             
             // 데이터 폴링 시작
             fetchSensorData();
             intervalId = setInterval(fetchSensorData, 1000);
-            
-            setTimeout(() => {
-                document.getElementById('loadingSpinner').classList.remove('active');
-                showNotification('서버와 성공적으로 연결되었습니다!', 'success');
-            }, 1500);
-        }
-
-        function disconnect() {
-            isConnected = false;
-            
-            // UI 업데이트
-            document.getElementById('connectBtn').innerHTML = '🔗 서버 연결';
-            document.getElementById('connectionIndicator').className = 'sensor-indicator inactive';
-            document.getElementById('connectionIndicator').textContent = '연결 끊김';
-            
-            // 메인 상태 업데이트
-            updateMainStatus('disconnected');
-            
-            if (intervalId) {
-                clearInterval(intervalId);
-                intervalId = null;
-            }
-            
-            if (connectionTimer) {
-                clearInterval(connectionTimer);
-                connectionTimer = null;
-            }
-            
-            showNotification('서버 연결이 해제되었습니다', 'warning');
         }
 
         async function fetchSensorData() {
             try {
-                const response = await fetch(`${serverUrl}/value`, {
+                const response = await fetch(`${SERVER_URL}/value`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -830,193 +497,300 @@
                 }
 
                 const data = await response.json();
-                updateDisplay(data);
+                processSensorData(data);
 
             } catch (error) {
                 console.error('데이터 가져오기 실패:', error);
-                if (isConnected) {
-                    showNotification('서버 연결 오류가 발생했습니다', 'error');
+                document.getElementById('statusIndicator').className = 'status-indicator inactive';
+            }
+        }
+
+        function processSensorData(data) {
+            const sensorValue = data.a !== undefined ? data.a : 0;
+            const timestamp = new Date(data.timestamp || new Date());
+            
+            // UI 업데이트
+            document.getElementById('sensorValue').textContent = sensorValue;
+            document.getElementById('lastUpdate').textContent = 
+                `마지막 업데이트: ${timestamp.toLocaleTimeString('ko-KR')}`;
+            
+            // 센서 값이 0->1로 변경 (약통 제거)
+            if (currentSensorState === 0 && sensorValue === 1) {
+                removalStartTime = Date.now();
+                
+                // 디바운싱: 1초 후에 확인
+                if (debounceTimer) clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    if (currentSensorState === 1) { // 여전히 제거 상태면
+                        recordMedication(removalStartTime);
+                    }
+                }, 1000);
+                
+                document.getElementById('detectionState').textContent = '💊 약통 제거됨';
+                document.getElementById('detectionState').className = 'sensor-state detected';
+            }
+            // 센서 값이 1->0으로 변경 (약통 복귀)
+            else if (currentSensorState === 1 && sensorValue === 0) {
+                if (debounceTimer) clearTimeout(debounceTimer);
+                
+                document.getElementById('detectionState').textContent = '✅ 약통 복귀됨';
+                document.getElementById('detectionState').className = 'sensor-state clear';
+                
+                // 복약 소요 시간 계산 (선택사항)
+                if (removalStartTime) {
+                    const duration = Date.now() - removalStartTime;
+                    console.log(`복약 소요 시간: ${Math.round(duration / 1000)}초`);
                 }
             }
+            
+            currentSensorState = sensorValue;
         }
 
-        function updateDisplay(data) {
-            const sensorValue = data.a !== undefined ? data.a : '-';
+        function recordMedication(timestamp) {
+            const medication = {
+                timestamp: timestamp,
+                date: new Date(timestamp).toLocaleDateString('ko-KR'),
+                time: new Date(timestamp).toLocaleTimeString('ko-KR'),
+                hour: new Date(timestamp).getHours()
+            };
             
-            // 센서값 업데이트
-            document.getElementById('sensorValue').textContent = sensorValue;
+            medicationHistory.push(medication);
+            localStorage.setItem('medicationHistory', JSON.stringify(medicationHistory));
             
-            // 값이 변경되었고 1로 변경된 경우 (약통 제거 감지)
-            if (lastSensorValue !== sensorValue && sensorValue === 1) {
-                detectionCount++;
-                document.getElementById('detectionCount').textContent = detectionCount;
+            // 통계 업데이트
+            updateStatistics();
+            updateCharts();
+            
+            // 알림 표시
+            showNotification('복약이 기록되었습니다');
+        }
+
+        function updateStatistics() {
+            const today = new Date().toLocaleDateString('ko-KR');
+            const todayMeds = medicationHistory.filter(m => m.date === today);
+            
+            // 오늘의 복약 현황
+            document.getElementById('todayCount').textContent = `${todayMeds.length}회`;
+            
+            if (todayMeds.length > 0) {
+                document.getElementById('firstDose').textContent = todayMeds[0].time;
+                document.getElementById('lastDose').textContent = todayMeds[todayMeds.length - 1].time;
                 
-                // 약통 제거 알림
-                showNotification('약통이 제거되었습니다! 약을 복용하세요.', 'warning');
-                
-                // 메인 상태 업데이트
-                updateMainStatus('detected');
-                
-                // 복약 상태 업데이트 (시간대에 따라)
-                updateMedicationStatus();
-            } else if (lastSensorValue === 1 && sensorValue === 0) {
-                // 약통이 다시 제자리로 돌아옴
-                showNotification('약통이 제자리에 놓였습니다.', 'success');
-                updateMainStatus('returned');
+                // 평균 간격 계산
+                if (todayMeds.length > 1) {
+                    const intervals = [];
+                    for (let i = 1; i < todayMeds.length; i++) {
+                        intervals.push(todayMeds[i].timestamp - todayMeds[i-1].timestamp);
+                    }
+                    const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+                    const hours = Math.floor(avgInterval / 3600000);
+                    const minutes = Math.floor((avgInterval % 3600000) / 60000);
+                    document.getElementById('avgInterval').textContent = `${hours}시간 ${minutes}분`;
+                }
             }
             
-            lastSensorValue = sensorValue;
+            // 복약 순응도 (PDC) 계산 - 최근 7일
+            const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            const recentMeds = medicationHistory.filter(m => m.timestamp > sevenDaysAgo);
+            const uniqueDays = new Set(recentMeds.map(m => m.date)).size;
+            const adherence = Math.round((uniqueDays / 7) * 100);
             
-            // 현재 상태 텍스트 업데이트
-            const currentState = document.getElementById('currentState');
-            if (sensorValue === 1) {
-                currentState.textContent = '감지';
-                currentState.style.color = 'var(--point-color)';
-            } else if (sensorValue === 0) {
-                currentState.textContent = '정상';
-                currentState.style.color = 'var(--success)';
+            document.getElementById('adherencePercent').textContent = `${adherence}%`;
+            document.querySelector('.gauge-bg').style.setProperty('--percentage', `${adherence * 3.6}deg`);
+            
+            // 연속 복약일 계산
+            const streak = calculateStreak();
+            document.getElementById('streak').textContent = `${streak}일`;
+            
+            // 이번 주 성공률
+            const weekSuccess = calculateWeekSuccess();
+            document.getElementById('weekSuccess').textContent = `${weekSuccess}%`;
+            
+            // 전체 통계
+            document.getElementById('totalCount').textContent = medicationHistory.length;
+            if (medicationHistory.length > 0) {
+                const startDate = new Date(medicationHistory[0].timestamp);
+                document.getElementById('startDate').textContent = startDate.toLocaleDateString('ko-KR');
+            }
+            
+            // 알림 조건 확인
+            checkAlerts(todayMeds.length);
+        }
+
+        function calculateStreak() {
+            if (medicationHistory.length === 0) return 0;
+            
+            let streak = 0;
+            const today = new Date();
+            const dates = [...new Set(medicationHistory.map(m => m.date))].sort().reverse();
+            
+            for (let i = 0; i < dates.length; i++) {
+                const date = new Date(dates[i]);
+                const expectedDate = new Date(today);
+                expectedDate.setDate(expectedDate.getDate() - i);
+                
+                if (date.toDateString() === expectedDate.toDateString()) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+            
+            return streak;
+        }
+
+        function calculateWeekSuccess() {
+            const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            const weekMeds = medicationHistory.filter(m => m.timestamp > weekAgo);
+            const uniqueDays = new Set(weekMeds.map(m => m.date)).size;
+            return Math.round((uniqueDays / 7) * 100);
+        }
+
+        function initializeCharts() {
+            // 시간대별 차트 초기화
+            const hourChart = document.getElementById('hourChart');
+            for (let i = 0; i < 24; i++) {
+                const block = document.createElement('div');
+                block.className = 'hour-block';
+                block.title = `${i}:00 - ${i + 1}:00`;
+                block.dataset.hour = i;
+                hourChart.appendChild(block);
+            }
+            
+            // 요일별 차트 초기화
+            const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+            const weekdayChart = document.getElementById('weekdayChart');
+            
+            weekdays.forEach((day, index) => {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'weekday';
+                dayDiv.innerHTML = `
+                    <div class="weekday-label">${day}</div>
+                    <div class="weekday-bar">
+                        <div class="weekday-fill" data-day="${index}"></div>
+                        <div class="weekday-percent">0%</div>
+                    </div>
+                `;
+                weekdayChart.appendChild(dayDiv);
+            });
+            
+            updateCharts();
+        }
+
+        function updateCharts() {
+            // 시간대별 패턴 업데이트
+            const hourCounts = new Array(24).fill(0);
+            medicationHistory.forEach(m => {
+                hourCounts[m.hour]++;
+            });
+            
+            const maxHourCount = Math.max(...hourCounts, 1);
+            const hourBlocks = document.querySelectorAll('.hour-block');
+            
+            hourBlocks.forEach((block, hour) => {
+                if (hourCounts[hour] > 0) {
+                    block.classList.add('taken');
+                    block.style.opacity = 0.3 + (hourCounts[hour] / maxHourCount) * 0.7;
+                } else {
+                    block.classList.remove('taken');
+                    block.style.opacity = 1;
+                }
+            });
+            
+            // 주요 복약 시간대 찾기
+            const peakHour = hourCounts.indexOf(Math.max(...hourCounts));
+            if (hourCounts[peakHour] > 0) {
+                document.getElementById('peakHour').textContent = `${peakHour}:00 - ${peakHour + 1}:00`;
+            }
+            
+            // 요일별 패턴 업데이트
+            const weekdayCounts = new Array(7).fill(0);
+            const weekdayTotals = new Array(7).fill(0);
+            
+            medicationHistory.forEach(m => {
+                const day = new Date(m.timestamp).getDay();
+                weekdayCounts[day]++;
+            });
+            
+            // 전체 기간 중 각 요일이 몇 번 있었는지 계산
+            if (medicationHistory.length > 0) {
+                const firstDate = new Date(medicationHistory[0].timestamp);
+                const lastDate = new Date();
+                const dayCount = Math.ceil((lastDate - firstDate) / (24 * 60 * 60 * 1000)) + 1;
+                
+                for (let i = 0; i < dayCount; i++) {
+                    const date = new Date(firstDate);
+                    date.setDate(date.getDate() + i);
+                    weekdayTotals[date.getDay()]++;
+                }
+            }
+            
+            // 요일별 차트 업데이트
+            document.querySelectorAll('.weekday-fill').forEach((fill, index) => {
+                const percent = weekdayTotals[index] > 0 ? 
+                    Math.round((weekdayCounts[index] / weekdayTotals[index]) * 100) : 0;
+                fill.style.height = `${percent}%`;
+                fill.parentElement.querySelector('.weekday-percent').textContent = `${percent}%`;
+            });
+            
+            // 주말 경고 확인
+            const weekendPercent = weekdayTotals[0] + weekdayTotals[6] > 0 ?
+                ((weekdayCounts[0] + weekdayCounts[6]) / (weekdayTotals[0] + weekdayTotals[6])) * 100 : 0;
+            const weekdayPercent = weekdayTotals.slice(1, 6).reduce((a, b) => a + b, 0) > 0 ?
+                (weekdayCounts.slice(1, 6).reduce((a, b) => a + b, 0) / 
+                weekdayTotals.slice(1, 6).reduce((a, b) => a + b, 0)) * 100 : 0;
+            
+            if (weekendPercent < weekdayPercent * 0.8 && medicationHistory.length > 7) {
+                document.getElementById('weekendAlert').style.display = 'block';
+            }
+        }
+
+        function checkAlerts(todayCount) {
+            const alertDiv = document.getElementById('todayAlert');
+            
+            if (todayCount === 0) {
+                alertDiv.className = 'alert warning';
+                alertDiv.textContent = '오늘 아직 복약하지 않았습니다.';
+                alertDiv.style.display = 'block';
+            } else if (todayCount >= 3) {
+                alertDiv.className = 'alert success';
+                alertDiv.textContent = '오늘의 복약을 잘 수행하고 있습니다!';
+                alertDiv.style.display = 'block';
             } else {
-                currentState.textContent = '대기';
-                currentState.style.color = 'var(--text-color)';
-            }
-            
-            // 타임스탬프 업데이트
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('ko-KR');
-            document.getElementById('lastUpdate').textContent = `마지막 업데이트: ${timeString}`;
-        }
-
-        function updateMainStatus(status) {
-            const icon = document.getElementById('mainStatusIcon');
-            const title = document.getElementById('mainStatusTitle');
-            const message = document.getElementById('mainStatusMessage');
-            
-            switch(status) {
-                case 'connected':
-                    icon.className = 'status-icon completed';
-                    icon.textContent = '✅';
-                    title.textContent = '센서 연결 완료';
-                    message.textContent = '약통 모니터링이 시작되었습니다';
-                    break;
-                case 'detected':
-                    icon.className = 'status-icon detected';
-                    icon.textContent = '💊';
-                    title.textContent = '약통이 제거됨';
-                    message.textContent = '약을 복용 중이신가요?';
-                    break;
-                case 'returned':
-                    icon.className = 'status-icon completed';
-                    icon.textContent = '✅';
-                    title.textContent = '복약 완료';
-                    message.textContent = '약통이 제자리에 있습니다';
-                    break;
-                case 'disconnected':
-                    icon.className = 'status-icon pending';
-                    icon.textContent = '⏰';
-                    title.textContent = '센서 연결 대기 중';
-                    message.textContent = '서버와 연결이 끊어졌습니다';
-                    break;
+                alertDiv.style.display = 'none';
             }
         }
 
-        function updateMedicationStatus() {
-            const now = new Date();
-            const hours = now.getHours();
-            
-            if (hours >= 6 && hours < 11) {
-                // 아침 약 복용
-                const morningStatus = document.getElementById('morningStatus');
-                morningStatus.className = 'medication-status taken';
-                morningStatus.textContent = '복용완료';
-            } else if (hours >= 11 && hours < 16) {
-                // 점심 약 복용
-                const afternoonStatus = document.getElementById('afternoonStatus');
-                afternoonStatus.className = 'medication-status taken';
-                afternoonStatus.textContent = '복용완료';
-            } else if (hours >= 16 && hours < 22) {
-                // 저녁 약 복용
-                const eveningStatus = document.getElementById('eveningStatus');
-                eveningStatus.className = 'medication-status taken';
-                eveningStatus.textContent = '복용완료';
+        function showNotification(message) {
+            // 간단한 알림 표시 (실제로는 더 세련된 토스트 메시지 사용 가능)
+            console.log(message);
+        }
+
+        function loadHistoricalData() {
+            const history = localStorage.getItem('medicationHistory');
+            if (history) {
+                medicationHistory = JSON.parse(history);
+                updateStatistics();
             }
         }
 
-        function updateConnectionTime() {
-            if (!connectionStartTime) return;
-            
-            const elapsed = Date.now() - connectionStartTime;
-            const minutes = Math.floor(elapsed / 60000);
-            const seconds = Math.floor((elapsed % 60000) / 1000);
-            
-            const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            document.getElementById('connectionTime').textContent = timeString;
-        }
-
-        function resetCounter() {
-            detectionCount = 0;
-            document.getElementById('detectionCount').textContent = '0';
-            
-            // 복약 상태 초기화
-            document.querySelectorAll('.medication-status').forEach(status => {
-                status.className = 'medication-status pending';
-                status.textContent = '대기중';
-            });
-            
-            showNotification('카운터가 초기화되었습니다', 'info');
-        }
-
-        function showNotification(message, type = 'info') {
-            const notification = document.getElementById('notification');
-            const icon = document.getElementById('notificationIcon');
-            const messageElement = document.getElementById('notificationMessage');
-            
-            // 아이콘 설정
-            switch(type) {
-                case 'success':
-                    icon.textContent = '✅';
-                    notification.className = 'notification success show';
-                    break;
-                case 'warning':
-                    icon.textContent = '⚠️';
-                    notification.className = 'notification warning show';
-                    break;
-                case 'error':
-                    icon.textContent = '❌';
-                    notification.className = 'notification error show';
-                    break;
-                default:
-                    icon.textContent = 'ℹ️';
-                    notification.className = 'notification show';
+        function resetData() {
+            if (confirm('모든 복약 기록을 삭제하시겠습니까?')) {
+                medicationHistory = [];
+                localStorage.removeItem('medicationHistory');
+                location.reload();
             }
-            
-            messageElement.textContent = message;
-            
-            // 3초 후 자동 숨김
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
         }
 
-        // 네비게이션 아이템 클릭 이벤트
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function() {
-                document.querySelectorAll('.nav-item').forEach(nav => {
-                    nav.classList.remove('active');
-                });
-                this.classList.add('active');
-                
-                const label = this.querySelector('.nav-label').textContent;
-                showNotification(`${label} 메뉴는 준비 중입니다`, 'info');
-            });
-        });
-
-        // 약 카드 클릭 이벤트
-        document.querySelectorAll('.medication-card').forEach(card => {
-            card.addEventListener('click', function() {
-                const medName = this.querySelector('.medication-name').textContent;
-                showNotification(`${medName} 상세 정보는 준비 중입니다`, 'info');
-            });
-        });
+        function exportData() {
+            const dataStr = JSON.stringify(medicationHistory, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `medication_history_${new Date().toISOString()}.json`;
+            link.click();
+        }
     </script>
 </body>
 </html>
