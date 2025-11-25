@@ -1132,7 +1132,7 @@
         let isAlarmPlaying = false;
 
         // ========== 카드 데이터 (초기값: 빈 배열) ==========
-        const cardData = {
+        let cardData = {
             1: { time: '09:00', meds: [], taken: false },
             2: { time: '13:00', meds: [], taken: false },
             3: { time: '18:00', meds: [], taken: false },
@@ -1167,6 +1167,9 @@
             // 초기 목록 렌더링
             renderMedicationList();
             renderReminderList();
+            
+            // [신규] 서버에서 사용자 약물 데이터 불러오기
+            loadUserMedications();
             
             loadDashboardData();
             
@@ -1453,6 +1456,9 @@
             renderMedicationList();
             renderReminderList();
             
+            // [신규] 서버에 약물 데이터 저장
+            saveUserMedications();
+            
             closeEditModal();
             showNotification('설정이 저장되었습니다.', 'success');
         }
@@ -1572,25 +1578,79 @@
             closeSlotSelectModal();
             openEditModal(slotId);
         }
-
-        // ========== 알람 로직 ==========
-        function checkAlarmLogic() {
-            const now = new Date();
-            const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-            for (let id = 1; id <= 4; id++) {
-                const data = cardData[id];
-                if (data.taken || data.meds.length === 0) continue;
-
-                const [h, m] = data.time.split(':').map(Number);
-                const targetMinutes = h * 60 + m;
-                const diff = Math.abs(currentMinutes - targetMinutes);
-
-                if (diff <= 5 && !isAlarmPlaying) {
-                    const medName = data.meds.length > 0 ? data.meds[0].name : '약';
-                    playAlarm(`${medName} 복용 시간입니다! (${data.time})`);
-                    break;
+        
+        // ========== 알람 로직 (서버 API 사용) ==========
+        async function checkAlarmLogic() {
+            try {
+                const response = await fetch(`${API_URL}/api/notifications/check`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                
+                if (data.alerts && data.alerts.length > 0) {
+                    for (const alert of data.alerts) {
+                        if (alert.playSound && !isAlarmPlaying) {
+                            playAlarm(alert.message);
+                            break;
+                        }
+                    }
                 }
+            } catch (error) {
+                console.error('알림 체크 실패:', error);
+            }
+        }
+
+        // ========== [신규] 서버에서 사용자 약물 데이터 불러오기 ==========
+        async function loadUserMedications() {
+            try {
+                const response = await fetch(`${API_URL}/api/medications/user`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (!response.ok) return;
+                
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    for (let id in result.data) {
+                        if (cardData[id]) {
+                            cardData[id].time = result.data[id].time || cardData[id].time;
+                            cardData[id].meds = result.data[id].meds || [];
+                            cardData[id].taken = result.data[id].taken || false;
+                        }
+                    }
+                    
+                    refreshAllCards();
+                    renderMedicationList();
+                    renderReminderList();
+                    
+                    console.log('✅ 사용자 약물 데이터 로드 완료');
+                }
+            } catch (error) {
+                console.error('약물 데이터 로드 실패:', error);
+            }
+        }
+
+        // ========== [신규] 서버에 사용자 약물 데이터 저장 ==========
+        async function saveUserMedications() {
+            try {
+                const response = await fetch(`${API_URL}/api/medications/user`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ cardData })
+                });
+                
+                if (response.ok) {
+                    console.log('✅ 약물 데이터 서버 저장 완료');
+                }
+            } catch (error) {
+                console.error('약물 데이터 저장 실패:', error);
             }
         }
 
