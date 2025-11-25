@@ -961,7 +961,7 @@
                         <i class="fa-regular fa-user"></i>
                     </div>
                     <div class="dropdown-menu" id="userDropdown">
-                        <div class="dropdown-item" onclick="switchSection('profile')">
+                        <div class="dropdown-item" onclick="window.location.href='/profile.html'">
                             <i class="fa-solid fa-user"></i>
                             <span>프로필</span>
                         </div>
@@ -1223,33 +1223,6 @@
                         <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">모든 복약 기록이 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</p>
                         <button class="btn-danger" onclick="openResetModal()">
                             <i class="fa-solid fa-trash"></i> 데이터 초기화
-                        </button>
-                    </div>
-                </section>
-                <section class="page-section" id="profileSection">
-                    <div class="profile-card">
-                        <div class="profile-avatar"><i class="fa-solid fa-user"></i></div>
-                        <h3 class="profile-name" id="profileName">사용자</h3>
-                        <p class="profile-email" id="profileEmail">user@example.com</p>
-                        <div class="profile-stats">
-                            <div class="profile-stat">
-                                <div class="profile-stat-value" id="profileTotalDays">0</div>
-                                <div class="profile-stat-label">사용 일수</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="profile-stat-value" id="profileAverage">0</div>
-                                <div class="profile-stat-label">일 평균</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="profile-stat-value" id="profileStreak">0</div>
-                                <div class="profile-stat-label">최대 연속</div>
-                            </div>
-                        </div>
-                        <button class="action-button" onclick="window.location.href='/reports.html'">
-                            <i class="fa-solid fa-chart-line"></i> 상세 통계 보기
-                        </button>
-                        <button class="action-button secondary" onclick="exportData()">
-                            <i class="fa-solid fa-download"></i> 데이터 내보내기
                         </button>
                     </div>
                 </section>
