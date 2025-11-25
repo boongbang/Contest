@@ -797,6 +797,27 @@
         .empty-state p {
             font-size: 0.9rem;
         }
+
+        /* [새로고침 버튼 스타일 추가] */
+        .refresh-btn {
+            width: 100%;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #bbb;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: color 0.3s, transform 0.3s;
+            margin-bottom: 20px;
+        }
+        .refresh-btn:hover {
+            color: #888;
+        }
+        .refresh-btn:active {
+            transform: rotate(180deg);
+            color: var(--app-bg);
+        }
     </style>
 </head>
 <body>
@@ -859,6 +880,9 @@
                     <div class="icon-box"><i class="fa-solid fa-user"></i></div>
                 </div>
                 <div class="sidebar-filler"></div>
+                <div class="refresh-btn" onclick="refreshPage()">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </div>
             </div>
 
             <div class="main-content">
@@ -882,9 +906,7 @@
                         </div>
                     </div>
 
-                    <!-- ========== 새로운 카드 구조 (card.html 스타일) ========== -->
                     <div class="summary-grid">
-                        <!-- 아침 -->
                         <div class="med-card" id="medCard-1" data-id="1" onclick="openEditModal(1)">
                             <div class="card-header-area">
                                 <i class="fa-regular fa-sun"></i> <span>아침 약</span>
@@ -900,7 +922,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- 점심 -->
                         <div class="med-card" id="medCard-2" data-id="2" onclick="openEditModal(2)">
                             <div class="card-header-area">
                                 <i class="fa-solid fa-cloud-sun"></i> <span>점심 약</span>
@@ -916,7 +937,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- 저녁 -->
                         <div class="med-card" id="medCard-3" data-id="3" onclick="openEditModal(3)">
                             <div class="card-header-area">
                                 <i class="fa-regular fa-moon"></i> <span>저녁 약</span>
@@ -932,7 +952,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- 자기전 -->
                         <div class="med-card" id="medCard-4" data-id="4" onclick="openEditModal(4)">
                             <div class="card-header-area">
                                 <i class="fa-solid fa-bed"></i> <span>자기전</span>
@@ -1026,7 +1045,6 @@
         </div>
     </div>
 
-    <!-- ========== 통합 편집 모달 (card.html) ========== -->
     <div class="modal-overlay" id="editModal">
         <div class="custom-modal">
             <div class="modal-header">
@@ -1037,7 +1055,6 @@
             </div>
             
             <div class="modal-body">
-                <!-- 스크롤 타임 피커 -->
                 <span class="picker-label">복용 시간</span>
                 <div class="time-picker-container">
                     <div class="picker-highlight"></div>
@@ -1046,7 +1063,6 @@
                     <div class="picker-column" id="colMin"></div>
                 </div>
 
-                <!-- 약 목록 관리 -->
                 <span class="picker-label" style="margin-top:15px;">약 목록</span>
                 <div class="med-list-container" id="modalMedList"></div>
                 
@@ -1070,7 +1086,6 @@
         </div>
     </div>
 
-    <!-- ========== 시간대 선택 모달 (약물관리 탭에서 추가 시) ========== -->
     <div class="modal-overlay" id="slotSelectModal">
         <div class="custom-modal" style="max-width: 320px;">
             <div class="modal-header">
@@ -1828,6 +1843,11 @@
 
         function showNotification(message, type = 'info') {
             console.log(`[${type}] ${message}`);
+        }
+
+        // [새로고침 기능 추가]
+        function refreshPage() {
+            location.reload();
         }
     </script>
 </body>
