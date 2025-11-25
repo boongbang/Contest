@@ -562,8 +562,22 @@
         }
         .med-list-item:last-child { border-bottom: none; }
 
-        .med-name { font-size: 0.9rem; font-weight: 600; color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
-        .med-dose { font-size: 0.75rem; color: #999; margin-left: 8px; white-space: nowrap; }
+        .med-info-text {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .med-name { font-size: 0.9rem; font-weight: 600; color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+        .med-dose { font-size: 0.75rem; color: #999; white-space: nowrap; }
+
+        .med-actions {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+        }
 
         .btn-icon { color: #ccc; cursor: pointer; padding: 5px; font-size: 0.9rem; }
         .btn-icon:hover { color: var(--app-bg); }
@@ -768,6 +782,21 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* 약물 관리 탭 빈 상태 */
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: #999;
+        }
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+        .empty-state p {
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -863,7 +892,7 @@
                             <div class="card-body-area">
                                 <div>
                                     <span class="status-badge" id="badge-1">대기중</span>
-                                    <div class="med-list-preview" id="medListText-1">약 목록 없음</div>
+                                    <div class="med-list-preview" id="medListText-1">등록된 약 없음</div>
                                 </div>
                                 <div class="card-footer-row">
                                     <div class="time-display-large" id="timeDisplay-1">--:--</div>
@@ -879,7 +908,7 @@
                             <div class="card-body-area">
                                 <div>
                                     <span class="status-badge" id="badge-2">대기중</span>
-                                    <div class="med-list-preview" id="medListText-2">약 목록 없음</div>
+                                    <div class="med-list-preview" id="medListText-2">등록된 약 없음</div>
                                 </div>
                                 <div class="card-footer-row">
                                     <div class="time-display-large" id="timeDisplay-2">--:--</div>
@@ -895,7 +924,7 @@
                             <div class="card-body-area">
                                 <div>
                                     <span class="status-badge" id="badge-3">대기중</span>
-                                    <div class="med-list-preview" id="medListText-3">약 목록 없음</div>
+                                    <div class="med-list-preview" id="medListText-3">등록된 약 없음</div>
                                 </div>
                                 <div class="card-footer-row">
                                     <div class="time-display-large" id="timeDisplay-3">--:--</div>
@@ -911,7 +940,7 @@
                             <div class="card-body-area">
                                 <div>
                                     <span class="status-badge" id="badge-4">대기중</span>
-                                    <div class="med-list-preview" id="medListText-4">약 목록 없음</div>
+                                    <div class="med-list-preview" id="medListText-4">등록된 약 없음</div>
                                 </div>
                                 <div class="card-footer-row">
                                     <div class="time-display-large" id="timeDisplay-4">--:--</div>
@@ -940,7 +969,7 @@
                     <div class="medication-list">
                         <div class="section-header">
                             <div class="section-title">등록된 약물</div>
-                            <button class="med-action">+ 추가</button>
+                            <button class="med-action" onclick="openAddMedModal()">+ 추가</button>
                         </div>
                         <div id="medicationListArea"></div>
                     </div>
@@ -960,7 +989,6 @@
                     <div class="reminder-list">
                         <div class="section-header">
                             <div class="section-title">알림 일정</div>
-                            <button class="med-action">+ 추가</button>
                         </div>
                         <div id="reminderListArea"></div>
                     </div>
@@ -1041,6 +1069,35 @@
         </div>
     </div>
 
+    <!-- ========== 시간대 선택 모달 (약물관리 탭에서 추가 시) ========== -->
+    <div class="modal-overlay" id="slotSelectModal">
+        <div class="custom-modal" style="max-width: 320px;">
+            <div class="modal-header">
+                <div class="modal-title">시간대 선택</div>
+                <div onclick="closeSlotSelectModal()" style="cursor:pointer; padding:5px; color:#999;">
+                    <i class="fa-solid fa-xmark"></i>
+                </div>
+            </div>
+            <div class="modal-body" style="padding: 15px;">
+                <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">어떤 시간대에 약을 추가하시겠습니까?</p>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn-modal btn-save" onclick="selectSlotAndOpen(1)" style="flex:none;">
+                        <i class="fa-regular fa-sun"></i> 아침 약
+                    </button>
+                    <button class="btn-modal btn-save" onclick="selectSlotAndOpen(2)" style="flex:none;">
+                        <i class="fa-solid fa-cloud-sun"></i> 점심 약
+                    </button>
+                    <button class="btn-modal btn-save" onclick="selectSlotAndOpen(3)" style="flex:none;">
+                        <i class="fa-regular fa-moon"></i> 저녁 약
+                    </button>
+                    <button class="btn-modal btn-save" onclick="selectSlotAndOpen(4)" style="flex:none;">
+                        <i class="fa-solid fa-bed"></i> 자기전
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // API 설정
         const API_URL = window.location.origin;
@@ -1053,7 +1110,7 @@
         let alarmCheckInterval = null;
         let isAlarmPlaying = false;
 
-        // ========== 카드 데이터 (card.html 방식) ==========
+        // ========== 카드 데이터 (초기값: 빈 배열) ==========
         const cardData = {
             1: { time: '09:00', meds: [], taken: false },
             2: { time: '13:00', meds: [], taken: false },
@@ -1082,6 +1139,13 @@
             
             // 타임 피커 초기화
             initTimePicker();
+            
+            // 초기 카드 UI 렌더링
+            refreshAllCards();
+            
+            // 초기 목록 렌더링
+            renderMedicationList();
+            renderReminderList();
             
             loadDashboardData();
             
@@ -1196,11 +1260,12 @@
 
             timeText.innerHTML = formatTimeDisplay(data.time);
 
+            // 약 개수 표시로 변경
             if(data.meds.length > 0) {
-                listText.textContent = data.meds.map(m => m.name).join(', ');
+                listText.textContent = `${data.meds.length}개의 약`;
                 listText.style.color = 'var(--text-dark)';
             } else {
-                listText.textContent = '약 목록 없음';
+                listText.textContent = '등록된 약 없음';
                 listText.style.color = '#ccc';
             }
 
@@ -1279,7 +1344,7 @@
             return `${h24.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
         }
 
-        // ========== 약 목록 CRUD ==========
+        // ========== 약 목록 CRUD (모달 내) ==========
         function renderModalMedList() {
             const container = document.getElementById('modalMedList');
             container.innerHTML = '';
@@ -1309,7 +1374,10 @@
         function addMedItem() {
             const name = document.getElementById('inputMedName').value.trim();
             const dose = document.getElementById('inputMedDose').value.trim();
-            if(!name) return alert('약 이름을 입력하세요');
+            if(!name) {
+                alert('약 이름을 입력하세요');
+                return;
+            }
 
             tempMeds.push({ name, dose: dose || '-' });
             renderModalMedList();
@@ -1326,7 +1394,7 @@
             editingIndex = idx;
             const med = tempMeds[idx];
             document.getElementById('inputMedName').value = med.name;
-            document.getElementById('inputMedDose').value = med.dose;
+            document.getElementById('inputMedDose').value = med.dose === '-' ? '' : med.dose;
             
             document.getElementById('btnAddMed').style.display = 'none';
             document.getElementById('btnUpdateMed').style.display = 'flex';
@@ -1336,7 +1404,10 @@
             if(editingIndex === -1) return;
             const name = document.getElementById('inputMedName').value.trim();
             const dose = document.getElementById('inputMedDose').value.trim();
-            if(!name) return alert('약 이름을 입력하세요');
+            if(!name) {
+                alert('약 이름을 입력하세요');
+                return;
+            }
 
             tempMeds[editingIndex] = { name, dose: dose || '-' };
             renderModalMedList();
@@ -1356,8 +1427,130 @@
             cardData[currentEditId].time = getSelectedTime();
             cardData[currentEditId].meds = [...tempMeds];
             updateCardUI(currentEditId);
+            
+            // 동기화: 약물관리 탭과 알림 탭 업데이트
+            renderMedicationList();
+            renderReminderList();
+            
             closeEditModal();
             showNotification('설정이 저장되었습니다.', 'success');
+        }
+
+        // ========== 약물관리 탭 렌더링 (cardData 기반) ==========
+        function renderMedicationList() {
+            const medList = document.getElementById('medicationListArea');
+            const slotNames = ['아침 약', '점심 약', '저녁 약', '자기전'];
+            let medHtml = '';
+            let totalMeds = 0;
+
+            for (let i = 1; i <= 4; i++) {
+                const data = cardData[i];
+                data.meds.forEach((med, idx) => {
+                    totalMeds++;
+                    medHtml += `
+                        <div class="med-item">
+                            <div class="med-info">
+                                <div class="med-icon"><i class="fa-solid fa-capsules"></i></div>
+                                <div class="med-details">
+                                    <h4>${med.name}</h4>
+                                    <p>${med.dose} · ${slotNames[i-1]} (${data.time})</p>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:5px;">
+                                <button class="med-action" onclick="editMedFromList(${i}, ${idx})">수정</button>
+                                <button class="med-action" style="background:#ff6b6b;" onclick="deleteMedFromList(${i}, ${idx})">삭제</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            if (totalMeds === 0) {
+                medHtml = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-pills"></i>
+                        <p>등록된 약물이 없습니다.</p>
+                        <p style="font-size:0.8rem; margin-top:5px;">위의 "+ 추가" 버튼을 눌러 약물을 등록하세요.</p>
+                    </div>
+                `;
+            }
+
+            medList.innerHTML = medHtml;
+        }
+
+        // ========== 알림 탭 렌더링 (cardData 기반) ==========
+        function renderReminderList() {
+            const remList = document.getElementById('reminderListArea');
+            const slotNames = ['아침 약', '점심 약', '저녁 약', '자기전'];
+            let remHtml = '';
+            let hasReminders = false;
+
+            for (let i = 1; i <= 4; i++) {
+                const data = cardData[i];
+                if (data.meds.length > 0) {
+                    hasReminders = true;
+                    remHtml += `
+                        <div class="reminder-item">
+                            <div class="reminder-time">${data.time}</div>
+                            <div class="reminder-details">
+                                <div class="reminder-title">${slotNames[i-1]}</div>
+                                <div class="reminder-desc">${data.meds.length}개의 약</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    `;
+                }
+            }
+
+            if (!hasReminders) {
+                remHtml = `
+                    <div class="empty-state">
+                        <i class="fa-regular fa-bell"></i>
+                        <p>등록된 알림이 없습니다.</p>
+                        <p style="font-size:0.8rem; margin-top:5px;">약을 등록하면 자동으로 알림이 설정됩니다.</p>
+                    </div>
+                `;
+            }
+
+            remList.innerHTML = remHtml;
+        }
+
+        // ========== 약물관리 탭에서 수정/삭제 ==========
+        function editMedFromList(slotId, medIdx) {
+            // 해당 시간대의 모달을 열고, 해당 약을 편집 상태로
+            openEditModal(slotId);
+            // 약간의 딜레이 후 해당 약을 편집 상태로 설정
+            setTimeout(() => {
+                editMedItem(medIdx);
+            }, 200);
+        }
+
+        function deleteMedFromList(slotId, medIdx) {
+            if (confirm('이 약물을 삭제하시겠습니까?')) {
+                cardData[slotId].meds.splice(medIdx, 1);
+                updateCardUI(slotId);
+                renderMedicationList();
+                renderReminderList();
+                showNotification('약물이 삭제되었습니다.', 'success');
+            }
+        }
+
+        // ========== 약물관리 탭 "+ 추가" 버튼 ==========
+        function openAddMedModal() {
+            // 시간대 선택 모달 표시
+            document.getElementById('slotSelectModal').classList.add('show');
+        }
+
+        function closeSlotSelectModal() {
+            document.getElementById('slotSelectModal').classList.remove('show');
+        }
+
+        function selectSlotAndOpen(slotId) {
+            closeSlotSelectModal();
+            openEditModal(slotId);
         }
 
         // ========== 알람 로직 ==========
@@ -1367,7 +1560,7 @@
 
             for (let id = 1; id <= 4; id++) {
                 const data = cardData[id];
-                if (data.taken) continue;
+                if (data.taken || data.meds.length === 0) continue;
 
                 const [h, m] = data.time.split(':').map(Number);
                 const targetMinutes = h * 60 + m;
@@ -1486,18 +1679,15 @@
                 
                 const data = await response.json();
                 
-                // 1. 카드 상태 업데이트 (새로운 방식)
+                // 1. 카드 상태 업데이트 (서버 데이터로 시간 및 복용 상태만 반영)
                 if (data.sensors) updateMedicationCards(data.sensors);
-                
-                // 2. 리스트 렌더링 (약물관리, 알림설정 탭)
-                if (data.sensors) renderLists(data.sensors);
 
-                // 3. 프로필 통계
+                // 2. 프로필 통계
                 document.getElementById('profileTotalDays').textContent = data.adherenceMetrics?.totalDays || '0';
                 document.getElementById('profileAverage').textContent = (data.adherenceMetrics?.averagePerDay || 0).toFixed(1);
                 document.getElementById('profileStreak').textContent = data.adherenceMetrics?.maxStreak || '0';
                 
-                // 4. 차트
+                // 3. 차트
                 updateWeeklyChart(data.weekly);
                 
             } catch (error) {
@@ -1508,20 +1698,16 @@
             }
         }
 
-        // ========== 서버 데이터로 카드 업데이트 (새로운 방식) ==========
+        // ========== 서버 데이터로 카드 업데이트 ==========
         function updateMedicationCards(sensors) {
             for (let i = 1; i <= 4; i++) {
                 const sensor = sensors[i];
                 if (!sensor) continue;
 
-                // cardData에 서버 데이터 반영
+                // 서버에서 시간 정보만 반영 (약 목록은 사용자가 직접 추가)
                 cardData[i].time = sensor.targetTime || cardData[i].time;
-                
-                // 약 설명을 meds 배열에 추가 (서버에서 description 제공 시)
-                if (sensor.description && cardData[i].meds.length === 0) {
-                    cardData[i].meds = [{ name: sensor.description, dose: '-' }];
-                }
 
+                // 복용 상태 반영
                 if (sensor.todayOpened) {
                     cardData[i].taken = true;
                 } else {
@@ -1531,47 +1717,10 @@
                 // UI 업데이트
                 updateCardUI(i);
             }
-        }
-
-        // ========== 약물 관리 및 알림 리스트 렌더링 ==========
-        function renderLists(sensors) {
-            const medList = document.getElementById('medicationListArea');
-            const remList = document.getElementById('reminderListArea');
             
-            let medHtml = '';
-            let remHtml = '';
-
-            Object.values(sensors).forEach(s => {
-                medHtml += `
-                    <div class="med-item">
-                        <div class="med-info">
-                            <div class="med-icon"><i class="fa-solid fa-capsules"></i></div>
-                            <div class="med-details">
-                                <h4>${s.name}</h4>
-                                <p>${s.description}</p>
-                            </div>
-                        </div>
-                        <button class="med-action">수정</button>
-                    </div>
-                `;
-
-                remHtml += `
-                    <div class="reminder-item">
-                        <div class="reminder-time">${s.targetTime}</div>
-                        <div class="reminder-details">
-                            <div class="reminder-title">${s.name}</div>
-                            <div class="reminder-desc">${s.description}</div>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
-                    </div>
-                `;
-            });
-
-            medList.innerHTML = medHtml;
-            remList.innerHTML = remHtml;
+            // 목록도 업데이트
+            renderMedicationList();
+            renderReminderList();
         }
 
         // ========== 차트 업데이트 ==========
