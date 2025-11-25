@@ -47,12 +47,16 @@ let sensorData = {
     history: [],
     dailyStats: {},
     users: [
-        { id: 1, email: 'user@coss.com', password: '$2a$10$X4kv7j5ZcGJLFwJHcXpKKutzCFvN.VIwmOm2T7JD.qPugXvVqWFCO', name: '홍길동' }
-    ]
+        // [수정됨] 비밀번호 'coss1234'의 bcrypt 해시 (10라운드)
+        // 기존: '$2a$10$X4kv7j5ZcGJLFwJHcXpKKutzCFvN.VIwmOm2T7JD.qPugXvVqWFCO' (coss123)
+        // 변경: '$2a$10$8K1p/k.Y1QH8z3qN5YZ5qOZB5yL5xL5qN5YZ5qOZB5yL5xL5qN5Y' 대신 서버 시작시 생성
+        { id: 1, email: 'user@coss.com', password: '', name: '홍길동' }
+    ],
+    // [신규] 사용자별 약물 데이터 저장소
+    userMedications: {}
 };
 
 // ===== 플리커링 방지를 위한 대기 상태 =====
-// 센서별로 제거 시작 시간을 기록하여 1초 이상 유지되어야 복약으로 인정
 let pendingRemoval = {
     1: null,
     2: null,
@@ -76,6 +80,10 @@ function loadData() {
             const rawData = fs.readFileSync(DATA_FILE);
             const loadedData = JSON.parse(rawData);
             sensorData = { ...sensorData, ...loadedData };
+            // [신규] userMedications가 없으면 초기화
+            if (!sensorData.userMedications) {
+                sensorData.userMedications = {};
+            }
             console.log('📂 저장된 데이터 파일을 불러왔습니다.');
         } else {
             console.log('✨ 새로운 데이터를 시작합니다.');
@@ -86,8 +94,38 @@ function loadData() {
     }
 }
 
+// [신규] 테스트 계정 비밀번호 초기화/검증 함수
+async function initTestAccount() {
+    const testEmail = 'user@coss.com';
+    const testPassword = 'coss1234'; // index.html 안내와 일치
+    
+    let user = sensorData.users.find(u => u.email === testEmail);
+    
+    if (!user) {
+        // 사용자가 없으면 생성
+        const hashedPassword = await bcrypt.hash(testPassword, 10);
+        user = { id: 1, email: testEmail, password: hashedPassword, name: '홍길동' };
+        sensorData.users.push(user);
+        saveData();
+        console.log('👤 테스트 계정 생성됨: user@coss.com / coss1234');
+    } else {
+        // 사용자가 있으면 비밀번호 검증 후 필요시 업데이트
+        const isValid = user.password && await bcrypt.compare(testPassword, user.password);
+        if (!isValid) {
+            user.password = await bcrypt.hash(testPassword, 10);
+            saveData();
+            console.log('🔑 테스트 계정 비밀번호 업데이트됨: coss1234');
+        } else {
+            console.log('✅ 테스트 계정 확인됨: user@coss.com / coss1234');
+        }
+    }
+}
+
 // 초기 데이터 로드
 loadData();
+
+// 서버 시작 시 테스트 계정 초기화 (비동기)
+initTestAccount().catch(err => console.error('테스트 계정 초기화 실패:', err));
 
 // ===== 통계 계산 함수들 =====
 
@@ -100,7 +138,6 @@ function calculatePDC(dailyStats, sensors) {
     const endDate = new Date(dates[dates.length - 1]);
     const totalDays = Math.max(1, Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1);
     
-    // 하루에 4개 센서 중 최소 1개 이상 복용한 날 = 성공
     let successDays = 0;
     for (let dateKey in dailyStats) {
         const daySensors = dailyStats[dateKey].sensors || {};
@@ -150,7 +187,7 @@ function calculateMaxStreak(dailyStats) {
     return maxStreak;
 }
 
-// 시간 정확도 계산 (목표 시간 대비 실제 복용 시간 오차, 분 단위 평균)
+// 시간 정확도 계산
 function calculateTimeAccuracy(dailyStats, sensors) {
     let totalDiff = 0;
     let count = 0;
@@ -166,7 +203,6 @@ function calculateTimeAccuracy(dailyStats, sensors) {
                 const firstTime = new Date(sensorStat.times[0]);
                 const [tHour, tMin] = targetTime.split(':').map(Number);
                 
-                // 같은 날 목표 시간
                 const targetDate = new Date(firstTime);
                 targetDate.setHours(tHour, tMin, 0, 0);
                 
@@ -180,7 +216,7 @@ function calculateTimeAccuracy(dailyStats, sensors) {
     return count > 0 ? Math.round(totalDiff / count) : 0;
 }
 
-// 최장 미복용 기간 계산 (일)
+// 최장 미복용 기간 계산
 function calculateMaxGap(dailyStats) {
     const dates = Object.keys(dailyStats).sort();
     if (dates.length < 2) return 0;
@@ -244,7 +280,6 @@ app.post('/value', (req, res) => {
     
     // 약통 제거 시작 (0 → 1)
     if (finalValue === 1 && prevValue === 0) {
-        // 플리커링 방지: 제거 시작 시간 기록
         pendingRemoval[finalSensorId] = now.getTime();
         sensor.value = finalValue;
         
@@ -263,13 +298,10 @@ app.post('/value', (req, res) => {
         const removalStartTime = pendingRemoval[finalSensorId];
         const elapsedMs = removalStartTime ? (now.getTime() - removalStartTime) : 0;
         
-        // 1초 이상 이탈했을 경우에만 복약으로 인정
         if (elapsedMs >= FLICKERING_THRESHOLD_MS) {
-            // 복약 확정
             sensor.lastOpened = new Date(removalStartTime).toISOString();
             sensor.todayOpened = true;
             
-            // 통계 업데이트
             const dateKey = new Date(removalStartTime).toISOString().split('T')[0];
             if (!sensorData.dailyStats[dateKey]) sensorData.dailyStats[dateKey] = { sensors: {} };
             if (!sensorData.dailyStats[dateKey].sensors) sensorData.dailyStats[dateKey].sensors = {};
@@ -280,17 +312,15 @@ app.post('/value', (req, res) => {
             sensorData.dailyStats[dateKey].sensors[finalSensorId].count++;
             sensorData.dailyStats[dateKey].sensors[finalSensorId].times.push(sensor.lastOpened);
             
-            // 이력 추가 (제거)
             sensorData.history.unshift({
                 sensorId: finalSensorId,
                 sensorName: sensor.name,
                 action: 'removed',
                 timestamp: sensor.lastOpened,
                 value: 1,
-                duration: Math.round(elapsedMs / 1000) // 복약 소요 시간 (초)
+                duration: Math.round(elapsedMs / 1000)
             });
             
-            // 이력 추가 (복귀)
             sensorData.history.unshift({
                 sensorId: finalSensorId,
                 sensorName: sensor.name,
@@ -304,11 +334,9 @@ app.post('/value', (req, res) => {
             console.log(`[Sensor ${finalSensorId}] ✅ Medication confirmed (${Math.round(elapsedMs/1000)}s)`);
             saveData();
         } else {
-            // 1초 미만: 노이즈로 간주, 무시
             console.log(`[Sensor ${finalSensorId}] ⚠️ Flickering ignored (${elapsedMs}ms < 1000ms)`);
         }
         
-        // 대기 상태 초기화
         pendingRemoval[finalSensorId] = null;
         sensor.value = finalValue;
         
@@ -323,7 +351,7 @@ app.post('/value', (req, res) => {
     res.json({ success: true, sensor });
 });
 
-// 2. 센서 시간 설정 업데이트 API (신규)
+// 2. 센서 시간 설정 업데이트 API
 app.put('/api/sensors/:id/time', authenticateToken, (req, res) => {
     const sensorId = parseInt(req.params.id);
     const { targetTime } = req.body;
@@ -356,7 +384,7 @@ app.post('/api/auth/login', async (req, res) => {
         return res.status(401).json({ error: 'Invalid credentials' });
     }
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET);
-    res.json({ success: true, token, user: { name: user.name, email: user.email } });
+    res.json({ success: true, token, user: { id: user.id, name: user.name, email: user.email } });
 });
 
 app.post('/api/auth/register', async (req, res) => {
@@ -369,16 +397,42 @@ app.post('/api/auth/register', async (req, res) => {
     saveData();
     
     const token = jwt.sign({ id: newUser.id, email }, JWT_SECRET);
-    res.json({ success: true, token, user: { name, email } });
+    res.json({ success: true, token, user: { id: newUser.id, name, email } });
 });
 
-// 4. 대시보드 데이터 (adherenceMetrics 추가)
+// ===== [신규] 사용자별 약물 데이터 API =====
+
+// 사용자 약물 데이터 조회
+app.get('/api/medications/user', authenticateToken, (req, res) => {
+    const userId = req.user.id;
+    const userMeds = sensorData.userMedications[userId] || null;
+    res.json({ success: true, data: userMeds });
+});
+
+// 사용자 약물 데이터 저장
+app.post('/api/medications/user', authenticateToken, (req, res) => {
+    const userId = req.user.id;
+    const { cardData } = req.body;
+    
+    if (!cardData) {
+        return res.status(400).json({ error: 'cardData is required' });
+    }
+    
+    sensorData.userMedications[userId] = cardData;
+    saveData();
+    
+    console.log(`[User ${userId}] 약물 데이터 저장됨`);
+    res.json({ success: true, message: '약물 데이터가 저장되었습니다.' });
+});
+
+// ===== 기존 API 엔드포인트 =====
+
+// 4. 대시보드 데이터 (adherenceMetrics 포함)
 app.get('/api/dashboard/stats', authenticateToken, (req, res) => {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
     const todayStats = sensorData.dailyStats[today] || { sensors: {} };
     
-    // 주간 데이터
     const weekly = [];
     for (let i = 6; i >= 0; i--) {
         const d = new Date();
@@ -390,7 +444,6 @@ app.get('/api/dashboard/stats', authenticateToken, (req, res) => {
         weekly.push({ date: k, completedCount: count, day: ['일','월','화','수','목','금','토'][d.getDay()] });
     }
     
-    // adherenceMetrics 계산
     const adherenceMetrics = calculateAdherenceMetrics();
 
     res.json({
@@ -407,7 +460,6 @@ app.get('/api/dashboard/stats', authenticateToken, (req, res) => {
 app.get('/api/reports/detailed', authenticateToken, (req, res) => {
     const adherenceMetrics = calculateAdherenceMetrics();
     
-    // 시간대별 분포 계산
     const hourlyDistribution = new Array(24).fill(0);
     const weekdayDistribution = new Array(7).fill(0);
     
@@ -421,7 +473,7 @@ app.get('/api/reports/detailed', authenticateToken, (req, res) => {
     
     res.json({
         sensorStats: sensorData.sensors,
-        history: sensorData.history.slice(0, 200), // 50 → 200으로 증가
+        history: sensorData.history.slice(0, 200),
         totalDays: Object.keys(sensorData.dailyStats).length,
         dailyStats: sensorData.dailyStats,
         adherenceMetrics: adherenceMetrics,
@@ -444,18 +496,15 @@ app.get('/api/notifications/check', authenticateToken, (req, res) => {
     for (let id in sensorData.sensors) {
         const sensor = sensorData.sensors[id];
         
-        // 이미 복용했으면 알림 없음
         if (sensor.todayOpened) continue;
         
-        // 목표 시간 파싱
         const [tHour, tMin] = sensor.targetTime.split(':').map(Number);
         const targetDate = new Date(now);
         targetDate.setHours(tHour, tMin, 0, 0);
         
-        // 시간 차이 계산 (분 단위)
         const diffMinutes = Math.round((now - targetDate) / 1000 / 60);
         
-        // 1. 복용 시간 지각 알림 (30분 이내일 때만 소리 울림)
+        // 복용 시간 지각 알림 (30분 이내일 때만 소리)
         if (diffMinutes > 0) {
             if (diffMinutes <= 30) {
                 alerts.push({
@@ -466,9 +515,10 @@ app.get('/api/notifications/check', authenticateToken, (req, res) => {
                     priority: 'high'
                 });
             }
+            // 30분 초과: 알림 없음 (소리 안 울림)
         }
         
-        // 2. 10분 전 예고 알림 (소리 없음)
+        // 10분 전 예고 알림 (소리 없음)
         if (diffMinutes >= -10 && diffMinutes < 0) {
             alerts.push({
                 sensorId: id,
@@ -487,7 +537,6 @@ app.get('/api/notifications/check', authenticateToken, (req, res) => {
 app.post('/api/admin/reset', (req, res) => {
     if (req.body.password !== 'admin2025') return res.status(403).json({ error: '비번 오류' });
     
-    // 전체 리셋
     for(let id in sensorData.sensors) {
         sensorData.sensors[id].value = 0;
         sensorData.sensors[id].todayOpened = false;
@@ -495,16 +544,16 @@ app.post('/api/admin/reset', (req, res) => {
     }
     sensorData.history = [];
     sensorData.dailyStats = {};
+    // [신규] 약물 데이터는 리셋하지 않음 (사용자 설정 유지)
     saveData();
     res.json({ success: true, message: '리셋 완료' });
 });
 
-// 8. 매일 자정에 todayOpened 리셋 (서버 시작 시 스케줄링)
+// 8. 매일 자정에 todayOpened 리셋
 function resetDailyFlags() {
     const now = new Date();
     const todayKey = now.toISOString().split('T')[0];
     
-    // 마지막 리셋 날짜 확인
     if (!sensorData.lastResetDate || sensorData.lastResetDate !== todayKey) {
         for (let id in sensorData.sensors) {
             sensorData.sensors[id].todayOpened = false;
@@ -515,9 +564,8 @@ function resetDailyFlags() {
     }
 }
 
-// 1분마다 날짜 변경 체크
 setInterval(resetDailyFlags, 60000);
-resetDailyFlags(); // 서버 시작 시 즉시 실행
+resetDailyFlags();
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
