@@ -366,6 +366,21 @@
                 const data = await response.json();
 
                 // 1. 통계 표시
+                function updateStats(data) {
+                    // 총 복용 횟수 계산 (history 길이 기준 혹은 별도 카운트)
+                    let total = 0;
+                    // history 배열 순회하며 'removed' 상태 카운트
+                    if (data.history) {
+                        total = data.history.filter(h => h.action === 'removed').length;
+                    }
+                    
+                    document.getElementById('totalCount').textContent = total + '회';
+                    document.getElementById('badgeTotal').textContent = total + '회';
+                    document.getElementById('totalDays').textContent = (data.totalDays || 1) + '일';
+                    
+                    const avg = (total / (data.totalDays || 1)).toFixed(1);
+                    document.getElementById('badgeAvg').textContent = avg + '/일';
+                }
                 updateStats(data);
 
                 // 2. 서버에서 계산된 분포 데이터 직접 사용
