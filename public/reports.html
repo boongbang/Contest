@@ -354,7 +354,7 @@
             document.getElementById(`tab-${tabName}`).style.display = 'block';
         }
 
-        // 데이터 로드
+        // 데이터 로드 및 가공
         async function loadReportData() {
             const overlay = document.getElementById('loadingOverlay');
             overlay.classList.add('show');
@@ -365,20 +365,16 @@
                 });
                 const data = await response.json();
 
-                // 1. 핵심 통계 표시
-                updateKeyStats(data);
+                // 1. 통계 표시
+                updateStats(data);
 
-                // 2. 기본 통계 표시
-                updateBasicStats(data);
-
-                // 3. 차트 그리기 (서버에서 계산된 distributions 사용)
+                // 2. 서버에서 계산된 분포 데이터 직접 사용
                 if (data.distributions) {
                     drawHourlyChart(data.distributions.hourly);
                     drawWeekdayChart(data.distributions.weekday);
-                    generateInsights(data.distributions);
                 }
 
-                // 4. 테이블 그리기
+                // 3. 테이블 그리기
                 drawHistoryTable(data.history);
 
             } catch (error) {
