@@ -23,6 +23,10 @@
             --text-dark: #333333;
             --accent-color: #E8F5E9;
             --curve-radius: 35px;
+            
+            /* 수정된 색상: 대기중 배지용 */
+            --waiting-bg: #F0F2F5;
+            --waiting-text: #666666;
         }
 
         * {
@@ -330,15 +334,15 @@
             margin-bottom: 25px;
         }
 
-        /* 복약 상태 카드 스타일 */
+        /* 복약 상태 카드 스타일 - 수정됨 */
         .med-status-card {
             background: white;
             border-radius: 25px;
-            padding: 20px;
+            padding: 15px; /* 패딩 감소로 내부 공간 확보 */
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 180px; /* 높이 증가 */
+            height: 190px; 
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
             position: relative;
@@ -353,25 +357,25 @@
             border: 2px solid var(--app-bg);
         }
 
-        /* 아이콘 스타일 - 원형 및 색상 단계별 적용 */
+        /* 아이콘 스타일 */
         .card-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%; /* 완벽한 원형 */
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
-            margin-bottom: 10px;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
             color: white;
             transition: all 0.3s;
         }
 
-        /* 시간대별 아이콘 색상 지정 */
-        .med-status-card[data-id="1"] .card-icon { background: var(--app-bg); }        /* 아침: 기본 */
-        .med-status-card[data-id="2"] .card-icon { background: var(--app-bg-lunch); }  /* 점심: 약간 어둠 */
-        .med-status-card[data-id="3"] .card-icon { background: var(--app-bg-dinner); } /* 저녁: 더 어둠 */
-        .med-status-card[data-id="4"] .card-icon { background: var(--app-bg-bed); }    /* 자기전: 가장 어둠 */
+        /* 시간대별 아이콘 색상 */
+        .med-status-card[data-id="1"] .card-icon { background: var(--app-bg); }
+        .med-status-card[data-id="2"] .card-icon { background: var(--app-bg-lunch); }
+        .med-status-card[data-id="3"] .card-icon { background: var(--app-bg-dinner); }
+        .med-status-card[data-id="4"] .card-icon { background: var(--app-bg-bed); }
 
         .card-title {
             font-size: 1rem;
@@ -380,63 +384,78 @@
             margin-bottom: 2px;
         }
 
+        /* 수정: 설명 텍스트가 잘리지 않고 줄바꿈되도록 변경 */
         .card-desc {
             font-size: 0.8rem;
             color: #666;
-            margin-bottom: 5px;
-            white-space: nowrap;
+            margin-bottom: 8px;
+            line-height: 1.3;
+            /* 2줄까지만 표시하고 넘치면 ... 처리 (flexbox 호환) */
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
             overflow: hidden;
-            text-overflow: ellipsis;
+            height: 2.6em; /* 공간 확보 */
         }
 
+        /* 상태 배지 스타일 */
         .card-status {
             display: inline-block;
             font-size: 0.75rem;
-            padding: 2px 8px;
-            border-radius: 10px;
-            background: #eee;
-            color: #888;
-            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: var(--waiting-bg);
+            color: var(--waiting-text);
+            font-weight: 600;
         }
 
         .med-status-card.taken .card-status {
             background: var(--app-bg);
             color: white;
-            font-weight: 600;
         }
 
-        /* 시간 설정 입력창 (실제 기능) */
+        /* 수정: 시간 입력창을 '배지' 형태로 디자인 변경 */
+        .time-wrapper {
+            margin-top: auto;
+            width: 100%;
+        }
+
         .card-time-input {
             border: none;
-            background: transparent;
-            font-size: 1.4rem;
+            background: var(--waiting-bg); /* 배경색 추가로 '란' 느낌 주기 */
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 1.1rem; /* 폰트 사이즈 줄임 (잘림 방지) */
             font-weight: 700;
             color: var(--text-dark);
-            margin-top: auto;
-            font-family: 'Merriweather', serif;
             width: 100%;
             cursor: pointer;
             outline: none;
+            font-family: 'Merriweather', serif;
+            text-align: center; /* 시간 가운데 정렬 */
+            transition: all 0.3s;
         }
         
         .card-time-input:focus {
-            background: rgba(0,0,0,0.05);
-            border-radius: 5px;
+            background: #fff;
+            box-shadow: 0 0 0 2px var(--app-bg);
         }
 
-        /* 복용 완료 시 보여줄 텍스트 (입력창 대신) */
+        /* 복용 완료 시 보여줄 텍스트 */
         .card-taken-time {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
             color: var(--app-bg);
             margin-top: auto;
+            text-align: right;
+            padding-right: 5px;
         }
 
         /* 체크 마크 */
         .check-mark {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 15px;
+            right: 15px;
             color: var(--app-bg);
             font-size: 1.2rem;
             opacity: 0;
@@ -470,7 +489,7 @@
         .alarm-banner.show { top: 0; }
         .alarm-banner i { font-size: 1.2rem; animation: pulse 1s infinite; }
 
-        /* 차트 및 기타 섹션 유지 */
+        /* 차트 및 기타 섹션 */
         .chart-section {
             background: white;
             border-radius: 25px;
@@ -693,7 +712,7 @@
                                 <div class="card-desc" id="medDesc-1">약 정보 로딩중</div>
                                 <div class="card-status" id="medStatus-1">대기중</div>
                             </div>
-                            <div id="timeContainer-1">
+                            <div class="time-wrapper" id="timeContainer-1">
                                 <input type="time" class="card-time-input" id="timeInput-1" onchange="updateTime(1, this.value)">
                             </div>
                         </div>
@@ -706,7 +725,7 @@
                                 <div class="card-desc" id="medDesc-2">약 정보 로딩중</div>
                                 <div class="card-status" id="medStatus-2">대기중</div>
                             </div>
-                            <div id="timeContainer-2">
+                            <div class="time-wrapper" id="timeContainer-2">
                                 <input type="time" class="card-time-input" id="timeInput-2" onchange="updateTime(2, this.value)">
                             </div>
                         </div>
@@ -719,7 +738,7 @@
                                 <div class="card-desc" id="medDesc-3">약 정보 로딩중</div>
                                 <div class="card-status" id="medStatus-3">대기중</div>
                             </div>
-                            <div id="timeContainer-3">
+                            <div class="time-wrapper" id="timeContainer-3">
                                 <input type="time" class="card-time-input" id="timeInput-3" onchange="updateTime(3, this.value)">
                             </div>
                         </div>
@@ -732,7 +751,7 @@
                                 <div class="card-desc" id="medDesc-4">약 정보 로딩중</div>
                                 <div class="card-status" id="medStatus-4">대기중</div>
                             </div>
-                            <div id="timeContainer-4">
+                            <div class="time-wrapper" id="timeContainer-4">
                                 <input type="time" class="card-time-input" id="timeInput-4" onchange="updateTime(4, this.value)">
                             </div>
                         </div>
@@ -913,10 +932,6 @@
         // [기능] 시간 설정 업데이트
         async function updateTime(id, newTime) {
             console.log(`Setting sensor ${id} time to ${newTime}`);
-            // 여기에 서버로 시간 업데이트 요청을 보낼 수 있음
-            // 예: fetch(`${API_URL}/api/sensors/${id}/time`, { method: 'PUT', body: ... })
-            // 현재 server.js에는 해당 API가 없으므로 프론트엔드 상태만 유지
-            
             showNotification(`복용 시간이 ${newTime}으로 설정되었습니다.`, 'success');
         }
 
@@ -1058,7 +1073,12 @@
                     statusText.textContent = '대기중';
                     
                     // 시간 설정 입력창 값 설정 (서버의 targetTime)
-                    if (timeInput) {
+                    // (수정됨: timeContainer의 내용을 유지하고 input값만 변경)
+                    if (timeContainer.innerHTML.includes('card-taken-time')) {
+                        // 복용 완료 상태에서 다시 대기로 돌아온 경우 input 복구
+                        timeContainer.innerHTML = `<input type="time" class="card-time-input" id="timeInput-${i}" onchange="updateTime(${i}, this.value)">`;
+                        document.getElementById(`timeInput-${i}`).value = sensor.targetTime || '00:00';
+                    } else if (timeInput) {
                         timeInput.value = sensor.targetTime || '00:00';
                     }
                 }
