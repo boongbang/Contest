@@ -1442,7 +1442,7 @@
             const slotNames = ['아침 약', '점심 약', '저녁 약', '자기전'];
             let medHtml = '';
             let totalMeds = 0;
-
+        
             for (let i = 1; i <= 4; i++) {
                 const data = cardData[i];
                 data.meds.forEach((med, idx) => {
@@ -1458,7 +1458,6 @@
                             </div>
                             <div style="display:flex; gap:5px;">
                                 <button class="med-action" onclick="editMedFromList(${i}, ${idx})">수정</button>
-                                <button class="med-action" style="background:#ff6b6b;" onclick="deleteMedFromList(${i}, ${idx})">삭제</button>
                             </div>
                         </div>
                     `;
