@@ -798,7 +798,7 @@
             font-size: 0.9rem;
         }
 
-        /* [새로고침 버튼 스타일 추가] */
+        /* [새로고침 버튼 스타일 - 사용자 요청 수정 반영] */
         .refresh-btn {
             width: 100%;
             height: 60px;
@@ -810,6 +810,9 @@
             cursor: pointer;
             transition: color 0.3s, transform 0.3s;
             margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+            background: var(--sidebar-bg);
         }
         .refresh-btn:hover {
             color: #888;
