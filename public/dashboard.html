@@ -821,6 +821,89 @@
             transform: rotate(180deg);
             color: var(--app-bg);
         }
+        
+        /* 리필 모드 스타일 */
+        .sensor-card.refill-mode {
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+        }
+        .toggle-switch-sm {
+            position: relative;
+            width: 45px;
+            height: 22px;
+        }
+        .toggle-switch-sm input { display: none; }
+        .toggle-slider-sm {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255,255,255,0.3);
+            transition: .4s;
+            border-radius: 22px;
+        }
+        .toggle-slider-sm:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .toggle-slider-sm {
+            background-color: rgba(255,255,255,0.5);
+        }
+        input:checked + .toggle-slider-sm:before {
+            transform: translateX(23px);
+        }
+        .mode-description {
+            padding: 10px 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .btn-refill-complete {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-refill-complete:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        /* 리필 완료 모달 체크리스트 */
+        .refill-checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .refill-checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .refill-checklist-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .refill-checklist-item span {
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 <body>
@@ -848,24 +931,10 @@
                     <span id="sensorStatusText">연결 확인중</span>
                 </div>
                 <div class="user-menu">
-                    <div class="user-profile-icon" onclick="toggleUserMenu()">
+                    <div class="user-profile-icon" onclick="window.location.href='/profile.html'" title="프로필 설정">
                         <i class="fa-regular fa-user"></i>
                     </div>
-                    <div class="dropdown-menu" id="userDropdown">
-                        <div class="dropdown-item" onclick="switchSection('profile')">
-                            <i class="fa-solid fa-user"></i>
-                            <span>프로필</span>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <div class="dropdown-item" onclick="logout()">
-                            <i class="fa-solid fa-sign-out-alt"></i>
-                            <span>로그아웃</span>
-                        </div>
-                    </div>
                 </div>
-            </div>
-        </div>
-
         <div class="content-body">
             <div class="sidebar-container" id="sidebar">
                 <div class="active-indicator"></div>
@@ -879,10 +948,9 @@
                 <div class="sidebar-item" data-section="reminder" onclick="switchSection('reminder')">
                     <div class="icon-box"><i class="fa-regular fa-bell"></i></div>
                 </div>
-                <div class="sidebar-item" data-section="profile" onclick="switchSection('profile')">
-                    <div class="icon-box"><i class="fa-solid fa-user"></i></div>
+                <div class="sidebar-item" data-section="device" onclick="window.location.href='/device.html'">
+                    <div class="icon-box"><i class="fa-solid fa-microchip"></i></div>
                 </div>
-                
                 <div class="sidebar-filler"></div>
                 
                 <div class="refresh-btn" onclick="refreshPage()">
@@ -896,21 +964,25 @@
                         <h2>Hello, <span id="userName">User</span></h2>
                         <p>오늘의 복약 상태를 확인하세요.</p>
                     </div>
-
-                    <div class="sensor-card">
+                    <div class="sensor-card" id="modeController">
                         <div class="sensor-header">
-                            <div class="sensor-title">IR 센서 상태</div>
-                            <i class="fa-solid fa-wifi"></i>
+                            <div class="sensor-title" id="modeTitle">🟢 실시간 감지 중</div>
+                            <label class="toggle-switch-sm">
+                                <input type="checkbox" id="refillToggle" onchange="toggleRefillMode()">
+                                <span class="toggle-slider-sm"></span>
+                            </label>
                         </div>
                         <div id="sensorDataArea">
-                            <div class="no-data-message">
-                                <i class="fa-solid fa-satellite-dish" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                                <p>아직 데이터가 없습니다.</p>
-                                <p style="font-size: 0.8rem; margin-top: 10px;">Arduino가 연결되면 자동으로 표시됩니다.</p>
+                            <div class="mode-description" id="modeDescription">
+                                약통을 분리하면 복용으로 기록됩니다.
+                            </div>
+                            <div class="mode-action" id="modeAction" style="display: none;">
+                                <button class="btn-refill-complete" onclick="openRefillCompleteModal()">
+                                    <i class="fa-solid fa-check"></i> 약 채우기 완료
+                                </button>
                             </div>
                         </div>
                     </div>
-
                     <div class="summary-grid">
                         <div class="med-card" id="medCard-1" data-id="1" onclick="openEditModal(1)">
                             <div class="card-header-area">
@@ -1018,34 +1090,6 @@
                         <div id="reminderListArea"></div>
                     </div>
                 </section>
-
-                <section class="page-section" id="profileSection">
-                    <div class="profile-card">
-                        <div class="profile-avatar"><i class="fa-solid fa-user"></i></div>
-                        <h3 class="profile-name" id="profileName">사용자</h3>
-                        <p class="profile-email" id="profileEmail">user@example.com</p>
-                        <div class="profile-stats">
-                            <div class="profile-stat">
-                                <div class="profile-stat-value" id="profileTotalDays">0</div>
-                                <div class="profile-stat-label">사용 일수</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="profile-stat-value" id="profileAverage">0</div>
-                                <div class="profile-stat-label">일 평균</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="profile-stat-value" id="profileStreak">0</div>
-                                <div class="profile-stat-label">최대 연속</div>
-                            </div>
-                        </div>
-                        <button class="action-button" onclick="window.location.href='/reports.html'">
-                            <i class="fa-solid fa-chart-line"></i> 상세 통계 보기
-                        </button>
-                        <button class="action-button secondary" onclick="exportData()">
-                            <i class="fa-solid fa-download"></i> 데이터 내보내기
-                        </button>
-                    </div>
-                </section>
             </div>
         </div>
     </div>
@@ -1119,6 +1163,42 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="refillCompleteModal">
+        <div class="custom-modal" style="max-width: 350px;">
+            <div class="modal-header" style="background: #FF9800;">
+                <div class="modal-title" style="color: white;">약 채우기 완료</div>
+                <div onclick="closeRefillCompleteModal()" style="cursor:pointer; padding:5px; color: rgba(255,255,255,0.8);">
+                    <i class="fa-solid fa-xmark"></i>
+                </div>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">어떤 약통을 채우셨나요?</p>
+                <div class="refill-checklist" id="refillChecklist">
+                    <label class="refill-checklist-item">
+                        <input type="checkbox" value="1">
+                        <span>🌅 아침 약</span>
+                    </label>
+                    <label class="refill-checklist-item">
+                        <input type="checkbox" value="2">
+                        <span>☀️ 점심 약</span>
+                    </label>
+                    <label class="refill-checklist-item">
+                        <input type="checkbox" value="3">
+                        <span>🌙 저녁 약</span>
+                    </label>
+                    <label class="refill-checklist-item">
+                        <input type="checkbox" value="4">
+                        <span>🛌 자기전</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-cancel" onclick="closeRefillCompleteModal()">취소</button>
+                <button class="btn-modal btn-save" onclick="completeRefill()">완료</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // API 설정
         const API_URL = window.location.origin;
@@ -1172,6 +1252,7 @@
             loadUserMedications();
             
             loadDashboardData();
+            checkRefillMode();
             
             // 센서 데이터 확인 (실시간 상태)
             sensorCheckInterval = setInterval(checkSensorStatus, 1000);
@@ -1913,6 +1994,118 @@
         // [새로고침 기능 추가]
         function refreshPage() {
             location.reload();
+        }
+
+        // ========== 리필 모드 관련 ==========
+        let isRefillMode = false;
+
+        async function checkRefillMode() {
+            try {
+                const response = await fetch(`${API_URL}/api/refill/status`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await response.json();
+                isRefillMode = data.isRefillMode;
+                updateRefillModeUI();
+            } catch (error) {
+                console.error('Refill mode check failed:', error);
+            }
+        }
+
+        function updateRefillModeUI() {
+            const controller = document.getElementById('modeController');
+            const title = document.getElementById('modeTitle');
+            const description = document.getElementById('modeDescription');
+            const action = document.getElementById('modeAction');
+            const toggle = document.getElementById('refillToggle');
+            
+            toggle.checked = isRefillMode;
+            
+            if (isRefillMode) {
+                controller.classList.add('refill-mode');
+                title.textContent = '⏸ 감지 일시 정지';
+                description.textContent = '센서 기록이 중지되었습니다. 약을 편하게 채우세요.';
+                action.style.display = 'block';
+            } else {
+                controller.classList.remove('refill-mode');
+                title.textContent = '🟢 실시간 감지 중';
+                description.textContent = '약통을 분리하면 복용으로 기록됩니다.';
+                action.style.display = 'none';
+            }
+        }
+
+        async function toggleRefillMode() {
+            const toggle = document.getElementById('refillToggle');
+            const newMode = toggle.checked;
+            
+            try {
+                if (newMode) {
+                    // 리필 모드 시작
+                    const response = await fetch(`${API_URL}/api/refill/start`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+                    if (!response.ok) throw new Error('Failed to start refill mode');
+                    isRefillMode = true;
+                    showNotification('리필 모드가 시작되었습니다.', 'info');
+                } else {
+                    // 리필 완료 모달 표시
+                    openRefillCompleteModal();
+                }
+                updateRefillModeUI();
+            } catch (error) {
+                console.error('Refill mode toggle failed:', error);
+                toggle.checked = isRefillMode; // 원래 상태로 복원
+                showNotification('모드 변경에 실패했습니다.', 'error');
+            }
+        }
+
+        function openRefillCompleteModal() {
+            document.getElementById('refillCompleteModal').classList.add('show');
+            // 체크박스 초기화
+            document.querySelectorAll('#refillChecklist input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+        }
+
+        function closeRefillCompleteModal() {
+            document.getElementById('refillCompleteModal').classList.remove('show');
+            // 토글 상태 복원 (취소 시)
+            if (isRefillMode) {
+                document.getElementById('refillToggle').checked = true;
+            }
+        }
+
+        async function completeRefill() {
+            const checkedSlots = [];
+            document.querySelectorAll('#refillChecklist input[type="checkbox"]:checked').forEach(cb => {
+                checkedSlots.push(parseInt(cb.value));
+            });
+            
+            try {
+                const response = await fetch(`${API_URL}/api/refill/end`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ refilledSlots: checkedSlots })
+                });
+                
+                if (!response.ok) throw new Error('Failed to end refill mode');
+                
+                isRefillMode = false;
+                updateRefillModeUI();
+                closeRefillCompleteModal();
+                
+                // 대시보드 데이터 새로고침
+                loadDashboardData();
+                
+                showNotification('약 채우기가 완료되었습니다.', 'success');
+            } catch (error) {
+                console.error('Refill complete failed:', error);
+                showNotification('처리에 실패했습니다.', 'error');
+            }
         }
     </script>
 </body>
