@@ -623,6 +623,12 @@
                     <h3 class="control-title">
                         <i class="fa-solid fa-vial"></i> 센서 테스트
                     </h3>
+                    <select class="control-input" id="testSensorId" style="margin-bottom: 10px;">
+                        <option value="1">센서 1 (아침 약)</option>
+                        <option value="2">센서 2 (점심 약)</option>
+                        <option value="3">센서 3 (저녁 약)</option>
+                        <option value="4">센서 4 (자기전 약)</option>
+                    </select>
                     <input type="number" class="control-input" id="testValue" placeholder="테스트 값 (0 또는 1)" min="0" max="1">
                     <button class="control-btn" onclick="testSensor()">
                         테스트 신호 전송
@@ -931,6 +937,7 @@
 
         // 센서 테스트
         async function testSensor() {
+            const sensorId = document.getElementById('testSensorId').value;
             const value = document.getElementById('testValue').value;
             
             if (value === '' || (value != '0' && value != '1')) {
@@ -944,13 +951,13 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ a: parseInt(value) })
+                    body: JSON.stringify({ sensorId: parseInt(sensorId), value: parseInt(value) })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
-                    showAlert('테스트 신호가 전송되었습니다.', 'success');
+                    showAlert(`센서 ${sensorId}번에 테스트 신호가 전송되었습니다.`, 'success');
                     document.getElementById('testValue').value = '';
                     loadSystemStatus();
                 } else {
