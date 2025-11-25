@@ -821,6 +821,115 @@
             transform: rotate(180deg);
             color: var(--app-bg);
         }
+        /* ===== 장치 섹션 스타일 ===== */
+        .device-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .device-status-badge.online {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+        .device-status-badge.offline {
+            background: rgba(244, 67, 54, 0.2);
+            color: #F44336;
+        }
+        .device-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .device-info-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+        }
+        .device-info-item .label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        .device-info-item .value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+        }
+        .sensor-raw-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .sensor-raw-item {
+            background: #f8f9fa;
+            padding: 15px 10px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .sensor-raw-item .sensor-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        .sensor-raw-item .sensor-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .sensor-raw-item .sensor-value.on { color: #F44336; }
+        .sensor-raw-item .sensor-value.off { color: #4CAF50; }
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-info .setting-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        .setting-info .setting-desc {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .danger-zone {
+            background: #fff5f5;
+            border: 1px solid #ffcdd2;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .danger-zone h4 {
+            color: #c62828;
+            margin-bottom: 10px;
+        }
+        .btn-danger {
+            background: #c62828;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+        }
+        .btn-calibrate {
+            background: #6B8E6B;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 <body>
@@ -879,8 +988,8 @@
                 <div class="sidebar-item" data-section="reminder" onclick="switchSection('reminder')">
                     <div class="icon-box"><i class="fa-regular fa-bell"></i></div>
                 </div>
-                <div class="sidebar-item" data-section="profile" onclick="switchSection('profile')">
-                    <div class="icon-box"><i class="fa-solid fa-user"></i></div>
+                <div class="sidebar-item" data-section="device" onclick="switchSection('device')">
+                    <div class="icon-box"><i class="fa-solid fa-microchip"></i></div>
                 </div>
                 
                 <div class="sidebar-filler"></div>
@@ -1018,7 +1127,105 @@
                         <div id="reminderListArea"></div>
                     </div>
                 </section>
+                <section class="page-section" id="deviceSection">
+                    <div class="welcome-text">
+                        <h2>장치 관리</h2>
+                        <p>스마트 약통 연결 상태를 확인하세요.</p>
+                    </div>
 
+                    <div class="sensor-card">
+                        <div class="sensor-header">
+                            <div class="sensor-title">연결 상태</div>
+                            <div class="device-status-badge offline" id="deviceStatusBadge">
+                                <i class="fa-solid fa-circle"></i>
+                                <span id="deviceStatusText">확인 중...</span>
+                            </div>
+                        </div>
+                        <div class="device-info-grid">
+                            <div class="device-info-item">
+                                <div class="label">IP 주소</div>
+                                <div class="value" id="deviceIP">-</div>
+                            </div>
+                            <div class="device-info-item">
+                                <div class="label">펌웨어</div>
+                                <div class="value" id="deviceFirmware">-</div>
+                            </div>
+                            <div class="device-info-item">
+                                <div class="label">마지막 통신</div>
+                                <div class="value" id="deviceLastComm">-</div>
+                            </div>
+                            <div class="device-info-item">
+                                <div class="label">상태</div>
+                                <div class="value" id="devicePower">정상</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sensor-card">
+                        <div class="sensor-header">
+                            <div class="sensor-title">센서 Raw Data</div>
+                            <button class="btn-calibrate" onclick="calibrateSensors()">
+                                <i class="fa-solid fa-sliders"></i> 영점 조절
+                            </button>
+                        </div>
+                        <div class="sensor-raw-grid">
+                            <div class="sensor-raw-item">
+                                <div class="sensor-label">🌅 아침</div>
+                                <div class="sensor-value off" id="rawSensor1">0</div>
+                            </div>
+                            <div class="sensor-raw-item">
+                                <div class="sensor-label">☀️ 점심</div>
+                                <div class="sensor-value off" id="rawSensor2">0</div>
+                            </div>
+                            <div class="sensor-raw-item">
+                                <div class="sensor-label">🌙 저녁</div>
+                                <div class="sensor-value off" id="rawSensor3">0</div>
+                            </div>
+                            <div class="sensor-raw-item">
+                                <div class="sensor-label">🛌 자기전</div>
+                                <div class="sensor-value off" id="rawSensor4">0</div>
+                            </div>
+                        </div>
+                        <p style="font-size:0.8rem; color:#888; margin-top:10px;">0 = 약통 있음 (OFF) / 1 = 약통 분리됨 (ON)</p>
+                    </div>
+
+                    <div class="sensor-card">
+                        <div class="sensor-header">
+                            <div class="sensor-title">알림 설정</div>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">모든 알림</div>
+                                <div class="setting-desc">복약 알림 및 보호자 이메일</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="notifEnabled" checked onchange="updateNotificationSettings()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-title">야간 모드</div>
+                                <div class="setting-desc">22시~06시 알림 무음</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="nightModeEnabled" onchange="updateNotificationSettings()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <button class="action-button secondary" style="margin-top:15px;" id="testEmailBtn" onclick="testEmail()">
+                            <i class="fa-solid fa-envelope"></i> 테스트 이메일 발송
+                        </button>
+                    </div>
+
+                    <div class="danger-zone">
+                        <h4><i class="fa-solid fa-triangle-exclamation"></i> 위험 구역</h4>
+                        <p style="font-size:0.85rem; color:#666; margin-bottom:15px;">모든 복약 기록이 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</p>
+                        <button class="btn-danger" onclick="openResetModal()">
+                            <i class="fa-solid fa-trash"></i> 데이터 초기화
+                        </button>
+                    </div>
+                </section>
                 <section class="page-section" id="profileSection">
                     <div class="profile-card">
                         <div class="profile-avatar"><i class="fa-solid fa-user"></i></div>
@@ -1090,7 +1297,26 @@
             </div>
         </div>
     </div>
-
+    <div class="modal-overlay" id="resetModal">
+        <div class="custom-modal" style="max-width: 350px;">
+            <div class="modal-header" style="background: #c62828;">
+                <div class="modal-title" style="color: white;">데이터 초기화</div>
+                <div onclick="closeResetModal()" style="cursor:pointer; padding:5px; color: rgba(255,255,255,0.8);">
+                    <i class="fa-solid fa-xmark"></i>
+                </div>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">
+                    모든 복약 기록이 삭제됩니다. 계속하려면 <strong>"초기화"</strong>를 입력하세요.
+                </p>
+                <input type="text" class="input-box" id="resetConfirmInput" placeholder="초기화" style="width:100%;">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal btn-cancel" onclick="closeResetModal()">취소</button>
+                <button class="btn-modal btn-save" style="background:#c62828;" onclick="confirmReset()">삭제</button>
+            </div>
+        </div>
+    </div>
     <div class="modal-overlay" id="slotSelectModal">
         <div class="custom-modal" style="max-width: 320px;">
             <div class="modal-header">
@@ -1851,6 +2077,7 @@
             if (index === 0) indicator.classList.add('is-first');
             else indicator.classList.remove('is-first');
         }
+        let deviceCheckInterval = null;
 
         function switchSection(section) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
@@ -1867,8 +2094,16 @@
             moveIndicator(activeIndex);
             currentSection = section;
             document.getElementById('userDropdown').classList.remove('show');
-        }
 
+            // 장치 섹션 자동 갱신
+            if (section === 'device') {
+                loadDeviceStatus();
+                if (deviceCheckInterval) clearInterval(deviceCheckInterval);
+                deviceCheckInterval = setInterval(loadDeviceStatus, 3000);
+            } else {
+                if (deviceCheckInterval) clearInterval(deviceCheckInterval);
+            }
+        }
         function toggleUserMenu() {
             document.getElementById('userDropdown').classList.toggle('show');
         }
@@ -1905,7 +2140,148 @@
                 showNotification('데이터 내보내기 실패', 'error');
             }
         }
+        // ========== 장치 관리 함수들 ==========
+        async function loadDeviceStatus() {
+            try {
+                const response = await fetch(`${API_URL}/api/device/status`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                if (!response.ok) return;
+                const data = await response.json();
 
+                const badge = document.getElementById('deviceStatusBadge');
+                const statusText = document.getElementById('deviceStatusText');
+
+                if (data.device.isOnline) {
+                    badge.className = 'device-status-badge online';
+                    statusText.textContent = '온라인';
+                } else {
+                    badge.className = 'device-status-badge offline';
+                    statusText.textContent = '오프라인';
+                }
+
+                document.getElementById('deviceIP').textContent = data.device.ipAddress || '-';
+                document.getElementById('deviceFirmware').textContent = data.device.firmwareVersion || '-';
+                document.getElementById('deviceLastComm').textContent = 
+                    data.device.timeSinceLastHeartbeat !== null ? `${data.device.timeSinceLastHeartbeat}초 전` : '-';
+
+                if (data.sensorRawData) {
+                    for (let i = 1; i <= 4; i++) {
+                        const el = document.getElementById(`rawSensor${i}`);
+                        const val = data.sensorRawData[i]?.value || 0;
+                        el.textContent = val;
+                        el.className = val === 1 ? 'sensor-value on' : 'sensor-value off';
+                    }
+                }
+            } catch (e) {
+                console.error('loadDeviceStatus:', e);
+            }
+        }
+
+        async function calibrateSensors() {
+            if (!confirm('센서 영점 조절을 진행하시겠습니까?')) return;
+            try {
+                await fetch(`${API_URL}/api/device/calibrate`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                alert('센서 영점 조절 완료');
+                loadDeviceStatus();
+            } catch (e) {
+                alert('센서 영점 조절 실패');
+            }
+        }
+
+        async function testEmail() {
+            const btn = document.getElementById('testEmailBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 발송 중...';
+            try {
+                const response = await fetch(`${API_URL}/api/device/test-email`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    alert(data.message || '테스트 이메일 발송 완료');
+                } else {
+                    alert(data.error || '발송 실패');
+                }
+            } catch (e) {
+                alert('이메일 발송 실패');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-envelope"></i> 테스트 이메일 발송';
+            }
+        }
+
+        async function loadNotificationSettings() {
+            try {
+                const response = await fetch(`${API_URL}/api/notifications/settings`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                if (!response.ok) return;
+                const data = await response.json();
+                document.getElementById('notifEnabled').checked = data.settings.enabled;
+                document.getElementById('nightModeEnabled').checked = data.settings.nightModeEnabled;
+            } catch (e) {
+                console.error('loadNotificationSettings:', e);
+            }
+        }
+
+        async function updateNotificationSettings() {
+            try {
+                await fetch(`${API_URL}/api/notifications/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        enabled: document.getElementById('notifEnabled').checked,
+                        nightModeEnabled: document.getElementById('nightModeEnabled').checked
+                    })
+                });
+            } catch (e) {
+                console.error('updateNotificationSettings:', e);
+            }
+        }
+
+        function openResetModal() {
+            document.getElementById('resetModal').classList.add('show');
+            document.getElementById('resetConfirmInput').value = '';
+        }
+
+        function closeResetModal() {
+            document.getElementById('resetModal').classList.remove('show');
+        }
+
+        async function confirmReset() {
+            if (document.getElementById('resetConfirmInput').value !== '초기화') {
+                alert('"초기화"를 정확히 입력하세요.');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_URL}/api/data/reset`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ confirmText: '초기화' })
+                });
+                if (response.ok) {
+                    alert('데이터가 초기화되었습니다.');
+                    closeResetModal();
+                    location.reload();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || '초기화 실패');
+                }
+            } catch (e) {
+                alert('초기화 실패');
+            }
+        }
         function showNotification(message, type = 'info') {
             console.log(`[${type}] ${message}`);
         }
