@@ -406,22 +406,33 @@
         }
 
         /* 시간 설정 입력창 (실제 기능) */
-        .card-time-input {
-            border: none;
-            background: transparent;
+        .card-time-display {
             font-size: 1.4rem;
             font-weight: 700;
             color: var(--text-dark);
             margin-top: auto;
             font-family: 'Merriweather', serif;
-            width: 100%;
             cursor: pointer;
-            outline: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         
-        .card-time-input:focus {
-            background: rgba(0,0,0,0.05);
-            border-radius: 5px;
+        .card-time-display:hover {
+            color: var(--app-bg);
+        }
+        
+        .card-time-display i {
+            font-size: 0.9rem;
+            opacity: 0.5;
+        }
+        
+        /* 숨겨진 time input */
+        .hidden-time-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
         }
 
         /* 복용 완료 시 보여줄 텍스트 (입력창 대신) */
@@ -707,7 +718,11 @@
                                 <div class="card-status" id="medStatus-2">대기중</div>
                             </div>
                             <div id="timeContainer-2">
-                                <input type="time" class="card-time-input" id="timeInput-2" onchange="updateTime(2, this.value)">
+                                <div class="card-time-display" onclick="openTimePicker(2)">
+                                    <span id="timeDisplay-2">13:00</span>
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                </div>
+                                <input type="time" class="hidden-time-input" id="timeInput-2" onchange="updateTime(2, this.value)">
                             </div>
                         </div>
 
@@ -899,8 +914,32 @@
             isAlarmPlaying = false;
         }
 
-        // [수정됨] 시간 설정 업데이트 - 서버에 저장
+        // 시간 포맷팅 (24시간 → 보기 좋은 형식)
+        function formatTimeDisplay(time24) {
+            if (!time24) return '--:--';
+            const [hour, min] = time24.split(':').map(Number);
+            const ampm = hour < 12 ? '오전' : '오후';
+            const hour12 = hour % 12 || 12;
+            return `${ampm} ${hour12}:${min.toString().padStart(2, '0')}`;
+        }
+        
+        // 숨겨진 time picker 열기
+        function openTimePicker(id) {
+            const input = document.getElementById(`timeInput-${id}`);
+            if (input) {
+                input.showPicker(); // 최신 브라우저 API
+            }
+        }
+        
+        // updateTime 함수 수정 (기존 + 화면 업데이트 추가)
         async function updateTime(id, newTime) {
+            // 화면 즉시 업데이트
+            const display = document.getElementById(`timeDisplay-${id}`);
+            if (display) {
+                display.textContent = formatTimeDisplay(newTime);
+            }
+            
+            // 서버 저장 (기존 코드 유지)
             try {
                 const response = await fetch(`${API_URL}/api/sensors/${id}/time`, {
                     method: 'PUT',
@@ -914,7 +953,7 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    showNotification(`복용 시간이 ${newTime}으로 저장되었습니다.`, 'success');
+                    showNotification(`복용 시간이 ${formatTimeDisplay(newTime)}으로 저장되었습니다.`, 'success');
                 } else {
                     throw new Error(data.error || '저장 실패');
                 }
@@ -1063,13 +1102,16 @@
                     card.classList.remove('taken');
                     statusText.textContent = '대기중';
                     
-                    // 시간 설정 입력창 값 설정 (서버의 targetTime)
-                    if (timeInput) {
-                        timeInput.value = sensor.targetTime || '00:00';
-                    } else {
-                        // timeInput이 없으면 다시 생성
-                        timeContainer.innerHTML = `<input type="time" class="card-time-input" id="timeInput-${i}" value="${sensor.targetTime || '00:00'}" onchange="updateTime(${i}, this.value)">`;
-                    }
+                    const targetTime = sensor.targetTime || '00:00';
+                    const formattedTime = formatTimeDisplay(targetTime);
+                    
+                    timeContainer.innerHTML = `
+                        <div class="card-time-display" onclick="openTimePicker(${i})">
+                            <span id="timeDisplay-${i}">${formattedTime}</span>
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </div>
+                        <input type="time" class="hidden-time-input" id="timeInput-${i}" value="${targetTime}" onchange="updateTime(${i}, this.value)">
+                    `;
                 }
             }
         }
