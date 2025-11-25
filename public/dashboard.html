@@ -1354,8 +1354,6 @@
             
             userInfo = JSON.parse(userInfoStr);
             document.getElementById('userName').textContent = userInfo.name;
-            document.getElementById('profileName').textContent = userInfo.name;
-            document.getElementById('profileEmail').textContent = userInfo.email;
             
             // 타임 피커 초기화
             initTimePicker();
@@ -1961,12 +1959,7 @@
                 // 1. 카드 상태 업데이트 (서버 데이터로 시간 및 복용 상태만 반영)
                 if (data.sensors) updateMedicationCards(data.sensors);
 
-                // 2. 프로필 통계
-                document.getElementById('profileTotalDays').textContent = data.adherenceMetrics?.totalDays || '0';
-                document.getElementById('profileAverage').textContent = (data.adherenceMetrics?.averagePerDay || 0).toFixed(1);
-                document.getElementById('profileStreak').textContent = data.adherenceMetrics?.maxStreak || '0';
-                
-                // 3. 차트
+                // 2. 차트
                 updateWeeklyChart(data.weekly);
                 
             } catch (error) {
