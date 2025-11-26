@@ -1653,8 +1653,8 @@
                                 <div class="value" id="deviceLastComm">-</div>
                             </div>
                             <div class="device-info-item">
-                                <div class="label">상태</div>
-                                <div class="value" id="devicePower">정상</div>
+                                <div class="label">배터리</div>
+                                <div class="value" id="deviceBattery">-</div>
                             </div>
                         </div>
                     </div>
@@ -3081,9 +3081,20 @@
 
                 document.getElementById('deviceIP').textContent = data.device.ipAddress || '-';
                 document.getElementById('deviceFirmware').textContent = data.device.firmwareVersion || '-';
+                
+                // 배터리 레벨 표시
+                const battery = data.device.batteryLevel;
+                if (battery !== null && battery !== undefined) {
+                    let batteryIcon = '🔋';
+                    if (battery <= 20) batteryIcon = '🪫';
+                    document.getElementById('deviceBattery').textContent = `${batteryIcon} ${battery}%`;
+                } else {
+                    document.getElementById('deviceBattery').textContent = '⚡ USB 전원';
+                }
+                
                 document.getElementById('deviceLastComm').textContent = 
                     data.device.timeSinceLastHeartbeat !== null ? `${data.device.timeSinceLastHeartbeat}초 전` : '-';
-
+                
                 if (data.sensorRawData) {
                     for (let i = 1; i <= 4; i++) {
                         const el = document.getElementById(`rawSensor${i}`);
