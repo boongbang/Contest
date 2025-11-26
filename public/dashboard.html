@@ -3893,9 +3893,10 @@
         }
         
         async function confirmRefillAction() {
+            const action = pendingRefillAction;  // ✅ 추가: 먼저 저장
             closeRefillModal();
             
-            if (pendingRefillAction === 'start') {
+            if (action === 'start') {  // ✅ 변경: pendingRefillAction → action
                 try {
                     const res = await fetch(`${API_URL}/api/refill/start`, {
                         method: 'POST',
@@ -3915,7 +3916,7 @@
                     console.error('리필 시작 실패:', e);
                     showToast('오류가 발생했습니다', 'error');
                 }
-            } else if (pendingRefillAction === 'end') {
+            } else if (action === 'end') {  // ✅ 변경: pendingRefillAction → action
                 const deleteRecords = document.getElementById('deleteRefillRecords').checked;
                 try {
                     const res = await fetch(`${API_URL}/api/refill/end`, {
