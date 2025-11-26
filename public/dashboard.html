@@ -2188,6 +2188,9 @@
             }
 
             medList.innerHTML = medHtml;
+            
+            // 시간 분포 차트 렌더링
+            renderTimeDistributionChart();
         }
 
         // ========== 알림 탭 렌더링 (cardData 기반) ==========
@@ -2228,6 +2231,110 @@
             }
 
             remList.innerHTML = remHtml;
+        }
+
+        // ========== 약물관리 탭 - 복약 시간 분포 차트 ==========
+        let timeDistributionChart = null;
+        
+        function renderTimeDistributionChart() {
+            const ctx = document.getElementById('timeDistributionChart');
+            if (!ctx) return;
+            
+            if (timeDistributionChart) timeDistributionChart.destroy();
+            
+            // 등록된 약의 시간대별 분포 계산
+            const timeSlots = {
+                '아침 (6-10시)': 0,
+                '점심 (11-14시)': 0,
+                '저녁 (17-20시)': 0,
+                '자기전 (21-24시)': 0
+            };
+            
+            for (let i = 1; i <= 4; i++) {
+                const data = cardData[i];
+                if (data.meds.length > 0) {
+                    const [hour] = data.time.split(':').map(Number);
+                    
+                    if (hour >= 6 && hour < 11) {
+                        timeSlots['아침 (6-10시)'] += data.meds.length;
+                    } else if (hour >= 11 && hour < 15) {
+                        timeSlots['점심 (11-14시)'] += data.meds.length;
+                    } else if (hour >= 17 && hour < 21) {
+                        timeSlots['저녁 (17-20시)'] += data.meds.length;
+                    } else {
+                        timeSlots['자기전 (21-24시)'] += data.meds.length;
+                    }
+                }
+            }
+            
+            const labels = Object.keys(timeSlots);
+            const values = Object.values(timeSlots);
+            const totalMeds = values.reduce((a, b) => a + b, 0);
+            
+            if (totalMeds === 0) {
+                // 데이터가 없을 때 안내 메시지
+                const container = ctx.parentElement;
+                if (!document.getElementById('noTimeDataMsg')) {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.id = 'noTimeDataMsg';
+                    msgDiv.className = 'empty-state';
+                    msgDiv.innerHTML = `
+                        <i class="fa-regular fa-clock"></i>
+                        <p>등록된 약이 없습니다.</p>
+                        <p style="font-size:0.8rem; margin-top:5px;">약을 등록하면 시간 분포가 표시됩니다.</p>
+                    `;
+                    container.appendChild(msgDiv);
+                }
+                ctx.style.display = 'none';
+                return;
+            }
+            
+            // 기존 메시지 제거
+            const oldMsg = document.getElementById('noTimeDataMsg');
+            if (oldMsg) oldMsg.remove();
+            ctx.style.display = 'block';
+            
+            timeDistributionChart = new Chart(ctx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            'rgba(136, 176, 136, 0.8)',  // 아침 - 연한 초록
+                            'rgba(107, 142, 107, 0.8)',  // 점심 - 초록
+                            'rgba(85, 112, 85, 0.8)',    // 저녁 - 진한 초록
+                            'rgba(62, 82, 62, 0.8)'      // 자기전 - 더 진한 초록
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                font: { size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const percentage = totalMeds > 0 ? Math.round((value / totalMeds) * 100) : 0;
+                                    return ` ${value}개 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '50%'
+                }
+            });
         }
 
         // ========== 약물관리 탭에서 수정/삭제 ==========
@@ -2558,6 +2665,13 @@
             } else {
                 if (deviceCheckInterval) clearInterval(deviceCheckInterval);
             }
+            
+            // 약물관리 섹션 진입 시 차트 렌더링
+            if (section === 'medication') {
+                setTimeout(() => {
+                    renderTimeDistributionChart();
+                }, 100);
+            }
         }
         function toggleUserMenu() {
             document.getElementById('userDropdown').classList.toggle('show');
@@ -2745,11 +2859,12 @@
         function refreshPage() {
             location.reload();
         }
-
+        
         // ========== 통계 섹션 함수들 ==========
         let currentStatsPeriod = 'daily';
         let hourlyStatsChart = null;
         let weekdayStatsChart = null;
+        let fullStatsData = null; // 전체 데이터 캐시
         
         function switchStatsPeriod(period) {
             currentStatsPeriod = period;
@@ -2759,7 +2874,12 @@
             const labels = { daily: '오늘', weekly: '이번 주', monthly: '이번 달' };
             document.getElementById('statsPeriodLabel').textContent = labels[period];
             
-            loadStatsData();
+            // 이미 데이터가 있으면 필터링만 다시 수행
+            if (fullStatsData) {
+                applyPeriodFilter(fullStatsData);
+            } else {
+                loadStatsData();
+            }
         }
         
         async function loadStatsData() {
@@ -2768,15 +2888,142 @@
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 const data = await response.json();
-                
-                updateStatsCards(data);
-                drawHourlyStatsChart(data.distributions?.hourly || new Array(24).fill(0));
-                drawWeekdayStatsChart(data.distributions?.weekday || new Array(7).fill(0));
-                generateStatsInsights(data.distributions || {});
-                updateStatsHistory(data.history || []);
+                fullStatsData = data; // 전체 데이터 저장
+                applyPeriodFilter(data);
             } catch (e) {
                 console.error('Stats load error:', e);
             }
+        }
+        
+        function applyPeriodFilter(data) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            // 기간별 시작일 계산
+            let startDate;
+            switch (currentStatsPeriod) {
+                case 'daily':
+                    startDate = today;
+                    break;
+                case 'weekly':
+                    startDate = new Date(today);
+                    startDate.setDate(startDate.getDate() - 6); // 최근 7일
+                    break;
+                case 'monthly':
+                    startDate = new Date(today);
+                    startDate.setDate(startDate.getDate() - 29); // 최근 30일
+                    break;
+                default:
+                    startDate = today;
+            }
+            
+            // 히스토리 필터링
+            const filteredHistory = (data.history || []).filter(h => {
+                const recordDate = new Date(h.timestamp);
+                return recordDate >= startDate && h.action === 'removed';
+            });
+            
+            // dailyStats 필터링
+            const filteredDailyStats = {};
+            for (let dateKey in (data.dailyStats || {})) {
+                const recordDate = new Date(dateKey);
+                if (recordDate >= startDate) {
+                    filteredDailyStats[dateKey] = data.dailyStats[dateKey];
+                }
+            }
+            
+            // 필터링된 데이터로 분포 계산
+            const filteredDistributions = calculateDistributions(filteredHistory);
+            
+            // 필터링된 메트릭스 계산
+            const filteredMetrics = calculateFilteredMetrics(filteredHistory, filteredDailyStats, currentStatsPeriod);
+            
+            updateStatsCards({
+                history: filteredHistory,
+                dailyStats: filteredDailyStats,
+                adherenceMetrics: filteredMetrics,
+                totalDays: Object.keys(filteredDailyStats).length || (currentStatsPeriod === 'daily' ? 1 : 0)
+            });
+            
+            drawHourlyStatsChart(filteredDistributions.hourly);
+            drawWeekdayStatsChart(filteredDistributions.weekday);
+            generateStatsInsights(filteredDistributions);
+            updateStatsHistory(filteredHistory);
+        }
+        
+        function calculateDistributions(history) {
+            const hourly = new Array(24).fill(0);
+            const weekday = new Array(7).fill(0);
+            
+            history.forEach(h => {
+                if (h.timestamp) {
+                    const d = new Date(h.timestamp);
+                    hourly[d.getHours()]++;
+                    weekday[d.getDay()]++;
+                }
+            });
+            
+            return { hourly, weekday };
+        }
+        
+        function calculateFilteredMetrics(history, dailyStats, period) {
+            const totalCount = history.length;
+            const totalDays = Object.keys(dailyStats).length || 1;
+            
+            // 기간별 예상 복용 횟수 (하루 4회 기준)
+            let expectedDays;
+            switch (period) {
+                case 'daily': expectedDays = 1; break;
+                case 'weekly': expectedDays = 7; break;
+                case 'monthly': expectedDays = 30; break;
+                default: expectedDays = 1;
+            }
+            
+            // 복약한 날 수 계산
+            let successDays = 0;
+            for (let dk in dailyStats) {
+                if (Object.values(dailyStats[dk].sensors || {}).filter(s => s.count > 0).length > 0) {
+                    successDays++;
+                }
+            }
+            
+            // PDC 계산 (기간 내 복약 일수 / 기간 일수)
+            const pdc = expectedDays > 0 ? Math.round((successDays / expectedDays) * 100) : 0;
+            
+            // 연속 복용일 계산
+            const dates = Object.keys(dailyStats).sort();
+            let maxStreak = 0, currentStreak = 0, prevDate = null;
+            for (let dk of dates) {
+                if (Object.values(dailyStats[dk].sensors || {}).filter(s => s.count > 0).length > 0) {
+                    if (prevDate) {
+                        const diff = Math.round((new Date(dk) - new Date(prevDate)) / (1000 * 60 * 60 * 24));
+                        currentStreak = (diff === 1) ? currentStreak + 1 : 1;
+                    } else { currentStreak = 1; }
+                    prevDate = dk;
+                } else { currentStreak = 0; prevDate = null; }
+                maxStreak = Math.max(maxStreak, currentStreak);
+            }
+            
+            // 최장 미복용 기간 계산
+            let maxGap = 0;
+            prevDate = null;
+            for (let dk of dates) {
+                if (prevDate) {
+                    const diff = Math.round((new Date(dk) - new Date(prevDate)) / (1000 * 60 * 60 * 24));
+                    if (diff > 1) {
+                        maxGap = Math.max(maxGap, diff - 1);
+                    }
+                }
+                prevDate = dk;
+            }
+            
+            return {
+                pdc: Math.min(pdc, 100),
+                maxStreak,
+                maxGap,
+                totalCount,
+                averagePerDay: totalDays > 0 ? totalCount / totalDays : 0
+            };
         }
         
         function updateStatsCards(data) {
@@ -2786,12 +3033,12 @@
             document.getElementById('statsStreak').textContent = (metrics.maxStreak || 0) + '일';
             document.getElementById('statsGap').textContent = (metrics.maxGap || 0) + '일';
             
-            const totalCount = data.history?.filter(h => h.action === 'removed').length || 0;
+            const totalCount = data.history?.length || 0;
             const totalDays = data.totalDays || 1;
             
             document.getElementById('statsTotalCount').textContent = totalCount + '회';
             document.getElementById('statsTotalDays').textContent = totalDays + '일';
-            document.getElementById('statsAvgPerDay').textContent = (totalCount / totalDays).toFixed(1) + '회';
+            document.getElementById('statsAvgPerDay').textContent = totalDays > 0 ? (totalCount / totalDays).toFixed(1) + '회' : '0회';
             document.getElementById('statsCompletionRate').textContent = (metrics.pdc || 0) + '%';
             
             // 미복용 기간에 따른 카드 색상
@@ -2875,6 +3122,9 @@
             const hourly = distributions.hourly || [];
             const weekday = distributions.weekday || [];
             
+            const totalHourly = hourly.reduce((a, b) => a + b, 0);
+            const totalWeekday = weekday.reduce((a, b) => a + b, 0);
+            
             // 시간대 인사이트
             let maxHour = 0, maxHourCount = 0;
             hourly.forEach((count, hour) => {
@@ -2882,29 +3132,39 @@
             });
             
             if (maxHourCount > 0) {
+                const periodLabel = { daily: '오늘', weekly: '이번 주', monthly: '이번 달' }[currentStatsPeriod];
                 document.getElementById('hourlyInsight').innerHTML = 
-                    `💡 주로 <strong>${maxHour}시</strong>에 복약하는 경향이 있습니다.`;
+                    `💡 ${periodLabel} 주로 <strong>${maxHour}시</strong>에 복약했습니다. (${maxHourCount}회)`;
+            } else {
+                document.getElementById('hourlyInsight').innerHTML = 
+                    `💡 해당 기간에 복약 기록이 없습니다.`;
             }
             
             // 요일 인사이트
-            const weekendCount = (weekday[0] || 0) + (weekday[6] || 0);
-            const weekdayCount = weekday.slice(1, 6).reduce((a, b) => a + b, 0);
-            
-            if (weekendCount + weekdayCount > 0) {
-                if (weekendCount / 2 < weekdayCount / 5 * 0.7) {
-                    document.getElementById('weekdayInsight').innerHTML = 
-                        `💡 <strong>주말</strong>에 복약률이 낮습니다. 주말 알림을 확인하세요!`;
-                } else {
-                    document.getElementById('weekdayInsight').innerHTML = 
-                        `💡 주중과 주말 모두 꾸준히 복약하고 계십니다. 훌륭합니다!`;
+            if (totalWeekday > 0) {
+                const weekendCount = (weekday[0] || 0) + (weekday[6] || 0);
+                const weekdayCount = weekday.slice(1, 6).reduce((a, b) => a + b, 0);
+                
+                if (weekendCount + weekdayCount > 0) {
+                    if (weekendCount / 2 < weekdayCount / 5 * 0.7) {
+                        document.getElementById('weekdayInsight').innerHTML = 
+                            `💡 <strong>주말</strong>에 복약률이 낮습니다. 주말 알림을 확인하세요!`;
+                    } else {
+                        document.getElementById('weekdayInsight').innerHTML = 
+                            `💡 주중과 주말 모두 꾸준히 복약하고 계십니다. 훌륭합니다!`;
+                    }
                 }
+            } else {
+                document.getElementById('weekdayInsight').innerHTML = 
+                    `💡 해당 기간에 복약 기록이 없습니다.`;
             }
         }
         
         function updateStatsHistory(history) {
             const container = document.getElementById('statsHistoryTable');
             if (!history || history.length === 0) {
-                container.innerHTML = '<div class="no-data-message">기록이 없습니다.</div>';
+                const periodLabel = { daily: '오늘', weekly: '이번 주', monthly: '이번 달' }[currentStatsPeriod];
+                container.innerHTML = `<div class="no-data-message">${periodLabel} 복약 기록이 없습니다.</div>`;
                 return;
             }
             
