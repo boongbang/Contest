@@ -798,6 +798,168 @@
             font-size: 0.9rem;
         }
 
+        /* ========== 통계 섹션 스타일 ========== */
+        .period-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 0 15px;
+        }
+        
+        .period-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.2);
+            color: var(--text-light);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .period-tab.active {
+            background: white;
+            color: var(--app-bg);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .stats-key-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 0 15px;
+        }
+        
+        .stats-key-card {
+            background: linear-gradient(135deg, var(--app-bg-dark) 0%, #3c523c 100%);
+            border-radius: 18px;
+            padding: 18px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-key-card::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        
+        .stats-key-card.warning {
+            background: linear-gradient(135deg, #FF9800 0%, #E65100 100%);
+        }
+        
+        .stats-key-card.danger {
+            background: linear-gradient(135deg, #F44336 0%, #C62828 100%);
+        }
+        
+        .stats-icon {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+        
+        .stats-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'Merriweather', serif;
+        }
+        
+        .stats-label {
+            font-size: 0.75rem;
+            opacity: 0.85;
+            margin-top: 4px;
+        }
+        
+        .stats-chart-container {
+            height: 180px;
+            margin: 15px 0;
+        }
+        
+        .stats-insight {
+            background: rgba(107, 142, 107, 0.1);
+            border-left: 3px solid var(--app-bg);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #333;
+            margin-top: 10px;
+        }
+        
+        .stats-period-label {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        
+        .stats-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stats-detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .detail-label {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .detail-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .stats-history-area {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .stats-history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .stats-history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-time {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .history-name {
+            font-weight: 500;
+        }
+        
+        .history-status {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 8px;
+        }
+        
+        .history-status.taken {
+            background: rgba(76, 175, 80, 0.2);
+            color: #81C784;
+        }
+
         /* [새로고침 버튼 스타일 - 사용자 요청 수정 반영] */
         .refresh-btn {
             width: 100%;
@@ -988,12 +1150,16 @@
                 <div class="sidebar-item" data-section="reminder" onclick="switchSection('reminder')">
                     <div class="icon-box"><i class="fa-regular fa-bell"></i></div>
                 </div>
+
                 <div class="sidebar-item" data-section="device" onclick="switchSection('device')">
                     <div class="icon-box"><i class="fa-solid fa-microchip"></i></div>
                 </div>
+                <div class="sidebar-item" data-section="stats" onclick="switchSection('stats')">
+                    <div class="icon-box"><i class="fa-solid fa-chart-line"></i></div>
+                </div>
                 
                 <div class="sidebar-filler"></div>
-                
+
                 <div class="refresh-btn" onclick="refreshPage()">
                     <i class="fa-solid fa-rotate-right"></i>
                 </div>
@@ -1226,9 +1392,107 @@
                         </button>
                     </div>
                 </section>
+                <section class="page-section" id="statsSection">
+                    <div class="welcome-text">
+                        <h2>복약 통계</h2>
+                        <p>나의 건강 습관을 분석합니다.</p>
+                    </div>
+
+                    <!-- 기간 선택 탭 -->
+                    <div class="period-tabs">
+                        <button class="period-tab active" data-period="daily" onclick="switchStatsPeriod('daily')">일별</button>
+                        <button class="period-tab" data-period="weekly" onclick="switchStatsPeriod('weekly')">주별</button>
+                        <button class="period-tab" data-period="monthly" onclick="switchStatsPeriod('monthly')">월별</button>
+                    </div>
+
+                    <!-- 핵심 지표 4개 -->
+                    <div class="stats-key-grid">
+                        <div class="stats-key-card">
+                            <div class="stats-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                            <div class="stats-value" id="statsPDC">0%</div>
+                            <div class="stats-label">복약 순응도</div>
+                        </div>
+                        <div class="stats-key-card">
+                            <div class="stats-icon"><i class="fa-solid fa-fire"></i></div>
+                            <div class="stats-value" id="statsStreak">0일</div>
+                            <div class="stats-label">연속 복용</div>
+                        </div>
+                        <div class="stats-key-card">
+                            <div class="stats-icon"><i class="fa-regular fa-clock"></i></div>
+                            <div class="stats-value" id="statsAccuracy">-</div>
+                            <div class="stats-label">시간 정확도</div>
+                        </div>
+                        <div class="stats-key-card warning" id="statsGapCard">
+                            <div class="stats-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="stats-value" id="statsGap">0일</div>
+                            <div class="stats-label">최장 미복용</div>
+                        </div>
+                    </div>
+
+                    <!-- 시간대별 차트 -->
+                    <div class="sensor-card">
+                        <div class="sensor-header">
+                            <div class="sensor-title"><i class="fa-regular fa-clock"></i> 시간대별 복약</div>
+                        </div>
+                        <div class="stats-chart-container">
+                            <canvas id="hourlyStatsChart"></canvas>
+                        </div>
+                        <div class="stats-insight" id="hourlyInsight">
+                            💡 데이터를 분석 중입니다...
+                        </div>
+                    </div>
+
+                    <!-- 요일별 차트 -->
+                    <div class="sensor-card">
+                        <div class="sensor-header">
+                            <div class="sensor-title"><i class="fa-regular fa-calendar"></i> 요일별 복약</div>
+                        </div>
+                        <div class="stats-chart-container">
+                            <canvas id="weekdayStatsChart"></canvas>
+                        </div>
+                        <div class="stats-insight" id="weekdayInsight">
+                            💡 데이터를 분석 중입니다...
+                        </div>
+                    </div>
+
+                    <!-- 상세 기록 -->
+                    <div class="sensor-card">
+                        <div class="sensor-header">
+                            <div class="sensor-title">상세 기록</div>
+                            <span class="stats-period-label" id="statsPeriodLabel">오늘</span>
+                        </div>
+                        <div class="stats-detail-grid">
+                            <div class="stats-detail-item">
+                                <span class="detail-label">총 복용</span>
+                                <span class="detail-value" id="statsTotalCount">0회</span>
+                            </div>
+                            <div class="stats-detail-item">
+                                <span class="detail-label">기록 일수</span>
+                                <span class="detail-value" id="statsTotalDays">0일</span>
+                            </div>
+                            <div class="stats-detail-item">
+                                <span class="detail-label">일 평균</span>
+                                <span class="detail-value" id="statsAvgPerDay">0회</span>
+                            </div>
+                            <div class="stats-detail-item">
+                                <span class="detail-label">완료율</span>
+                                <span class="detail-value" id="statsCompletionRate">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 최근 이력 테이블 -->
+                    <div class="sensor-card">
+                        <div class="sensor-header">
+                            <div class="sensor-title">최근 복약 이력</div>
+                        </div>
+                        <div id="statsHistoryTable" class="stats-history-area">
+                            <div class="no-data-message">기록이 없습니다.</div>
+                        </div>
+                    </div>
+                </section>
+
             </div>
-        </div>
-    </div>
 
     <div class="modal-overlay" id="editModal">
         <div class="custom-modal">
@@ -2256,6 +2520,199 @@
         function refreshPage() {
             location.reload();
         }
+
+        // ========== 통계 섹션 함수들 ==========
+        let currentStatsPeriod = 'daily';
+        let hourlyStatsChart = null;
+        let weekdayStatsChart = null;
+        
+        function switchStatsPeriod(period) {
+            currentStatsPeriod = period;
+            document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.period-tab[data-period="${period}"]`).classList.add('active');
+            
+            const labels = { daily: '오늘', weekly: '이번 주', monthly: '이번 달' };
+            document.getElementById('statsPeriodLabel').textContent = labels[period];
+            
+            loadStatsData();
+        }
+        
+        async function loadStatsData() {
+            try {
+                const response = await fetch(`${API_URL}/api/reports/detailed`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await response.json();
+                
+                updateStatsCards(data);
+                drawHourlyStatsChart(data.distributions?.hourly || new Array(24).fill(0));
+                drawWeekdayStatsChart(data.distributions?.weekday || new Array(7).fill(0));
+                generateStatsInsights(data.distributions || {});
+                updateStatsHistory(data.history || []);
+            } catch (e) {
+                console.error('Stats load error:', e);
+            }
+        }
+        
+        function updateStatsCards(data) {
+            const metrics = data.adherenceMetrics || {};
+            
+            document.getElementById('statsPDC').textContent = (metrics.pdc || 0) + '%';
+            document.getElementById('statsStreak').textContent = (metrics.maxStreak || 0) + '일';
+            document.getElementById('statsGap').textContent = (metrics.maxGap || 0) + '일';
+            
+            const totalCount = data.history?.filter(h => h.action === 'removed').length || 0;
+            const totalDays = data.totalDays || 1;
+            
+            document.getElementById('statsTotalCount').textContent = totalCount + '회';
+            document.getElementById('statsTotalDays').textContent = totalDays + '일';
+            document.getElementById('statsAvgPerDay').textContent = (totalCount / totalDays).toFixed(1) + '회';
+            document.getElementById('statsCompletionRate').textContent = (metrics.pdc || 0) + '%';
+            
+            // 미복용 기간에 따른 카드 색상
+            const gapCard = document.getElementById('statsGapCard');
+            gapCard.classList.remove('warning', 'danger');
+            if ((metrics.maxGap || 0) >= 3) gapCard.classList.add('danger');
+            else if ((metrics.maxGap || 0) >= 1) gapCard.classList.add('warning');
+        }
+        
+        function drawHourlyStatsChart(hourlyData) {
+            const ctx = document.getElementById('hourlyStatsChart').getContext('2d');
+            if (hourlyStatsChart) hourlyStatsChart.destroy();
+            
+            const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+            
+            hourlyStatsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${i}시`),
+                    datasets: [{
+                        data: hourlyData,
+                        borderColor: 'rgba(255,255,255,0.8)',
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false, beginAtZero: true },
+                        x: { 
+                            grid: { display: false, color: 'rgba(255,255,255,0.1)' },
+                            ticks: { maxTicksLimit: 6, color: 'rgba(255,255,255,0.6)', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function drawWeekdayStatsChart(weekdayData) {
+            const ctx = document.getElementById('weekdayStatsChart').getContext('2d');
+            if (weekdayStatsChart) weekdayStatsChart.destroy();
+            
+            weekdayStatsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['일', '월', '화', '수', '목', '금', '토'],
+                    datasets: [{
+                        data: weekdayData,
+                        backgroundColor: [
+                            'rgba(255,205,210,0.8)', 'rgba(200,230,201,0.8)', 'rgba(200,230,201,0.8)',
+                            'rgba(200,230,201,0.8)', 'rgba(200,230,201,0.8)', 'rgba(200,230,201,0.8)',
+                            'rgba(255,205,210,0.8)'
+                        ],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false, beginAtZero: true },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { color: 'rgba(255,255,255,0.7)', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function generateStatsInsights(distributions) {
+            const hourly = distributions.hourly || [];
+            const weekday = distributions.weekday || [];
+            
+            // 시간대 인사이트
+            let maxHour = 0, maxHourCount = 0;
+            hourly.forEach((count, hour) => {
+                if (count > maxHourCount) { maxHourCount = count; maxHour = hour; }
+            });
+            
+            if (maxHourCount > 0) {
+                document.getElementById('hourlyInsight').innerHTML = 
+                    `💡 주로 <strong>${maxHour}시</strong>에 복약하는 경향이 있습니다.`;
+            }
+            
+            // 요일 인사이트
+            const weekendCount = (weekday[0] || 0) + (weekday[6] || 0);
+            const weekdayCount = weekday.slice(1, 6).reduce((a, b) => a + b, 0);
+            
+            if (weekendCount + weekdayCount > 0) {
+                if (weekendCount / 2 < weekdayCount / 5 * 0.7) {
+                    document.getElementById('weekdayInsight').innerHTML = 
+                        `💡 <strong>주말</strong>에 복약률이 낮습니다. 주말 알림을 확인하세요!`;
+                } else {
+                    document.getElementById('weekdayInsight').innerHTML = 
+                        `💡 주중과 주말 모두 꾸준히 복약하고 계십니다. 훌륭합니다!`;
+                }
+            }
+        }
+        
+        function updateStatsHistory(history) {
+            const container = document.getElementById('statsHistoryTable');
+            if (!history || history.length === 0) {
+                container.innerHTML = '<div class="no-data-message">기록이 없습니다.</div>';
+                return;
+            }
+            
+            const recentHistory = history.slice(0, 20);
+            let html = '';
+            
+            recentHistory.forEach(h => {
+                const date = new Date(h.timestamp);
+                const timeStr = date.toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                
+                html += `
+                    <div class="stats-history-item">
+                        <div>
+                            <div class="history-name">${h.sensorName || '약통 ' + h.sensorId}</div>
+                            <div class="history-time">${timeStr}</div>
+                        </div>
+                        <span class="history-status taken">복용완료</span>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // 통계 섹션 전환 시 데이터 로드
+        const originalSwitchSection = switchSection;
+        switchSection = function(section) {
+            originalSwitchSection(section);
+            if (section === 'stats') {
+                loadStatsData();
+            }
+        };
+        
     </script>
 </body>
 </html>
