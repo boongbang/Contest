@@ -3419,13 +3419,13 @@
                 const weekdayCount = dayCounts.slice(1, 6).reduce((a, b) => a + b, 0);
                 
                 if (weekdayCount > 0 && weekendCount / 2 < weekdayCount / 5 * 0.7) {
-                    insightHTML = `💡 <strong>주말</strong>에 복약률이 낮습니다. 주말 알림을 확인하세요!`;
+                    insightHTML = `💡 <strong>주말</strong>에 복약률이 낮습니다.`;
                 } else {
                     const maxDay = Math.max(...dayCounts);
                     const maxDayIndex = dayCounts.indexOf(maxDay);
                     const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
                     const dayOfWeek = new Date(days[maxDayIndex]).getDay();
-                    insightHTML = `💡 이번 주 <strong>${dayNames[dayOfWeek]}요일</strong>에 가장 많이 복약했습니다. (${maxDay}회)`;
+                    insightHTML = `💡 이번 주 <strong>${dayNames[dayOfWeek]}요일</strong>에 주로 복약했습니다. (${maxDay}회)`;
                 }
             } else {
                 insightHTML = `💡 이번 주 복약 기록이 없습니다.`;
@@ -3552,7 +3552,7 @@
                     const increase = Math.round((thisWeek - lastWeek) / lastWeek * 100);
                     insightHTML = `💡 이번 주는 지난주보다 <strong>${increase}%</strong> 더 많이 복약했습니다!`;
                 } else if (thisWeek < lastWeek && thisWeek > 0) {
-                    insightHTML = `💡 이번 주 복약 횟수가 지난주보다 줄었습니다. 꾸준히 복약해주세요!`;
+                    insightHTML = `💡 이번 주 복약 횟수가 지난주보다 줄었습니다.`;
                 } else {
                     insightHTML = `💡 최근 5주간 총 <strong>${totalMonthCount}회</strong> 복약하셨습니다.`;
                 }
