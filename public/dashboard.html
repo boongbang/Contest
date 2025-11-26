@@ -4025,15 +4025,7 @@
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
-        
-        // 대시보드 로드 시 리필 상태도 함께 로드
-        const originalLoadDashboard = loadDashboard;
-        loadDashboard = async function() {
-            await originalLoadDashboard();
-            await loadRefillStatus();
-        };
-
-        
+                
     </script>
 </body>
 </html>
