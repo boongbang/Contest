@@ -654,6 +654,36 @@
         .alarm-banner.show { top: 0; }
         .alarm-banner i { font-size: 1.2rem; animation: pulse 1s infinite; }
 
+        /* 활동 차트 기간 탭 */
+        .activity-period-tabs {
+            display: flex;
+            gap: 5px;
+            background: #f0f0f0;
+            padding: 4px;
+            border-radius: 10px;
+        }
+        
+        .activity-tab {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #888;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .activity-tab.active {
+            background: var(--app-bg);
+            color: white;
+        }
+        
+        .activity-tab:hover:not(.active) {
+            background: #e0e0e0;
+        }
+
         /* 차트 및 기타 섹션 유지 */
         .chart-section {
             background: white;
@@ -1668,15 +1698,19 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="chart-section">
                         <div class="section-header">
-                            <div class="section-title">주간 활동</div>
-                            <i class="fa-solid fa-ellipsis" style="color: #ccc;"></i>
+                            <div class="section-title" id="activityChartTitle">주간 활동</div>
+                            <div class="activity-period-tabs">
+                                <button class="activity-tab" data-period="daily" onclick="switchActivityPeriod('daily')">일별</button>
+                                <button class="activity-tab active" data-period="weekly" onclick="switchActivityPeriod('weekly')">주별</button>
+                                <button class="activity-tab" data-period="monthly" onclick="switchActivityPeriod('monthly')">월별</button>
+                            </div>
                         </div>
                         <div class="chart-container">
-                            <canvas id="weeklyChart"></canvas>
+                            <canvas id="activityChart"></canvas>
                         </div>
+                        <div id="activitySummary" style="text-align: center; font-size: 0.8rem; color: #888; margin-top: 10px;"></div>
                     </div>
                 </section>
 
@@ -2233,7 +2267,8 @@
         let authToken = null;
         let userInfo = null;
         let currentSection = 'dashboard';
-        let weeklyChart = null;
+        let activityChart = null;
+        let currentActivityPeriod = 'weekly';
         let timeChart = null;
         let sensorCheckInterval = null;
         let alarmCheckInterval = null;
@@ -3031,31 +3066,182 @@
             renderReminderList();
         }
 
-        // ========== 차트 업데이트 ==========
-        function updateWeeklyChart(weeklyData) {
-            const ctx = document.getElementById('weeklyChart').getContext('2d');
-            if (weeklyChart) weeklyChart.destroy();
+        // ========== 활동 차트 기간 전환 ==========
+        function switchActivityPeriod(period) {
+            currentActivityPeriod = period;
             
-            const labels = weeklyData ? weeklyData.map(d => d.day) : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            const values = weeklyData ? weeklyData.map(d => d.completedCount || d.count) : [0, 0, 0, 0, 0, 0, 0];
+            // 탭 UI 업데이트
+            document.querySelectorAll('.activity-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.activity-tab[data-period="${period}"]`).classList.add('active');
             
-            let gradient = ctx.createLinearGradient(0, 0, 0, 300);
-            gradient.addColorStop(0, 'rgba(107, 142, 107, 0.2)');
+            // 타이틀 업데이트
+            const titles = { daily: '오늘 활동', weekly: '주간 활동', monthly: '월간 활동' };
+            document.getElementById('activityChartTitle').textContent = titles[period];
+            
+            // 차트 다시 로드
+            loadActivityChart(period);
+        }
+        
+        async function loadActivityChart(period) {
+            try {
+                const response = await fetch(`${API_URL}/api/reports/detailed`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const data = await response.json();
+                
+                switch (period) {
+                    case 'daily':
+                        renderDailyActivityChart(data);
+                        break;
+                    case 'weekly':
+                        renderWeeklyActivityChart(data);
+                        break;
+                    case 'monthly':
+                        renderMonthlyActivityChart(data);
+                        break;
+                }
+            } catch (e) {
+                console.error('활동 차트 로드 실패:', e);
+            }
+        }
+        
+        // 일별 차트: 오늘 24시간 시간대별 복용 현황 (바 차트)
+        function renderDailyActivityChart(data) {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            if (activityChart) activityChart.destroy();
+            
+            // 오늘 날짜 필터링
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+            
+            // 시간대별 카운트 (0~23시)
+            const hourlyCount = new Array(24).fill(0);
+            
+            if (data.history) {
+                data.history.forEach(h => {
+                    if (h.action === 'removed' && h.timestamp) {
+                        const recordDate = new Date(h.timestamp);
+                        const recordDateStr = recordDate.toISOString().split('T')[0];
+                        if (recordDateStr === todayStr) {
+                            hourlyCount[recordDate.getHours()]++;
+                        }
+                    }
+                });
+            }
+            
+            const totalToday = hourlyCount.reduce((a, b) => a + b, 0);
+            
+            // 현재 시간 강조를 위한 배경색 배열
+            const currentHour = today.getHours();
+            const backgroundColors = hourlyCount.map((_, i) => {
+                if (i === currentHour) return 'rgba(107, 142, 107, 1)';
+                if (i < currentHour) return 'rgba(107, 142, 107, 0.7)';
+                return 'rgba(107, 142, 107, 0.3)';
+            });
+            
+            activityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${i}시`),
+                    datasets: [{
+                        label: '복용 횟수',
+                        data: hourlyCount,
+                        backgroundColor: backgroundColors,
+                        borderRadius: 4,
+                        barThickness: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => `${items[0].label}`,
+                                label: (item) => `복용: ${item.raw}회`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            ticks: { stepSize: 1, color: '#999', font: { size: 10 } },
+                            grid: { color: '#f0f0f0' }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { 
+                                color: '#999', 
+                                font: { size: 9 },
+                                maxRotation: 0,
+                                callback: (val, idx) => idx % 4 === 0 ? `${idx}시` : ''
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 요약 표시
+            document.getElementById('activitySummary').innerHTML = 
+                `오늘 총 <strong>${totalToday}회</strong> 복용 완료`;
+        }
+        
+        // 주별 차트: 최근 7일 일별 복용 횟수 (라인 차트)
+        function renderWeeklyActivityChart(data) {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            if (activityChart) activityChart.destroy();
+            
+            // 최근 7일 날짜 생성
+            const days = [];
+            const dayCounts = [];
+            const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+            
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                days.push(d.toISOString().split('T')[0]);
+            }
+            
+            // 각 날짜별 카운트
+            days.forEach(dateStr => {
+                let count = 0;
+                if (data.history) {
+                    data.history.forEach(h => {
+                        if (h.action === 'removed' && h.timestamp) {
+                            const recordDate = new Date(h.timestamp).toISOString().split('T')[0];
+                            if (recordDate === dateStr) count++;
+                        }
+                    });
+                }
+                dayCounts.push(count);
+            });
+            
+            // 라벨 생성 (요일)
+            const labels = days.map(dateStr => {
+                const d = new Date(dateStr);
+                return dayLabels[d.getDay()];
+            });
+            
+            let gradient = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, 'rgba(107, 142, 107, 0.3)');
             gradient.addColorStop(1, 'rgba(107, 142, 107, 0)');
             
-            weeklyChart = new Chart(ctx, {
+            activityChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: '복약 횟수',
-                        data: values,
+                        label: '복용 횟수',
+                        data: dayCounts,
                         borderColor: '#6B8E6B',
                         backgroundColor: gradient,
                         borderWidth: 3,
                         pointBackgroundColor: '#fff',
                         pointBorderColor: '#6B8E6B',
-                        pointRadius: 4,
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
                         fill: true,
                         tension: 0.4
                     }]
@@ -3063,13 +3249,133 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => {
+                                    const idx = items[0].dataIndex;
+                                    const d = new Date(days[idx]);
+                                    return `${d.getMonth()+1}월 ${d.getDate()}일 (${labels[idx]})`;
+                                },
+                                label: (item) => `복용: ${item.raw}회`
+                            }
+                        }
+                    },
                     scales: {
-                        y: { beginAtZero: true, grid: { borderDash: [5, 5], color: '#f0f0f0' }, ticks: { stepSize: 1, color: '#999' } },
-                        x: { grid: { display: false }, ticks: { color: '#999' } }
+                        y: { 
+                            beginAtZero: true, 
+                            ticks: { stepSize: 1, color: '#999' },
+                            grid: { color: '#f0f0f0', borderDash: [5, 5] }
+                        },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { color: '#999' }
+                        }
                     }
                 }
             });
+            
+            const totalWeek = dayCounts.reduce((a, b) => a + b, 0);
+            const avgPerDay = (totalWeek / 7).toFixed(1);
+            document.getElementById('activitySummary').innerHTML = 
+                `이번 주 총 <strong>${totalWeek}회</strong> · 일 평균 <strong>${avgPerDay}회</strong>`;
+        }
+        
+        // 월별 차트: 최근 30일 주차별 복용 현황 (가로 바 차트)
+        function renderMonthlyActivityChart(data) {
+            const ctx = document.getElementById('activityChart').getContext('2d');
+            if (activityChart) activityChart.destroy();
+            
+            // 최근 4주 데이터 계산
+            const weeks = [
+                { label: '4주 전', start: 28, end: 22 },
+                { label: '3주 전', start: 21, end: 15 },
+                { label: '2주 전', start: 14, end: 8 },
+                { label: '지난 주', start: 7, end: 1 },
+                { label: '이번 주', start: 0, end: 0 }
+            ];
+            
+            const weekCounts = [];
+            const weekLabels = [];
+            
+            weeks.forEach(week => {
+                let count = 0;
+                const today = new Date();
+                
+                for (let i = week.start; i >= week.end; i--) {
+                    const d = new Date(today);
+                    d.setDate(d.getDate() - i);
+                    const dateStr = d.toISOString().split('T')[0];
+                    
+                    if (data.history) {
+                        data.history.forEach(h => {
+                            if (h.action === 'removed' && h.timestamp) {
+                                const recordDate = new Date(h.timestamp).toISOString().split('T')[0];
+                                if (recordDate === dateStr) count++;
+                            }
+                        });
+                    }
+                }
+                
+                weekCounts.push(count);
+                weekLabels.push(week.label);
+            });
+            
+            // 최대값 기준 색상 (가장 많은 주 강조)
+            const maxCount = Math.max(...weekCounts);
+            const backgroundColors = weekCounts.map(c => 
+                c === maxCount && c > 0 ? 'rgba(107, 142, 107, 1)' : 'rgba(107, 142, 107, 0.6)'
+            );
+            
+            activityChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: weekLabels,
+                    datasets: [{
+                        label: '복용 횟수',
+                        data: weekCounts,
+                        backgroundColor: backgroundColors,
+                        borderRadius: 8,
+                        barThickness: 25
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (item) => `복용: ${item.raw}회`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            beginAtZero: true,
+                            ticks: { stepSize: 5, color: '#999' },
+                            grid: { color: '#f0f0f0' }
+                        },
+                        y: { 
+                            grid: { display: false },
+                            ticks: { color: '#666', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+            
+            const totalMonth = weekCounts.reduce((a, b) => a + b, 0);
+            const avgPerWeek = (totalMonth / 5).toFixed(1);
+            document.getElementById('activitySummary').innerHTML = 
+                `최근 5주 총 <strong>${totalMonth}회</strong> · 주 평균 <strong>${avgPerWeek}회</strong>`;
+        }
+        
+        // 기존 updateWeeklyChart 대체 (호환성 유지)
+        function updateWeeklyChart(weeklyData) {
+            // loadDashboardData에서 호출될 때 현재 선택된 기간으로 렌더링
+            loadActivityChart(currentActivityPeriod);
         }
 
         // ========== 사이드바 및 네비게이션 ==========
