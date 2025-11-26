@@ -1774,6 +1774,9 @@
                             <canvas id="activityChart"></canvas>
                         </div>
                         <div id="activitySummary" style="text-align: center; font-size: 0.8rem; color: #888; margin-top: 10px;"></div>
+                        <div class="activity-insight" id="activityInsight" style="background: rgba(107, 142, 107, 0.1); border-left: 3px solid var(--app-bg); padding: 12px; border-radius: 8px; font-size: 0.85rem; color: #666; margin-top: 10px;">
+                            💡 데이터를 분석 중입니다...
+                        </div>
                     </div>
                 </section>
 
@@ -1965,6 +1968,9 @@
                             <canvas id="statsActivityChart"></canvas>
                         </div>
                         <div id="statsActivitySummary" style="text-align: center; font-size: 0.8rem; color: #888; margin-top: 10px;"></div>
+                        <div class="stats-insight" id="statsActivityInsight">
+                            💡 데이터를 분석 중입니다...
+                        </div>
                     </div>
 
                     <!-- 상세 기록 -->
@@ -3264,6 +3270,22 @@
             const statsSummary = document.getElementById('statsActivitySummary');
             if (dashboardSummary) dashboardSummary.innerHTML = summaryHTML;
             if (statsSummary) statsSummary.innerHTML = summaryHTML;
+            
+            // 💡 인사이트 생성
+            let insightHTML = '';
+            if (totalToday > 0) {
+                let peakHour = 0, peakCount = 0;
+                hourlyCount.forEach((count, hour) => {
+                    if (count > peakCount) { peakCount = count; peakHour = hour; }
+                });
+                insightHTML = `💡 오늘은 주로 <strong>${peakHour}시</strong>에 복약했습니다. (${peakCount}회)`;
+            } else {
+                insightHTML = `💡 오늘 아직 복약 기록이 없습니다.`;
+            }
+            const dashboardInsight = document.getElementById('activityInsight');
+            const statsInsight = document.getElementById('statsActivityInsight');
+            if (dashboardInsight) dashboardInsight.innerHTML = insightHTML;
+            if (statsInsight) statsInsight.innerHTML = insightHTML;
         }
         
         // 주별 차트: 최근 7일 일별 복용 횟수 (라인 차트)
@@ -3312,7 +3334,7 @@
                         label: '복용 횟수',
                         data: dayCounts,
                         borderColor: '#6B8E6B',
-                        backgroundColor: gradient,
+                        backgroundColor: null,
                         borderWidth: 3,
                         pointBackgroundColor: '#fff',
                         pointBorderColor: '#6B8E6B',
@@ -3381,6 +3403,30 @@
             const statsSummary = document.getElementById('statsActivitySummary');
             if (dashboardSummary) dashboardSummary.innerHTML = summaryHTML;
             if (statsSummary) statsSummary.innerHTML = summaryHTML;
+            
+            // 💡 인사이트 생성
+            let insightHTML = '';
+            const totalWeekCount = dayCounts.reduce((a, b) => a + b, 0);
+            if (totalWeekCount > 0) {
+                const weekendCount = (dayCounts[0] || 0) + (dayCounts[6] || 0);
+                const weekdayCount = dayCounts.slice(1, 6).reduce((a, b) => a + b, 0);
+                
+                if (weekdayCount > 0 && weekendCount / 2 < weekdayCount / 5 * 0.7) {
+                    insightHTML = `💡 <strong>주말</strong>에 복약률이 낮습니다. 주말 알림을 확인하세요!`;
+                } else {
+                    const maxDay = Math.max(...dayCounts);
+                    const maxDayIndex = dayCounts.indexOf(maxDay);
+                    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                    const dayOfWeek = new Date(days[maxDayIndex]).getDay();
+                    insightHTML = `💡 이번 주 <strong>${dayNames[dayOfWeek]}요일</strong>에 가장 많이 복약했습니다. (${maxDay}회)`;
+                }
+            } else {
+                insightHTML = `💡 이번 주 복약 기록이 없습니다.`;
+            }
+            const dashboardInsight = document.getElementById('activityInsight');
+            const statsInsight = document.getElementById('statsActivityInsight');
+            if (dashboardInsight) dashboardInsight.innerHTML = insightHTML;
+            if (statsInsight) statsInsight.innerHTML = insightHTML;
         }
         
         // 월별 차트: 최근 30일 주차별 복용 현황 (가로 바 차트)
@@ -3431,7 +3477,8 @@
                 c === maxCount && c > 0 ? 'rgba(107, 142, 107, 1)' : 'rgba(107, 142, 107, 0.6)'
             );
             
-            activityChart = new Chart(ctx, {
+            // [변경 후] 설정 객체(chartConfig)를 먼저 정의합니다.
+            const chartConfig = {
                 type: 'bar',
                 data: {
                     labels: weekLabels,
@@ -3468,8 +3515,8 @@
                     }
                 }
             };
-            
-            // 대시보드 차트 생성
+
+            // 대시보드 차트 생성 (위에서 정의한 chartConfig 사용)
             if (ctx) {
                 activityChart = new Chart(ctx.getContext('2d'), chartConfig);
             }
@@ -3486,6 +3533,29 @@
             const statsSummary = document.getElementById('statsActivitySummary');
             if (dashboardSummary) dashboardSummary.innerHTML = summaryHTML;
             if (statsSummary) statsSummary.innerHTML = summaryHTML;
+            
+            // 💡 인사이트 생성
+            let insightHTML = '';
+            const totalMonthCount = weekCounts.reduce((a, b) => a + b, 0);
+            if (totalMonthCount > 0) {
+                const thisWeek = weekCounts[4] || 0;
+                const lastWeek = weekCounts[3] || 0;
+                
+                if (thisWeek > lastWeek && lastWeek > 0) {
+                    const increase = Math.round((thisWeek - lastWeek) / lastWeek * 100);
+                    insightHTML = `💡 이번 주는 지난주보다 <strong>${increase}%</strong> 더 많이 복약했습니다!`;
+                } else if (thisWeek < lastWeek && thisWeek > 0) {
+                    insightHTML = `💡 이번 주 복약 횟수가 지난주보다 줄었습니다. 꾸준히 복약해주세요!`;
+                } else {
+                    insightHTML = `💡 최근 5주간 총 <strong>${totalMonthCount}회</strong> 복약하셨습니다.`;
+                }
+            } else {
+                insightHTML = `💡 최근 5주간 복약 기록이 없습니다.`;
+            }
+            const dashboardInsight = document.getElementById('activityInsight');
+            const statsInsight = document.getElementById('statsActivityInsight');
+            if (dashboardInsight) dashboardInsight.innerHTML = insightHTML;
+            if (statsInsight) statsInsight.innerHTML = insightHTML;
         }
         
         // 기존 updateWeeklyChart 대체 (호환성 유지)
