@@ -1605,13 +1605,8 @@
                         <div class="section-header">
                             <div class="section-title">복약 시간 분포</div>
                         </div>
-                        <div class="chart-section">
-                            <div class="section-header">
-                                <div class="section-title">복약 시간 분포</div>
-                            </div>
-                            <div id="timeDistributionContainer" style="position: relative; height: 180px; width: 100%;">
-                                <canvas id="timeDistributionChart"></canvas>
-                            </div>
+                        <div id="timeDistributionContainer" style="position: relative; height: 200px; width: 100%;">
+                            <canvas id="timeDistributionChart"></canvas>
                         </div>
                     </div>
                 </section>
@@ -2579,10 +2574,10 @@
             
             // 등록된 약의 시간대별 분포 계산
             const timeSlots = {
-                '아침 (6-10시)': 0,
-                '점심 (11-14시)': 0,
-                '저녁 (17-20시)': 0,
-                '자기전 (21-24시)': 0
+                '아침': 0,
+                '점심': 0,
+                '저녁': 0,
+                '자기전': 0
             };
             
             for (let i = 1; i <= 4; i++) {
@@ -2590,14 +2585,15 @@
                 if (data.meds.length > 0) {
                     const [hour] = data.time.split(':').map(Number);
                     
+                    // 수정 후
                     if (hour >= 6 && hour < 11) {
-                        timeSlots['아침 (6-10시)'] += data.meds.length;
+                        timeSlots['아침'] += data.meds.length;
                     } else if (hour >= 11 && hour < 15) {
-                        timeSlots['점심 (11-14시)'] += data.meds.length;
+                        timeSlots['점심'] += data.meds.length;
                     } else if (hour >= 17 && hour < 21) {
-                        timeSlots['저녁 (17-20시)'] += data.meds.length;
+                        timeSlots['저녁'] += data.meds.length;
                     } else {
-                        timeSlots['자기전 (21-24시)'] += data.meds.length;
+                        timeSlots['자기전'] += data.meds.length;
                     }
                 }
             }
@@ -2651,13 +2647,27 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    // 수정 후
                     plugins: {
                         legend: {
                             position: 'bottom',
                             labels: {
-                                padding: 20, 
+                                padding: 15, 
                                 usePointStyle: true,
-                                font: { size: 11 }
+                                font: { size: 10 },
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    const timeRanges = ['(6-10시)', '(11-14시)', '(17-20시)', '(21-24시)'];
+                                    return data.labels.map((label, i) => ({
+                                        text: label + '\n' + timeRanges[i],
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        strokeStyle: data.datasets[0].borderColor,
+                                        lineWidth: data.datasets[0].borderWidth,
+                                        pointStyle: 'circle',
+                                        hidden: false,
+                                        index: i
+                                    }));
+                                }
                             }
                         },
                         tooltip: {
