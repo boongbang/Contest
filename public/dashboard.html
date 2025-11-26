@@ -1958,11 +1958,6 @@
                     <div class="chart-section">
                         <div class="section-header">
                             <div class="section-title" id="statsActivityChartTitle">주간 활동</div>
-                            <div class="activity-period-tabs">
-                                <button class="activity-tab stats-activity-tab" data-period="daily" onclick="switchActivityPeriod('daily')">일별</button>
-                                <button class="activity-tab stats-activity-tab active" data-period="weekly" onclick="switchActivityPeriod('weekly')">주별</button>
-                                <button class="activity-tab stats-activity-tab" data-period="monthly" onclick="switchActivityPeriod('monthly')">월별</button>
-                            </div>
                         </div>
                         <div class="chart-container">
                             <canvas id="statsActivityChart"></canvas>
@@ -3814,6 +3809,9 @@
             
             const labels = { daily: '오늘', weekly: '이번 주', monthly: '이번 달' };
             document.getElementById('statsPeriodLabel').textContent = labels[period];
+            
+            // ✅ 추가: 차트도 함께 업데이트
+            switchActivityPeriod(period);
             
             // 이미 데이터가 있으면 필터링만 다시 수행
             if (fullStatsData) {
