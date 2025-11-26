@@ -1099,6 +1099,96 @@
             cursor: pointer;
             font-size: 0.85rem;
         }
+
+        /* ===== 리필 확인 모달 ===== */
+        .refill-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(3px);
+        }
+        .refill-modal-overlay.show {
+            display: flex;
+        }
+        .refill-modal {
+            background: white;
+            width: 90%;
+            max-width: 340px;
+            border-radius: 20px;
+            overflow: hidden;
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .refill-modal-header {
+            background: linear-gradient(135deg, #E8C3C3 0%, #D4A5A5 100%);
+            padding: 25px;
+            text-align: center;
+            color: #333;
+        }
+        .refill-modal-header.end {
+            background: linear-gradient(135deg, #81C784 0%, #4CAF50 100%);
+            color: white;
+        }
+        .refill-modal-header i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .refill-modal-header h3 {
+            font-size: 1.2rem;
+            margin: 0;
+        }
+        .refill-modal-body {
+            padding: 25px;
+            text-align: center;
+        }
+        .refill-modal-body p {
+            color: #666;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .refill-modal-footer {
+            display: flex;
+            gap: 10px;
+            padding: 0 25px 25px;
+        }
+        .refill-modal-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .refill-modal-btn.cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .refill-modal-btn.confirm {
+            background: #E8C3C3;
+            color: #333;
+        }
+        .refill-modal-btn.confirm.end {
+            background: #4CAF50;
+            color: white;
+        }
+        .refill-modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
         /* ===== 약 보충 관리 UI ===== */
         .refill-control-card {
             background: linear-gradient(145deg, #4a6b4a 0%, #3c5a3c 100%);
@@ -3720,7 +3810,7 @@
         async function loadRefillStatus() {
             try {
                 const res = await fetch('/api/refill/status', {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -3766,19 +3856,52 @@
             loadRefillHistory();
         }
         
+        let pendingRefillAction = null; // 'start' or 'end'
+        
         async function toggleRefillMode() {
-            const token = localStorage.getItem('token');
-            
             if (!isRefillMode) {
-                // 리필 모드 시작
-                if (!confirm('약 보충을 시작합니다.\n보충 중에는 센서 감지가 일시 중단됩니다.')) return;
-                
+                // 시작 모달 표시
+                pendingRefillAction = 'start';
+                document.getElementById('refillModalHeader').className = 'refill-modal-header';
+                document.getElementById('refillModalIcon').className = 'fa-solid fa-pills';
+                document.getElementById('refillModalTitle').textContent = '약 보충 시작';
+                document.getElementById('refillModalMessage').innerHTML = '약 보충을 시작합니다.<br>보충 중에는 센서 감지가 일시 중단됩니다.';
+                document.getElementById('refillModalConfirmBtn').textContent = '시작';
+                document.getElementById('refillModalConfirmBtn').className = 'refill-modal-btn confirm';
+                document.getElementById('refillModal').classList.add('show');
+            } else {
+                // 종료 모달 표시
+                pendingRefillAction = 'end';
+                const deleteRecords = document.getElementById('deleteRefillRecords').checked;
+                document.getElementById('refillModalHeader').className = 'refill-modal-header end';
+                document.getElementById('refillModalIcon').className = 'fa-solid fa-check-circle';
+                document.getElementById('refillModalTitle').textContent = '약 보충 완료';
+                let msg = '약 보충을 완료합니다.';
+                if (deleteRecords) {
+                    msg += '<br><br><span style="color:#F44336;">⚠️ 보충 중 기록된 복용 내역이 삭제됩니다.</span>';
+                }
+                document.getElementById('refillModalMessage').innerHTML = msg;
+                document.getElementById('refillModalConfirmBtn').textContent = '완료';
+                document.getElementById('refillModalConfirmBtn').className = 'refill-modal-btn confirm end';
+                document.getElementById('refillModal').classList.add('show');
+            }
+        }
+        
+        function closeRefillModal() {
+            document.getElementById('refillModal').classList.remove('show');
+            pendingRefillAction = null;
+        }
+        
+        async function confirmRefillAction() {
+            closeRefillModal();
+            
+            if (pendingRefillAction === 'start') {
                 try {
-                    const res = await fetch('/api/refill/start', {
+                    const res = await fetch(`${API_URL}/api/refill/start`, {
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}` 
+                            'Authorization': `Bearer ${authToken}` 
                         }
                     });
                     const data = await res.json();
@@ -3792,21 +3915,14 @@
                     console.error('리필 시작 실패:', e);
                     showToast('오류가 발생했습니다', 'error');
                 }
-            } else {
-                // 리필 모드 종료
+            } else if (pendingRefillAction === 'end') {
                 const deleteRecords = document.getElementById('deleteRefillRecords').checked;
-                const confirmMsg = deleteRecords 
-                    ? '약 보충을 완료합니다.\n⚠️ 보충 중 기록된 복용 내역이 삭제됩니다.'
-                    : '약 보충을 완료합니다.';
-                
-                if (!confirm(confirmMsg)) return;
-                
                 try {
-                    const res = await fetch('/api/refill/end', {
+                    const res = await fetch(`${API_URL}/api/refill/end`, {
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}` 
+                            'Authorization': `Bearer ${authToken}` 
                         },
                         body: JSON.stringify({
                             deleteRecordsDuringRefill: deleteRecords,
@@ -3841,7 +3957,7 @@
         async function loadRefillHistory() {
             try {
                 const res = await fetch('/api/reports/detailed', {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 const data = await res.json();
                 const historyList = document.getElementById('refillHistoryList');
@@ -3878,7 +3994,7 @@
             try {
                 const res = await fetch(`/api/history/${index}`, {
                     method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -3907,5 +4023,21 @@
         }
                 
     </script>
+            <!-- 리필 확인 모달 -->
+            <div class="refill-modal-overlay" id="refillModal">
+                <div class="refill-modal">
+                    <div class="refill-modal-header" id="refillModalHeader">
+                        <i class="fa-solid fa-pills" id="refillModalIcon"></i>
+                        <h3 id="refillModalTitle">약 보충 시작</h3>
+                    </div>
+                    <div class="refill-modal-body">
+                        <p id="refillModalMessage">약 보충을 시작합니다.<br>보충 중에는 센서 감지가 일시 중단됩니다.</p>
+                    </div>
+                    <div class="refill-modal-footer">
+                        <button class="refill-modal-btn cancel" onclick="closeRefillModal()">취소</button>
+                        <button class="refill-modal-btn confirm" id="refillModalConfirmBtn" onclick="confirmRefillAction()">시작</button>
+                    </div>
+                </div>
+            </div>
 </body>
 </html>
