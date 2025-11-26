@@ -63,7 +63,7 @@ let sensorData = {
     dailyStats: {},
     users: [{ id: 1, email: 'user@coss.com', password: '', name: '홍길동', guardianEmail: '', profileIcon: 'user', profileColor: '#6B8E6B' }],
     userMedications: {},
-    deviceInfo: { ipAddress: null, firmwareVersion: '1.0.0', lastHeartbeat: null, isOnline: false },
+    deviceInfo: { ipAddress: null, firmwareVersion: '1.0.0', lastHeartbeat: null, isOnline: false, batteryLevel: null },
     isRefillMode: false,
     refillStartTime: null,
     notificationSettings: { enabled: true, nightModeEnabled: false, nightStart: '22:00', nightEnd: '06:00' }
@@ -82,7 +82,7 @@ function loadData() {
             const loaded = JSON.parse(fs.readFileSync(DATA_FILE));
             sensorData = { ...sensorData, ...loaded };
             if (!sensorData.userMedications) sensorData.userMedications = {};
-            if (!sensorData.deviceInfo) sensorData.deviceInfo = { ipAddress: null, firmwareVersion: '1.0.0', lastHeartbeat: null, isOnline: false };
+            if (!sensorData.deviceInfo) sensorData.deviceInfo = { ipAddress: null, firmwareVersion: '1.0.0', lastHeartbeat: null, isOnline: false, batteryLevel: null };
             if (sensorData.isRefillMode === undefined) sensorData.isRefillMode = false;
             if (!sensorData.notificationSettings) sensorData.notificationSettings = { enabled: true, nightModeEnabled: false, nightStart: '22:00', nightEnd: '06:00' };
             for (let id in sensorData.sensors) {
@@ -376,9 +376,10 @@ app.get('/api/device/status', authenticateToken, (req, res) => {
 });
 
 app.post('/api/device/heartbeat', (req, res) => {
-    const { ipAddress, firmwareVersion } = req.body;
+    const { ipAddress, firmwareVersion, batteryLevel } = req.body;
     if (ipAddress) sensorData.deviceInfo.ipAddress = ipAddress;
     if (firmwareVersion) sensorData.deviceInfo.firmwareVersion = firmwareVersion;
+    if (batteryLevel !== undefined) sensorData.deviceInfo.batteryLevel = batteryLevel;
     sensorData.deviceInfo.lastHeartbeat = new Date().toISOString();
     sensorData.deviceInfo.isOnline = true;
     res.json({ success: true, serverTime: new Date().toISOString() });
@@ -527,3 +528,4 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
+
