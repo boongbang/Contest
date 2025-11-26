@@ -111,6 +111,81 @@ async function initTestAccount() {
     } else {
         console.log('✅ 테스트 계정: user@coss.com / coss1234');
     }
+    
+    // 테스트 계정용 샘플 데이터 초기화
+    initTestAccountData();
+}
+
+function initTestAccountData() {
+    const testUserId = 1;
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    
+    // 테스트용 약물 데이터 설정
+    if (!sensorData.userMedications[testUserId]) {
+        sensorData.userMedications[testUserId] = {
+            1: { time: '08:00', meds: [{ name: '혈압약', dose: '1정' }, { name: '비타민D', dose: '1000IU' }], taken: false },
+            2: { time: '13:00', meds: [{ name: '오메가3', dose: '1캡슐' }], taken: false },
+            3: { time: '18:00', meds: [{ name: '관절약', dose: '2정' }, { name: '유산균', dose: '1포' }], taken: false },
+            4: { time: '22:00', meds: [{ name: '마그네슘', dose: '1정' }], taken: false }
+        };
+    }
+    
+    // 테스트용 7일치 히스토리 데이터 생성
+    if (sensorData.history.length === 0) {
+        const sensorNames = ['아침 약', '점심 약', '저녁 약', '자기전 약'];
+        const targetTimes = ['08:00', '13:00', '18:00', '22:00'];
+        
+        for (let dayOffset = 6; dayOffset >= 0; dayOffset--) {
+            const date = new Date();
+            date.setDate(date.getDate() - dayOffset);
+            const dateKey = date.toISOString().split('T')[0];
+            
+            if (!sensorData.dailyStats[dateKey]) {
+                sensorData.dailyStats[dateKey] = { date: dateKey, sensors: {} };
+            }
+            
+            // 각 날짜에 랜덤하게 2~4개의 복약 기록 생성
+            const numRecords = Math.floor(Math.random() * 3) + 2;
+            const usedSlots = new Set();
+            
+            for (let i = 0; i < numRecords; i++) {
+                let slotId;
+                do {
+                    slotId = Math.floor(Math.random() * 4) + 1;
+                } while (usedSlots.has(slotId));
+                usedSlots.add(slotId);
+                
+                const [targetH, targetM] = targetTimes[slotId - 1].split(':').map(Number);
+                const recordTime = new Date(date);
+                recordTime.setHours(targetH, targetM + Math.floor(Math.random() * 20) - 5, 0, 0);
+                
+                // 오늘이 아닌 경우에만 히스토리 추가
+                if (dayOffset > 0) {
+                    sensorData.history.push({
+                        sensorId: slotId,
+                        sensorName: sensorNames[slotId - 1],
+                        action: 'removed',
+                        timestamp: recordTime.toISOString(),
+                        returnedAt: new Date(recordTime.getTime() + 5000).toISOString(),
+                        duration: 5
+                    });
+                    
+                    if (!sensorData.dailyStats[dateKey].sensors[slotId]) {
+                        sensorData.dailyStats[dateKey].sensors[slotId] = { count: 0, times: [] };
+                    }
+                    sensorData.dailyStats[dateKey].sensors[slotId].count++;
+                    sensorData.dailyStats[dateKey].sensors[slotId].times.push(recordTime.toISOString());
+                }
+            }
+        }
+        
+        // 히스토리를 최신순으로 정렬
+        sensorData.history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        
+        saveData();
+        console.log('📊 테스트 계정 샘플 데이터 생성 완료');
+    }
 }
 
 loadData();
@@ -430,3 +505,4 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
+
