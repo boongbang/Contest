@@ -132,22 +132,37 @@ function initTestAccountData() {
         };
     }
     
-    // 테스트용 7일치 히스토리 데이터 생성
+    // 테스트용 30일치 히스토리 데이터 생성 (일별/주별/월별 패턴 다양화)
     if (sensorData.history.length === 0) {
-        const sensorNames = ['아침 약', '점심 약', '저녁 약', '취침 약'];
+        const sensorNames = ['아침 약', '점심 약', '저녁 약', '자기전 약'];
         const targetTimes = ['08:00', '13:00', '18:00', '22:00'];
         
-        for (let dayOffset = 6; dayOffset >= 0; dayOffset--) {
+        for (let dayOffset = 29; dayOffset >= 0; dayOffset--) {
             const date = new Date();
             date.setDate(date.getDate() - dayOffset);
             const dateKey = date.toISOString().split('T')[0];
+            const dayOfWeek = date.getDay(); // 0=일, 6=토
+            const weekOfMonth = Math.floor(date.getDate() / 7); // 0~4주차
             
             if (!sensorData.dailyStats[dateKey]) {
                 sensorData.dailyStats[dateKey] = { date: dateKey, sensors: {} };
             }
             
-            // 각 날짜에 랜덤하게 2~4개의 복약 기록 생성
-            const numRecords = Math.floor(Math.random() * 3) + 2;
+            // 요일별/주차별 패턴 다양화
+            let numRecords;
+            if (dayOfWeek === 0 || dayOfWeek === 6) {
+                // 주말: 복약률 낮음 (1~3개)
+                numRecords = Math.floor(Math.random() * 3) + 1;
+            } else if (weekOfMonth === 0) {
+                // 첫째 주: 복약률 높음 (3~4개)
+                numRecords = Math.floor(Math.random() * 2) + 3;
+            } else if (weekOfMonth >= 3) {
+                // 넷째 주 이후: 복약률 중간 (2~3개)
+                numRecords = Math.floor(Math.random() * 2) + 2;
+            } else {
+                // 그 외: 랜덤 (1~4개)
+                numRecords = Math.floor(Math.random() * 4) + 1;
+            }
             const usedSlots = new Set();
             
             for (let i = 0; i < numRecords; i++) {
@@ -532,6 +547,7 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
+
 
 
 
