@@ -16,7 +16,7 @@
             --app-bg: #6B8E6B; /* 아침 */
             --app-bg-lunch: #537053;  /* 점심: 조금 더 어둠 */
             --app-bg-dinner: #3c523c; /* 저녁: 더 어둠 */
-            --app-bg-bed: #253325;    /* 자기전: 가장 어둠 */
+            --app-bg-bed: #253325;    /* 취침: 가장 어둠 */
             
             --app-bg-dark: #556b57;
             --sidebar-bg: #f5f6fa;
@@ -1751,7 +1751,7 @@
                         </div>
                         <div class="med-card" id="medCard-4" data-id="4" onclick="openEditModal(4)">
                             <div class="card-header-area">
-                                <i class="fa-solid fa-bed"></i> <span>자기전</span>
+                                <i class="fa-solid fa-bed"></i> <span>취침 약</span>
                             </div>
                             <div class="card-body-area">
                                 <div>
@@ -2056,7 +2056,7 @@
                             <p style="margin-bottom: 15px;">
                                 다양한 색상으로 변화하는 모습은 <strong>복약 습관의 다양성</strong>과 
                                 <strong>개인화된 건강 관리</strong>를 의미합니다. 
-                                아침, 점심, 저녁, 자기 전 — 각기 다른 시간대에 맞춘 복약 관리처럼, 
+                                아침, 점심, 저녁, 취침 — 각기 다른 시간대에 맞춘 복약 관리처럼, 
                                 모든 사용자의 고유한 건강 패턴을 존중합니다.
                             </p>
                             <p style="background: #e8f5e9; padding: 12px; border-radius: 8px; font-size: 0.9rem;">
@@ -2115,7 +2115,7 @@
                             <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center;">
                                 <div style="font-size: 2rem; margin-bottom: 8px;">💊</div>
                                 <div style="font-weight: 600; margin-bottom: 5px;">4칸 약통</div>
-                                <div style="font-size: 0.8rem; color: #666;">아침/점심/저녁/자기전 관리</div>
+                                <div style="font-size: 0.8rem; color: #666;">아침/점심/저녁/취침 관리</div>
                             </div>
                         </div>
                     </div>
@@ -2321,7 +2321,7 @@
                         <i class="fa-regular fa-moon"></i> 저녁 약
                     </button>
                     <button class="btn-modal btn-save" onclick="selectSlotAndOpen(4)" style="flex:none;">
-                        <i class="fa-solid fa-bed"></i> 자기전
+                        <i class="fa-solid fa-bed"></i> 취침 약
                     </button>
                 </div>
             </div>
@@ -2519,7 +2519,7 @@
         function openEditModal(id) {
             currentEditId = id;
             const data = cardData[id];
-            const titles = ['아침 약', '점심 약', '저녁 약', '자기전'];
+            const titles = ['아침 약', '점심 약', '저녁 약', '취침 약'];
             document.getElementById('modalTitle').textContent = titles[id-1];
 
             tempMeds = JSON.parse(JSON.stringify(data.meds)); 
@@ -2675,7 +2675,7 @@
         // ========== 약물관리 탭 렌더링 (cardData 기반) ==========
         function renderMedicationList() {
             const medList = document.getElementById('medicationListArea');
-            const slotNames = ['아침 약', '점심 약', '저녁 약', '자기전'];
+            const slotNames = ['아침 약', '점심 약', '저녁 약', '취침 약'];
             let medHtml = '';
             let totalMeds = 0;
         
@@ -2719,7 +2719,7 @@
         // ========== 알림 탭 렌더링 (cardData 기반) ==========
         function renderReminderList() {
             const remList = document.getElementById('reminderListArea');
-            const slotNames = ['아침 약', '점심 약', '저녁 약', '자기전'];
+            const slotNames = ['아침 약', '점심 약', '저녁 약', '취침 약'];
             let remHtml = '';
             let hasReminders = false;
 
@@ -2770,7 +2770,7 @@
                 '아침': 0,
                 '점심': 0,
                 '저녁': 0,
-                '자기전': 0
+                '취침': 0
             };
             
             for (let i = 1; i <= 4; i++) {
@@ -2786,7 +2786,7 @@
                     } else if (hour >= 17 && hour < 21) {
                         timeSlots['저녁'] += data.meds.length;
                     } else {
-                        timeSlots['자기전'] += data.meds.length;
+                        timeSlots['취침'] += data.meds.length;
                     }
                 }
             }
@@ -2831,7 +2831,7 @@
                             'rgba(136, 176, 136, 0.9)',  // 아침 - 연한 초록
                             'rgba(107, 142, 107, 0.9)',  // 점심 - 초록
                             'rgba(85, 112, 85, 0.9)',    // 저녁 - 진한 초록
-                            'rgba(62, 82, 62, 0.9)'      // 자기전 - 더 진한 초록
+                            'rgba(62, 82, 62, 0.9)'      // 취침 - 더 진한 초록
                         ],
                         borderWidth: 2,
                         borderColor: '#fff'
