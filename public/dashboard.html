@@ -1140,7 +1140,7 @@
         <div class="content-body">
             <div class="sidebar-container" id="sidebar">
                 <div class="active-indicator"></div>
-
+                
                 <div class="sidebar-item active" data-section="dashboard" onclick="switchSection('dashboard')">
                     <div class="icon-box"><i class="fa-solid fa-chart-pie"></i></div>
                 </div>
@@ -1150,12 +1150,14 @@
                 <div class="sidebar-item" data-section="reminder" onclick="switchSection('reminder')">
                     <div class="icon-box"><i class="fa-regular fa-bell"></i></div>
                 </div>
-
-                <div class="sidebar-item" data-section="device" onclick="switchSection('device')">
-                    <div class="icon-box"><i class="fa-solid fa-microchip"></i></div>
-                </div>
                 <div class="sidebar-item" data-section="stats" onclick="switchSection('stats')">
                     <div class="icon-box"><i class="fa-solid fa-chart-line"></i></div>
+                </div>
+                <div class="sidebar-item" data-section="about" onclick="switchSection('about')">
+                    <div class="icon-box"><i class="fa-solid fa-info-circle"></i></div>
+                </div>
+                <div class="sidebar-item" data-section="device" onclick="switchSection('device')">
+                    <div class="icon-box"><i class="fa-solid fa-microchip"></i></div>
                 </div>
                 
                 <div class="sidebar-filler"></div>
@@ -1489,6 +1491,192 @@
                         <div id="statsHistoryTable" class="stats-history-area">
                             <div class="no-data-message">기록이 없습니다.</div>
                         </div>
+                    </div>
+                </section>
+
+                <section class="page-section" id="aboutSection">
+                    <div class="welcome-text">
+                        <h2>약통 소개</h2>
+                        <p>COSS 프로젝트를 소개합니다.</p>
+                    </div>
+
+                    <!-- 프로젝트 소개 카드 -->
+                    <div class="sensor-card" style="background: linear-gradient(135deg, #6B8E6B 0%, #4a6b4a 100%);">
+                        <div style="text-align: center; padding: 20px 0;">
+                            <div style="font-size: 4rem; margin-bottom: 15px;">💊</div>
+                            <h2 style="font-family: 'Merriweather', serif; font-size: 2rem; margin-bottom: 10px;">COSS</h2>
+                            <p style="font-size: 1.1rem; opacity: 0.9;">Care Of Smart Seniors</p>
+                            <p style="font-size: 0.9rem; opacity: 0.7; margin-top: 5px;">스마트 복약 관리 시스템</p>
+                        </div>
+                    </div>
+
+                    <!-- 프로젝트 개요 -->
+                    <div class="sensor-card" style="background: white; color: #333;">
+                        <div class="sensor-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
+                            <div class="sensor-title" style="color: #6B8E6B; font-weight: 600;">
+                                <i class="fa-solid fa-lightbulb"></i> 프로젝트 개요
+                            </div>
+                        </div>
+                        <div style="line-height: 1.8; font-size: 0.95rem;">
+                            <p style="margin-bottom: 15px;">
+                                <strong>COSS</strong>는 고령자 및 만성질환자의 복약 관리를 돕기 위해 개발된 
+                                <strong>IoT 기반 스마트 약통 시스템</strong>입니다.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                적외선(IR) 센서를 활용하여 약통의 개폐를 실시간으로 감지하고, 
+                                복약 여부를 자동으로 기록합니다. 설정된 복약 시간을 놓치면 
+                                보호자에게 이메일 알림을 발송하여 <strong>복약 순응도를 향상</strong>시킵니다.
+                            </p>
+                            <p>
+                                직관적인 웹 대시보드를 통해 복약 이력, 통계, 패턴 분석을 확인할 수 있으며,
+                                <strong>Arduino R4 WiFi</strong>와 <strong>Node.js 서버</strong>를 기반으로 구축되었습니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 주요 기능 -->
+                    <div class="sensor-card" style="background: white; color: #333;">
+                        <div class="sensor-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
+                            <div class="sensor-title" style="color: #6B8E6B; font-weight: 600;">
+                                <i class="fa-solid fa-star"></i> 주요 기능
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 2rem; margin-bottom: 8px;">📡</div>
+                                <div style="font-weight: 600; margin-bottom: 5px;">실시간 감지</div>
+                                <div style="font-size: 0.8rem; color: #666;">IR 센서로 약통 개폐 즉시 인식</div>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 2rem; margin-bottom: 8px;">📊</div>
+                                <div style="font-weight: 600; margin-bottom: 5px;">복약 통계</div>
+                                <div style="font-size: 0.8rem; color: #666;">시간대별, 요일별 패턴 분석</div>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 2rem; margin-bottom: 8px;">📧</div>
+                                <div style="font-weight: 600; margin-bottom: 5px;">보호자 알림</div>
+                                <div style="font-size: 0.8rem; color: #666;">미복용 시 이메일 자동 발송</div>
+                            </div>
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 2rem; margin-bottom: 8px;">💊</div>
+                                <div style="font-weight: 600; margin-bottom: 5px;">4칸 약통</div>
+                                <div style="font-size: 0.8rem; color: #666;">아침/점심/저녁/자기전 관리</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 시스템 구성 -->
+                    <div class="sensor-card" style="background: white; color: #333;">
+                        <div class="sensor-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
+                            <div class="sensor-title" style="color: #6B8E6B; font-weight: 600;">
+                                <i class="fa-solid fa-microchip"></i> 시스템 구성
+                            </div>
+                        </div>
+                        <div style="line-height: 1.8; font-size: 0.9rem;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 10px; background: #e8f5e9; border-radius: 8px;">
+                                <span style="font-size: 1.5rem;">🔧</span>
+                                <div>
+                                    <strong>하드웨어</strong><br>
+                                    <span style="color: #666;">Arduino R4 WiFi + IR 센서 4개</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 10px; background: #fff3e0; border-radius: 8px;">
+                                <span style="font-size: 1.5rem;">⚙️</span>
+                                <div>
+                                    <strong>백엔드</strong><br>
+                                    <span style="color: #666;">Node.js + Express + MariaDB</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: #e3f2fd; border-radius: 8px;">
+                                <span style="font-size: 1.5rem;">🌐</span>
+                                <div>
+                                    <strong>프론트엔드</strong><br>
+                                    <span style="color: #666;">반응형 웹 대시보드 (HTML/CSS/JS)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 팀 소개 -->
+                    <div class="sensor-card" style="background: white; color: #333;">
+                        <div class="sensor-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
+                            <div class="sensor-title" style="color: #6B8E6B; font-weight: 600;">
+                                <i class="fa-solid fa-users"></i> 16팀 소개
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 15px; padding: 12px; background: linear-gradient(135deg, #6B8E6B22 0%, #6B8E6B11 100%); border-radius: 12px; border-left: 4px solid #6B8E6B;">
+                                <div style="width: 50px; height: 50px; background: #6B8E6B; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">임</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; margin-bottom: 3px;">임병현</div>
+                                    <div style="font-size: 0.8rem; color: #666;">중앙대학교 공간연출학과</div>
+                                    <div style="font-size: 0.75rem; color: #6B8E6B; margin-top: 3px;">
+                                        <i class="fa-solid fa-code"></i> PM / 풀스택 개발 / UI·UX 디자인
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 15px; padding: 12px; background: linear-gradient(135deg, #5c7cfa22 0%, #5c7cfa11 100%); border-radius: 12px; border-left: 4px solid #5c7cfa;">
+                                <div style="width: 50px; height: 50px; background: #5c7cfa; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">김</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; margin-bottom: 3px;">김지우</div>
+                                    <div style="font-size: 0.8rem; color: #666;">중앙대학교 응용통계학과</div>
+                                    <div style="font-size: 0.75rem; color: #5c7cfa; margin-top: 3px;">
+                                        <i class="fa-solid fa-chart-bar"></i> 데이터 분석 / 통계 모델링
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 15px; padding: 12px; background: linear-gradient(135deg, #f0659522 0%, #f0659511 100%); border-radius: 12px; border-left: 4px solid #f06595;">
+                                <div style="width: 50px; height: 50px; background: #f06595; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">김</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; margin-bottom: 3px;">김수민</div>
+                                    <div style="font-size: 0.8rem; color: #666;">중앙대학교 전자전기공학부</div>
+                                    <div style="font-size: 0.75rem; color: #f06595; margin-top: 3px;">
+                                        <i class="fa-solid fa-microchip"></i> 하드웨어 설계 / 펌웨어 개발
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 15px; padding: 12px; background: linear-gradient(135deg, #fcc41922 0%, #fcc41911 100%); border-radius: 12px; border-left: 4px solid #fcc419;">
+                                <div style="width: 50px; height: 50px; background: #fcc419; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">박</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; margin-bottom: 3px;">박서연</div>
+                                    <div style="font-size: 0.8rem; color: #666;">중앙대학교 전자전기공학부</div>
+                                    <div style="font-size: 0.75rem; color: #e6a800; margin-top: 3px;">
+                                        <i class="fa-solid fa-network-wired"></i> 회로 설계 / 센서 통합
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 개발 배경 -->
+                    <div class="sensor-card" style="background: white; color: #333;">
+                        <div class="sensor-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
+                            <div class="sensor-title" style="color: #6B8E6B; font-weight: 600;">
+                                <i class="fa-solid fa-heart"></i> 개발 배경
+                            </div>
+                        </div>
+                        <div style="line-height: 1.8; font-size: 0.95rem;">
+                            <p style="margin-bottom: 15px;">
+                                고령화 사회로 접어들면서 만성질환자의 복약 순응도 문제가 심각해지고 있습니다.
+                                WHO에 따르면 만성질환자의 <strong>약 50%가 처방대로 약을 복용하지 않으며</strong>,
+                                이로 인한 건강 악화와 의료비 증가가 사회적 문제로 대두되고 있습니다.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                특히 독거노인이나 치매 초기 환자의 경우, 복약 시간을 잊거나 
+                                이미 복용했는지 기억하지 못하는 경우가 빈번합니다.
+                            </p>
+                            <p>
+                                <strong>COSS</strong>는 이러한 문제를 해결하기 위해 개발되었습니다.
+                                자동화된 복약 감지와 보호자 알림 시스템을 통해
+                                <strong>안전하고 건강한 복약 습관</strong>을 만들어 갑니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 푸터 -->
+                    <div style="text-align: center; padding: 30px 0; color: rgba(255,255,255,0.7); font-size: 0.85rem;">
+                        <p>© 2025 COSS - 16팀</p>
+                        <p style="margin-top: 5px;">중앙대학교 AI·SW융합학부 프로젝트</p>
                     </div>
                 </section>
 
