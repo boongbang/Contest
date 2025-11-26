@@ -1167,7 +1167,7 @@
         }
         
         .refill-btn.start {
-            background: linear-gradient(135deg, #FFB74D 0%, #FF9800 100%);
+            background: #93B596; /* 사진의 색상 적용 */
             color: white;
         }
         
@@ -1485,7 +1485,9 @@
                         </div>
                         
                         <div class="refill-status" id="refillStatusArea">
-                            <div class="refill-status-icon" id="refillStatusIcon">💊</div>
+                            <div class="refill-status-icon" id="refillStatusIcon">
+                                <i class="fa-solid fa-pills" style="color: white;"></i>
+                            </div>
                             <div class="refill-status-text" id="refillStatusText">정상 모니터링 중</div>
                             <div class="refill-status-sub" id="refillStatusSub">센서가 복용을 감지합니다</div>
                         </div>
@@ -3720,7 +3722,7 @@
                 refillOptions.style.display = 'block';
             } else {
                 statusArea.classList.remove('active');
-                statusIcon.textContent = '💊';
+                statusIcon.innerHTML = '<i class="fa-solid fa-pills" style="color: white;"></i>';
                 statusText.textContent = '정상 모니터링 중';
                 statusSub.textContent = '센서가 복용을 감지합니다';
                 refillBtn.className = 'refill-btn start';
