@@ -1574,6 +1574,17 @@
         }
         
         .refill-delete-btn:hover { background: rgba(244,67,54,0.4); }
+        /* 복약 통계 인사이트 스타일 */
+        .stats-insight {
+            background: transparent;
+            border-left: none;
+            padding: 15px 5px;
+            border-radius: 0;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 15px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -1963,9 +1974,10 @@
                             <canvas id="statsActivityChart"></canvas>
                         </div>
                         <div id="statsActivitySummary" style="text-align: center; font-size: 0.8rem; color: #888; margin-top: 10px;"></div>
-                        <div class="stats-insight" id="statsActivityInsight">
-                            💡 데이터를 분석 중입니다...
-                        </div>
+                    </div>
+                    
+                    <div class="stats-insight" id="statsActivityInsight">
+                        💡 데이터를 분석 중입니다...
                     </div>
 
                     <!-- 상세 기록 -->
