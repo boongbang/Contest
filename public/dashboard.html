@@ -1605,8 +1605,13 @@
                         <div class="section-header">
                             <div class="section-title">복약 시간 분포</div>
                         </div>
-                        <div id="timeDistributionContainer" style="position: relative; width: 100%;">
-                            <canvas id="timeDistributionChart"></canvas>
+                        <div class="chart-section">
+                            <div class="section-header">
+                                <div class="section-title">복약 시간 분포</div>
+                            </div>
+                            <div id="timeDistributionContainer" style="position: relative; height: 180px; width: 100%;">
+                                <canvas id="timeDistributionChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -2645,13 +2650,12 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
-                    aspectRatio: 1.3, 
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             position: 'bottom',
                             labels: {
-                                padding: 25, 
+                                padding: 20, 
                                 usePointStyle: true,
                                 font: { size: 11 }
                             }
