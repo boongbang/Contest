@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
         :root {
@@ -926,6 +927,11 @@
         .stats-history-area {
             max-height: 300px;
             overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .stats-history-area::-webkit-scrollbar {
+            display: none;
         }
         
         .stats-history-item {
@@ -1354,7 +1360,7 @@
                                 <div class="sensor-value off" id="rawSensor4">0</div>
                             </div>
                         </div>
-                        <p style="font-size:0.8rem; color:#888; margin-top:10px;">0 = 약통 있음 (OFF) / 1 = 약통 분리됨 (ON)</p>
+                        <p style="font-size:0.8rem; color:rgba(255,255,255,0.7); margin-top:10px;">0 = 약통 있음 (OFF) / 1 = 약통 분리됨 (ON)</p>
                     </div>
 
                     <div class="sensor-card">
@@ -1363,8 +1369,8 @@
                         </div>
                         <div class="setting-row">
                             <div class="setting-info">
-                                <div class="setting-title">모든 알림</div>
-                                <div class="setting-desc">복약 알림 및 보호자 이메일</div>
+                                <div class="setting-title" style="color: rgba(255,255,255,0.95);">모든 알림</div>
+                                <div class="setting-desc" style="color: rgba(255,255,255,0.6);">복약 알림 및 보호자 이메일</div>
                             </div>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="notifEnabled" checked onchange="updateNotificationSettings()">
@@ -1373,8 +1379,8 @@
                         </div>
                         <div class="setting-row">
                             <div class="setting-info">
-                                <div class="setting-title">야간 모드</div>
-                                <div class="setting-desc">22시~06시 알림 무음</div>
+                                <div class="setting-title" style="color: rgba(255,255,255,0.95);">야간 모드</div>
+                                <div class="setting-desc" style="color: rgba(255,255,255,0.6);">22시~06시 알림 무음</div>
                             </div>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="nightModeEnabled" onchange="updateNotificationSettings()">
@@ -1493,20 +1499,51 @@
                         </div>
                     </div>
                 </section>
-
+                
                 <section class="page-section" id="aboutSection">
                     <div class="welcome-text">
                         <h2>약통 소개</h2>
                         <p>COSS 프로젝트를 소개합니다.</p>
                     </div>
 
-                    <!-- 프로젝트 소개 카드 -->
-                    <div class="sensor-card" style="background: linear-gradient(135deg, #6B8E6B 0%, #4a6b4a 100%);">
-                        <div style="text-align: center; padding: 20px 0;">
-                            <div style="font-size: 4rem; margin-bottom: 15px;">💊</div>
-                            <h2 style="font-family: 'Merriweather', serif; font-size: 2rem; margin-bottom: 10px;">COSS</h2>
-                            <p style="font-size: 1.1rem; opacity: 0.9;">Care Of Smart Seniors</p>
-                            <p style="font-size: 0.9rem; opacity: 0.7; margin-top: 5px;">스마트 복약 관리 시스템</p>
+                    <!-- 프로젝트 소개 카드 - 미디어아트 -->
+                    <div class="sensor-card" style="background: #1a1a1a; padding: 0; overflow: hidden; position: relative;">
+                        <div id="heartArtContainer" style="width: 100%; height: 280px; position: relative;">
+                            <canvas id="heartCanvas" style="width: 100%; height: 100%;"></canvas>
+                        </div>
+                        <div style="text-align: center; padding: 20px; background: linear-gradient(to top, rgba(26,26,26,1) 0%, rgba(26,26,26,0.8) 100%); position: relative; margin-top: -60px;">
+                            <h2 style="font-family: 'Merriweather', serif; font-size: 1.8rem; margin-bottom: 8px; color: #fff;">COSS</h2>
+                            <p style="font-size: 1rem; color: rgba(255,255,255,0.9);">Care Of Smart Seniors</p>
+                            <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-top: 5px;">스마트 복약 관리 시스템</p>
+                        </div>
+                    </div>
+
+                    <!-- 미디어아트 설명 -->
+                    <div class="sensor-card" style="background: white; color: #333;">
+                        <div class="sensor-header" style="border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 15px;">
+                            <div class="sensor-title" style="color: #6B8E6B; font-weight: 600;">
+                                <i class="fa-solid fa-heart-pulse"></i> 심장 미디어아트의 의미
+                            </div>
+                        </div>
+                        <div style="line-height: 1.8; font-size: 0.95rem;">
+                            <p style="margin-bottom: 15px;">
+                                위의 인터랙티브 아트는 <strong>심장의 박동</strong>을 형상화한 것입니다. 
+                                클릭할 때마다 심장이 뛰듯이 수축하고 이완하며, 생명의 리듬을 표현합니다.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                이 심장은 <strong>COSS가 지키고자 하는 가치</strong>를 상징합니다. 
+                                매일 제시간에 약을 복용하는 것은 심장이 규칙적으로 뛰는 것처럼 
+                                <strong>건강한 삶의 리듬</strong>을 유지하는 일입니다.
+                            </p>
+                            <p style="margin-bottom: 15px;">
+                                다양한 색상으로 변화하는 모습은 <strong>복약 습관의 다양성</strong>과 
+                                <strong>개인화된 건강 관리</strong>를 의미합니다. 
+                                아침, 점심, 저녁, 자기 전 — 각기 다른 시간대에 맞춘 복약 관리처럼, 
+                                모든 사용자의 고유한 건강 패턴을 존중합니다.
+                            </p>
+                            <p style="background: #e8f5e9; padding: 12px; border-radius: 8px; font-size: 0.9rem;">
+                                💚 <strong>COSS</strong>는 사랑하는 가족의 심장이 오래도록 건강하게 뛰기를 바라는 마음으로 만들어졌습니다.
+                            </p>
                         </div>
                     </div>
 
@@ -2899,7 +2936,161 @@
             if (section === 'stats') {
                 loadStatsData();
             }
+            if (section === 'about') {
+                initHeartArt();
+            }
         };
+
+        // ========== 심장 미디어아트 (Three.js) ==========
+        let heartScene, heartCamera, heartRenderer, heartSphere, heartGeometry;
+        let heartOriginalPositions, heartPulseTime = 0, heartIsPulsing = false;
+        let heartRotation = 0, heartCurrentPaletteIndex = 0;
+        let heartAnimationId = null;
+        let heartInitialized = false;
+
+        const heartColorPalettes = [
+            ['#0A3B0A', '#D4AF37', '#8B4513', '#F0E6D2', '#3D2B1F'],
+            ['#004225', '#FADADD', '#B0B0B0', '#333333'],
+            ['#2F4F2F', '#E07A5F', '#F4F1DE', '#6B4F4F', '#F7F3E3'],
+            ['#013220', '#000080', '#4A90E2', '#E1E5EA'],
+            ['#228B22', '#800020', '#FFDB58', '#FDF5E6', '#5C4033'],
+            ['#193A1F', '#E6E6FA', '#483D8B', '#C0C0C0'],
+            ['#005000', '#CC5500', '#E1AD01', '#FFF8DC', '#3E2723'],
+            ['#004B49', '#AFE1AF', '#F4A460', '#87CEEB'],
+            ['#0A3B0A', '#2E8B57', '#8FBC8F', '#F0FFF0', '#474747'],
+            ['#004d00', '#0F52BA', '#E0115F', '#FFD700']
+        ];
+
+        function initHeartArt() {
+            if (heartInitialized) return;
+            
+            const container = document.getElementById('heartArtContainer');
+            const canvas = document.getElementById('heartCanvas');
+            if (!container || !canvas || typeof THREE === 'undefined') return;
+
+            heartScene = new THREE.Scene();
+            heartScene.background = new THREE.Color(0x1a1a1a);
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            heartCamera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            heartCamera.position.z = 2.6;
+
+            heartRenderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            heartRenderer.setSize(width, height);
+            heartRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            heartGeometry = new THREE.SphereGeometry(1, 120, 120);
+            
+            const vertexCount = heartGeometry.attributes.position.count;
+            const colors = new Float32Array(vertexCount * 3);
+            heartGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const wireframeMaterial = new THREE.MeshBasicMaterial({ 
+                wireframe: true,
+                vertexColors: true
+            });
+            heartSphere = new THREE.Mesh(heartGeometry, wireframeMaterial);
+            heartScene.add(heartSphere);
+
+            const faceMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x888888,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.15
+            });
+            const faceMesh = new THREE.Mesh(heartGeometry, faceMaterial);
+            heartScene.add(faceMesh);
+
+            heartOriginalPositions = heartGeometry.attributes.position.array.slice();
+            
+            applyHeartPaletteColors(0);
+            
+            container.addEventListener('click', triggerHeartPulse);
+            container.style.cursor = 'pointer';
+
+            heartInitialized = true;
+            animateHeart();
+        }
+
+        function applyHeartPaletteColors(paletteIndex) {
+            const palette = heartColorPalettes[paletteIndex];
+            const colorAttribute = heartGeometry.attributes.color;
+            const color = new THREE.Color();
+            const vertexCount = heartGeometry.attributes.position.count;
+            
+            for (let i = 0; i < vertexCount; i++) {
+                const colorHex = palette[i % palette.length];
+                color.set(colorHex);
+                colorAttribute.setXYZ(i, color.r, color.g, color.b);
+            }
+            colorAttribute.needsUpdate = true;
+        }
+
+        function triggerHeartPulse() {
+            if (!heartIsPulsing) {
+                heartIsPulsing = true;
+                heartPulseTime = 0;
+                heartCurrentPaletteIndex = (heartCurrentPaletteIndex + 1) % heartColorPalettes.length;
+                applyHeartPaletteColors(heartCurrentPaletteIndex);
+            }
+        }
+
+        function animateHeart() {
+            if (!heartInitialized) return;
+            heartAnimationId = requestAnimationFrame(animateHeart);
+
+            heartRotation += 0.003;
+            heartSphere.rotation.y = heartRotation;
+            heartSphere.rotation.x = heartRotation * 0.6;
+
+            const positions = heartGeometry.attributes.position.array;
+            const time = Date.now() * 0.0005;
+
+            if (heartIsPulsing) {
+                heartPulseTime += 0.025;
+                if (heartPulseTime > 2) {
+                    heartIsPulsing = false;
+                    heartPulseTime = 0;
+                }
+            }
+
+            for (let i = 0; i < positions.length; i += 3) {
+                const x = heartOriginalPositions[i];
+                const y = heartOriginalPositions[i + 1];
+                const z = heartOriginalPositions[i + 2];
+
+                const turb1 = Math.sin(x * 5 + time * 3) * Math.cos(y * 4 - time * 2);
+                const turb2 = Math.sin(z * 6 + time * 1.5) * Math.cos(x * 3 + time);
+                const turbulence = (turb1 + turb2) * 0.08;
+
+                const angle = Math.atan2(y, x) + time * 0.5;
+                const spiral = Math.sin(angle * 5 + z * 10) * 0.06;
+
+                let implosionEffect = 0;
+                if (heartIsPulsing) {
+                    const t = heartPulseTime / 2;
+                    if (t < 0.2) {
+                        implosionEffect = -Math.pow(t / 0.2, 2) * 0.4;
+                    } else if (t < 0.5) {
+                        const releaseT = (t - 0.2) / 0.3;
+                        implosionEffect = -0.4 * (1 - releaseT) + Math.sin(releaseT * Math.PI * 2) * 0.12 * (1 - releaseT);
+                    } else {
+                        const dampT = (t - 0.5) / 0.5;
+                        implosionEffect = Math.sin(dampT * Math.PI * 3) * 0.06 * Math.exp(-dampT * 4);
+                    }
+                }
+
+                const scale = 1 + turbulence + spiral + implosionEffect;
+                positions[i] = x * scale;
+                positions[i + 1] = y * scale;
+                positions[i + 2] = z * scale;
+            }
+
+            heartGeometry.attributes.position.needsUpdate = true;
+            heartRenderer.render(heartScene, heartCamera);
+        }
         
     </script>
 </body>
