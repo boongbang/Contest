@@ -479,14 +479,18 @@ app.get('/api/reports/detailed', authenticateToken, (req, res) => {
 app.get('/api/medications', authenticateToken, (req, res) => res.json(Object.values(sensorData.sensors)));
 
 app.get('/api/notifications/check', authenticateToken, (req, res) => {
-    const now = new Date(), alerts = [];
+    // 한국 시간 기준으로 계산
+    const now = new Date();
+    const kstOffset = 9 * 60; // UTC+9
+    const kstNow = new Date(now.getTime() + (kstOffset + now.getTimezoneOffset()) * 60000);
+    const alerts = [];
     if (!sensorData.notificationSettings.enabled) return res.json({ alerts: [] });
     for (let id in sensorData.sensors) {
         const sensor = sensorData.sensors[id];
         if (sensor.todayOpened) continue;
         const [tHour, tMin] = sensor.targetTime.split(':').map(Number);
-        const targetDate = new Date(now); targetDate.setHours(tHour, tMin, 0, 0);
-        const diffMinutes = Math.round((now - targetDate) / 1000 / 60);
+        const targetDate = new Date(kstNow); targetDate.setHours(tHour, tMin, 0, 0);
+        const diffMinutes = Math.round((kstNow - targetDate) / 1000 / 60);
         if (diffMinutes > 0 && diffMinutes <= 30) alerts.push({ sensorId: id, type: 'warning', message: `🔔 ${sensor.emoji} ${sensor.name} 복용 시간입니다! (${diffMinutes}분 지남)`, playSound: true });
     }
     res.json({ alerts });
@@ -528,4 +532,5 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
+
 
