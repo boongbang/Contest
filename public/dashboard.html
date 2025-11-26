@@ -1214,7 +1214,74 @@
             background: #4CAF50;
             color: white;
         }
-        .refill-modal-btn:hover {
+
+        /* 삭제 확인 모달 */
+        .delete-confirm-modal {
+            background: white;
+            width: 90%;
+            max-width: 320px;
+            border-radius: 20px;
+            overflow: hidden;
+            animation: modalIn 0.3s ease;
+        }
+        
+        .delete-confirm-header {
+            background: linear-gradient(135deg, #FF6B6B 0%, #EE5A5A 100%);
+            padding: 25px;
+            text-align: center;
+            color: white;
+        }
+        
+        .delete-confirm-header i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .delete-confirm-header h3 {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        
+        .delete-confirm-body {
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .delete-confirm-body p {
+            color: #666;
+            font-size: 0.95rem;
+            margin: 0;
+            line-height: 1.6;
+        }
+        
+        .delete-confirm-footer {
+            display: flex;
+            gap: 10px;
+            padding: 0 25px 25px;
+        }
+        
+        .delete-confirm-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .delete-confirm-btn.cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .delete-confirm-btn.delete {
+            background: #FF6B6B;
+            color: white;
+        }
+        
+        .delete-confirm-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
@@ -4295,8 +4362,23 @@
             }
         }
         
-        async function deleteHistoryItem(index) {
-            if (!confirm('이 복용 기록을 삭제하시겠습니까?')) return;
+        let pendingDeleteIndex = null;
+        
+        function deleteHistoryItem(index) {
+            pendingDeleteIndex = index;
+            document.getElementById('deleteConfirmModal').classList.add('show');
+        }
+        
+        function closeDeleteConfirmModal() {
+            document.getElementById('deleteConfirmModal').classList.remove('show');
+            pendingDeleteIndex = null;
+        }
+        
+        async function confirmDeleteHistoryItem() {
+            if (pendingDeleteIndex === null) return;
+            
+            const index = pendingDeleteIndex;
+            closeDeleteConfirmModal();
             
             try {
                 const res = await fetch(`${API_URL}/api/history/${index}`, {
@@ -4307,7 +4389,9 @@
                 if (data.success) {
                     showToast('기록이 삭제되었습니다', 'success');
                     loadRefillHistory();
-                    loadDashboard();
+                    loadDashboardData();
+                } else {
+                    showToast('삭제에 실패했습니다', 'error');
                 }
             } catch (e) {
                 console.error('삭제 실패:', e);
@@ -4343,6 +4427,22 @@
                     <div class="refill-modal-footer">
                         <button class="refill-modal-btn cancel" onclick="closeRefillModal()">취소</button>
                         <button class="refill-modal-btn confirm" id="refillModalConfirmBtn" onclick="confirmRefillAction()">시작</button>
+                    </div>
+                </div>
+            </div>
+            <!-- 삭제 확인 모달 -->
+            <div class="refill-modal-overlay" id="deleteConfirmModal">
+                <div class="delete-confirm-modal">
+                    <div class="delete-confirm-header">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <h3>기록 삭제</h3>
+                    </div>
+                    <div class="delete-confirm-body">
+                        <p id="deleteConfirmMessage">이 복용 기록을 삭제하시겠습니까?</p>
+                    </div>
+                    <div class="delete-confirm-footer">
+                        <button class="delete-confirm-btn cancel" onclick="closeDeleteConfirmModal()">취소</button>
+                        <button class="delete-confirm-btn delete" onclick="confirmDeleteHistoryItem()">삭제</button>
                     </div>
                 </div>
             </div>
