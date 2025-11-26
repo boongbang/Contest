@@ -65,7 +65,6 @@ let sensorData = {
     userMedications: {},
     deviceInfo: { ipAddress: null, firmwareVersion: '1.0.0', lastHeartbeat: null, isOnline: false },
     isRefillMode: false,
-    isRefillMode: false,
     refillStartTime: null,
     notificationSettings: { enabled: true, nightModeEnabled: false, nightStart: '22:00', nightEnd: '06:00' }
 };
@@ -288,7 +287,7 @@ app.post('/value', (req, res) => {
     // 리필 모드일 때는 복용 기록을 생성하지 않음
     if (sensorData.isRefillMode) {
         console.log('📦 리필 모드 - 복용 기록 건너뜀');
-        return;
+        return res.json({ success: true, ignored: true });
     }
     if (sensorData.isRefillMode) return res.json({ success: true, ignored: true });
     const finalSensorId = parseInt(sensorId, 10), finalValue = parseInt(value, 10);
@@ -406,12 +405,64 @@ app.get('/api/refill/status', authenticateToken, (req, res) => res.json({
     isRefillMode: sensorData.isRefillMode,
     refillStartTime: sensorData.refillStartTime
 }));
-app.post('/api/refill/start', authenticateToken, (req, res) => { 
-    sensorData.isRefillMode = true; 
-    sensorData.refillStartTime = new Date().toISOString();
-    saveData(); 
-    res.json({ success: true, isRefillMode: true, refillStartTime: sensorData.refillStartTime }); 
+app.post('/api/refill/end', authenticateToken, (req, res) => {
+    const { refilledSlots, deleteRecordsDuringRefill } = req.body;
+    let deletedCount = 0;
+    if (deleteRecordsDuringRefill && sensorData.refillStartTime) {
+        const refillStart = new Date(sensorData.refillStartTime).getTime();
+        const originalLength = sensorData.history.length;
+        sensorData.history = sensorData.history.filter(h => new Date(h.timestamp).getTime() < refillStart);
+        deletedCount = originalLength - sensorData.history.length;
+    }
+    sensorData.isRefillMode = false;
+    sensorData.refillStartTime = null;
+    if (refilledSlots && Array.isArray(refilledSlots)) refilledSlots.forEach(slotId => { if (sensorData.sensors[slotId]) { sensorData.sensors[slotId].todayOpened = false; sensorData.sensors[slotId].missedAlertSent = false; } });
+    saveData();
+    res.json({ success: true, isRefillMode: false, deletedCount });
 });
+```
+
+---
+
+## 📱 결과 UI 미리보기
+```
+┌─────────────────────────────────────────┐
+│  💊 약 보충 관리            🟢 ON       │
+├─────────────────────────────────────────┤
+│         ┌──────────────────┐            │
+│         │       💊         │            │
+│         │  정상 모니터링 중  │            │
+│         │ 센서가 복용을 감지 │            │
+│         └──────────────────┘            │
+│                                         │
+│    ┌─────────────────────────────┐      │
+│    │   💊 약 보충 시작            │      │
+│    └─────────────────────────────┘      │
+│                                         │
+│  ▼ 최근 복용 기록 (수동 삭제)           │
+│    ├ 아침 약 - 11/26 08:30  [삭제]      │
+│    ├ 점심 약 - 11/25 13:15  [삭제]      │
+│    └ 저녁 약 - 11/25 18:45  [삭제]      │
+└─────────────────────────────────────────┘
+```
+
+**리필 모드 활성화 시:**
+```
+┌─────────────────────────────────────────┐
+│  💊 약 보충 관리          🟡 일시중단    │
+├─────────────────────────────────────────┤
+│       ┌────────────────────┐            │
+│       │        📦          │  (노란 테두리)
+│       │    약 보충 중...    │            │
+│       │ 14:30부터 센서 중단 │            │
+│       └────────────────────┘            │
+│                                         │
+│    ┌─────────────────────────────┐      │
+│    │   ✓ 약 보충 완료            │ (초록)│
+│    └─────────────────────────────┘      │
+│                                         │
+│  ☑️ ⚠️ 보충 중 잘못 기록된 복용 삭제    │
+└─────────────────────────────────────────┘
 app.post('/api/refill/end', authenticateToken, (req, res) => {
     const { refilledSlots, deleteRecordsDuringRefill } = req.body;
     
@@ -543,5 +594,6 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
+
 
 
