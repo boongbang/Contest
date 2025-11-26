@@ -289,7 +289,6 @@ app.post('/value', (req, res) => {
         console.log('📦 리필 모드 - 복용 기록 건너뜀');
         return res.json({ success: true, ignored: true });
     }
-    if (sensorData.isRefillMode) return res.json({ success: true, ignored: true });
     const finalSensorId = parseInt(sensorId, 10), finalValue = parseInt(value, 10);
     if (finalSensorId < 1 || finalSensorId > 4) return res.status(400).json({ error: 'Invalid sensor ID' });
     const sensor = sensorData.sensors[finalSensorId];
@@ -594,6 +593,7 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
+
 
 
 
