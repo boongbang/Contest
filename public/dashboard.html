@@ -914,17 +914,7 @@
             height: 180px;
             margin: 15px 0;
         }
-        
-        .stats-insight {
-            background: rgba(107, 142, 107, 0.1);
-            border-left: 3px solid var(--app-bg);
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            color: #ffffff;
-            margin-top: 10px;
-        }
-        
+              
         .stats-period-label {
             background: rgba(255,255,255,0.2);
             padding: 4px 12px;
@@ -1961,30 +1951,20 @@
                         </div>
                     </div>
 
-                    <!-- 시간대별 차트 -->
-                    <div class="sensor-card">
-                        <div class="sensor-header">
-                            <div class="sensor-title"><i class="fa-regular fa-clock"></i> 시간대별 복약</div>
+                    <!-- 활동 차트 (대시보드와 동기화) -->
+                    <div class="chart-section">
+                        <div class="section-header">
+                            <div class="section-title" id="statsActivityChartTitle">주간 활동</div>
+                            <div class="activity-period-tabs">
+                                <button class="activity-tab stats-activity-tab" data-period="daily" onclick="switchActivityPeriod('daily')">일별</button>
+                                <button class="activity-tab stats-activity-tab active" data-period="weekly" onclick="switchActivityPeriod('weekly')">주별</button>
+                                <button class="activity-tab stats-activity-tab" data-period="monthly" onclick="switchActivityPeriod('monthly')">월별</button>
+                            </div>
                         </div>
-                        <div class="stats-chart-container">
-                            <canvas id="hourlyStatsChart"></canvas>
+                        <div class="chart-container">
+                            <canvas id="statsActivityChart"></canvas>
                         </div>
-                        <div class="stats-insight" id="hourlyInsight">
-                            💡 데이터를 분석 중입니다...
-                        </div>
-                    </div>
-
-                    <!-- 요일별 차트 -->
-                    <div class="sensor-card">
-                        <div class="sensor-header">
-                            <div class="sensor-title"><i class="fa-regular fa-calendar"></i> 요일별 복약</div>
-                        </div>
-                        <div class="stats-chart-container">
-                            <canvas id="weekdayStatsChart"></canvas>
-                        </div>
-                        <div class="stats-insight" id="weekdayInsight">
-                            💡 데이터를 분석 중입니다...
-                        </div>
+                        <div id="statsActivitySummary" style="text-align: center; font-size: 0.8rem; color: #888; margin-top: 10px;"></div>
                     </div>
 
                     <!-- 상세 기록 -->
@@ -2341,6 +2321,7 @@
         let userInfo = null;
         let currentSection = 'dashboard';
         let activityChart = null;
+        let statsActivityChart = null;  // 통계 탭용 차트
         let currentActivityPeriod = 'weekly';
         let timeChart = null;
         let sensorCheckInterval = null;
@@ -3143,13 +3124,22 @@
         function switchActivityPeriod(period) {
             currentActivityPeriod = period;
             
-            // 탭 UI 업데이트
-            document.querySelectorAll('.activity-tab').forEach(t => t.classList.remove('active'));
-            document.querySelector(`.activity-tab[data-period="${period}"]`).classList.add('active');
+            // 대시보드 탭 UI 업데이트
+            document.querySelectorAll('.activity-tab:not(.stats-activity-tab)').forEach(t => t.classList.remove('active'));
+            const dashboardTab = document.querySelector(`.activity-tab:not(.stats-activity-tab)[data-period="${period}"]`);
+            if (dashboardTab) dashboardTab.classList.add('active');
             
-            // 타이틀 업데이트
+            // 통계 탭 UI 업데이트
+            document.querySelectorAll('.stats-activity-tab').forEach(t => t.classList.remove('active'));
+            const statsTab = document.querySelector(`.stats-activity-tab[data-period="${period}"]`);
+            if (statsTab) statsTab.classList.add('active');
+            
+            // 타이틀 업데이트 (대시보드 & 통계)
             const titles = { daily: '오늘 활동', weekly: '주간 활동', monthly: '월간 활동' };
-            document.getElementById('activityChartTitle').textContent = titles[period];
+            const dashboardTitle = document.getElementById('activityChartTitle');
+            const statsTitle = document.getElementById('statsActivityChartTitle');
+            if (dashboardTitle) dashboardTitle.textContent = titles[period];
+            if (statsTitle) statsTitle.textContent = titles[period];
             
             // 차트 다시 로드
             loadActivityChart(period);
@@ -3180,8 +3170,11 @@
         
         // 일별 차트: 오늘 24시간 시간대별 복용 현황 (바 차트)
         function renderDailyActivityChart(data) {
-            const ctx = document.getElementById('activityChart').getContext('2d');
+            // 대시보드 차트
+            const ctx = document.getElementById('activityChart');
+            const ctxStats = document.getElementById('statsActivityChart');
             if (activityChart) activityChart.destroy();
+            if (statsActivityChart) statsActivityChart.destroy();
             
             // 오늘 날짜 필터링
             const today = new Date();
@@ -3212,7 +3205,7 @@
                 return 'rgba(107, 142, 107, 0.3)';
             });
             
-            activityChart = new Chart(ctx, {
+            const chartConfig = {
                 type: 'bar',
                 data: {
                     labels: Array.from({length: 24}, (_, i) => `${i}시`),
@@ -3253,17 +3246,32 @@
                         }
                     }
                 }
-            });
+            };
+            
+            // 대시보드 차트 생성
+            if (ctx) {
+                activityChart = new Chart(ctx.getContext('2d'), chartConfig);
+            }
+            
+            // 통계 차트 생성 (동일한 설정 사용)
+            if (ctxStats) {
+                statsActivityChart = new Chart(ctxStats.getContext('2d'), JSON.parse(JSON.stringify(chartConfig)));
+            }
             
             // 요약 표시
-            document.getElementById('activitySummary').innerHTML = 
-                `오늘 총 <strong>${totalToday}회</strong> 복용 완료`;
+            const summaryHTML = `오늘 총 <strong>${totalToday}회</strong> 복용 완료`;
+            const dashboardSummary = document.getElementById('activitySummary');
+            const statsSummary = document.getElementById('statsActivitySummary');
+            if (dashboardSummary) dashboardSummary.innerHTML = summaryHTML;
+            if (statsSummary) statsSummary.innerHTML = summaryHTML;
         }
         
         // 주별 차트: 최근 7일 일별 복용 횟수 (라인 차트)
         function renderWeeklyActivityChart(data) {
-            const ctx = document.getElementById('activityChart').getContext('2d');
+            const ctx = document.getElementById('activityChart');
+            const ctxStats = document.getElementById('statsActivityChart');
             if (activityChart) activityChart.destroy();
+            if (statsActivityChart) statsActivityChart.destroy();
             
             // 최근 7일 날짜 생성
             const days = [];
@@ -3296,11 +3304,7 @@
                 return dayLabels[d.getDay()];
             });
             
-            let gradient = ctx.createLinearGradient(0, 0, 0, 200);
-            gradient.addColorStop(0, 'rgba(107, 142, 107, 0.3)');
-            gradient.addColorStop(1, 'rgba(107, 142, 107, 0)');
-            
-            activityChart = new Chart(ctx, {
+            const chartConfig = {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -3347,18 +3351,44 @@
                         }
                     }
                 }
-            });
+            };
+            
+            // 대시보드 차트 생성
+            if (ctx) {
+                const ctxDashboard = ctx.getContext('2d');
+                let gradient = ctxDashboard.createLinearGradient(0, 0, 0, 200);
+                gradient.addColorStop(0, 'rgba(107, 142, 107, 0.3)');
+                gradient.addColorStop(1, 'rgba(107, 142, 107, 0)');
+                chartConfig.data.datasets[0].backgroundColor = gradient;
+                activityChart = new Chart(ctxDashboard, chartConfig);
+            }
+            
+            // 통계 차트 생성
+            if (ctxStats) {
+                const ctxStatsCanvas = ctxStats.getContext('2d');
+                let gradientStats = ctxStatsCanvas.createLinearGradient(0, 0, 0, 200);
+                gradientStats.addColorStop(0, 'rgba(107, 142, 107, 0.3)');
+                gradientStats.addColorStop(1, 'rgba(107, 142, 107, 0)');
+                const statsConfig = JSON.parse(JSON.stringify(chartConfig));
+                statsConfig.data.datasets[0].backgroundColor = gradientStats;
+                statsActivityChart = new Chart(ctxStatsCanvas, statsConfig);
+            }
             
             const totalWeek = dayCounts.reduce((a, b) => a + b, 0);
             const avgPerDay = (totalWeek / 7).toFixed(1);
-            document.getElementById('activitySummary').innerHTML = 
-                `이번 주 총 <strong>${totalWeek}회</strong> · 일 평균 <strong>${avgPerDay}회</strong>`;
+            const summaryHTML = `이번 주 총 <strong>${totalWeek}회</strong> · 일 평균 <strong>${avgPerDay}회</strong>`;
+            const dashboardSummary = document.getElementById('activitySummary');
+            const statsSummary = document.getElementById('statsActivitySummary');
+            if (dashboardSummary) dashboardSummary.innerHTML = summaryHTML;
+            if (statsSummary) statsSummary.innerHTML = summaryHTML;
         }
         
         // 월별 차트: 최근 30일 주차별 복용 현황 (가로 바 차트)
         function renderMonthlyActivityChart(data) {
-            const ctx = document.getElementById('activityChart').getContext('2d');
+            const ctx = document.getElementById('activityChart');
+            const ctxStats = document.getElementById('statsActivityChart');
             if (activityChart) activityChart.destroy();
+            if (statsActivityChart) statsActivityChart.destroy();
             
             // 최근 4주 데이터 계산
             const weeks = [
@@ -3437,12 +3467,25 @@
                         }
                     }
                 }
-            });
+            };
+            
+            // 대시보드 차트 생성
+            if (ctx) {
+                activityChart = new Chart(ctx.getContext('2d'), chartConfig);
+            }
+            
+            // 통계 차트 생성
+            if (ctxStats) {
+                statsActivityChart = new Chart(ctxStats.getContext('2d'), JSON.parse(JSON.stringify(chartConfig)));
+            }
             
             const totalMonth = weekCounts.reduce((a, b) => a + b, 0);
             const avgPerWeek = (totalMonth / 5).toFixed(1);
-            document.getElementById('activitySummary').innerHTML = 
-                `최근 5주 총 <strong>${totalMonth}회</strong> · 주 평균 <strong>${avgPerWeek}회</strong>`;
+            const summaryHTML = `최근 5주 총 <strong>${totalMonth}회</strong> · 주 평균 <strong>${avgPerWeek}회</strong>`;
+            const dashboardSummary = document.getElementById('activitySummary');
+            const statsSummary = document.getElementById('statsActivitySummary');
+            if (dashboardSummary) dashboardSummary.innerHTML = summaryHTML;
+            if (statsSummary) statsSummary.innerHTML = summaryHTML;
         }
         
         // 기존 updateWeeklyChart 대체 (호환성 유지)
@@ -3692,7 +3735,7 @@
         
         // ========== 통계 섹션 함수들 ==========
         let currentStatsPeriod = 'daily';
-        let hourlyStatsChart = null;
+        let fullStatsData = null; // 전체 데이터 캐시
         let weekdayStatsChart = null;
         let fullStatsData = null; // 전체 데이터 캐시
         
@@ -3775,9 +3818,6 @@
                 totalDays: Object.keys(filteredDailyStats).length || (currentStatsPeriod === 'daily' ? 1 : 0)
             });
             
-            drawHourlyStatsChart(filteredDistributions.hourly);
-            drawWeekdayStatsChart(filteredDistributions.weekday);
-            generateStatsInsights(filteredDistributions);
             updateStatsHistory(filteredHistory);
         }
         
@@ -3878,43 +3918,6 @@
             else if ((metrics.maxGap || 0) >= 1) gapCard.classList.add('warning');
         }
         
-        function drawHourlyStatsChart(hourlyData) {
-            const ctx = document.getElementById('hourlyStatsChart').getContext('2d');
-            if (hourlyStatsChart) hourlyStatsChart.destroy();
-            
-            const gradient = ctx.createLinearGradient(0, 0, 0, 180);
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
-            
-            hourlyStatsChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Array.from({length: 24}, (_, i) => `${i}시`),
-                    datasets: [{
-                        data: hourlyData,
-                        borderColor: 'rgba(255,255,255,0.8)',
-                        backgroundColor: gradient,
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { display: false, beginAtZero: true },
-                        x: { 
-                            grid: { display: false, color: 'rgba(255,255,255,0.1)' },
-                            ticks: { maxTicksLimit: 6, color: 'rgba(255,255,255,0.6)', font: { size: 10 } }
-                        }
-                    }
-                }
-            });
-        }
-        
         function drawWeekdayStatsChart(weekdayData) {
             const ctx = document.getElementById('weekdayStatsChart').getContext('2d');
             if (weekdayStatsChart) weekdayStatsChart.destroy();
@@ -3946,48 +3949,6 @@
                     }
                 }
             });
-        }
-        
-        function generateStatsInsights(distributions) {
-            const hourly = distributions.hourly || [];
-            const weekday = distributions.weekday || [];
-            
-            const totalHourly = hourly.reduce((a, b) => a + b, 0);
-            const totalWeekday = weekday.reduce((a, b) => a + b, 0);
-            
-            // 시간대 인사이트
-            let maxHour = 0, maxHourCount = 0;
-            hourly.forEach((count, hour) => {
-                if (count > maxHourCount) { maxHourCount = count; maxHour = hour; }
-            });
-            
-            if (maxHourCount > 0) {
-                const periodLabel = { daily: '오늘', weekly: '이번 주', monthly: '이번 달' }[currentStatsPeriod];
-                document.getElementById('hourlyInsight').innerHTML = 
-                    `💡 ${periodLabel} 주로 <strong>${maxHour}시</strong>에 복약했습니다. (${maxHourCount}회)`;
-            } else {
-                document.getElementById('hourlyInsight').innerHTML = 
-                    `💡 해당 기간에 복약 기록이 없습니다.`;
-            }
-            
-            // 요일 인사이트
-            if (totalWeekday > 0) {
-                const weekendCount = (weekday[0] || 0) + (weekday[6] || 0);
-                const weekdayCount = weekday.slice(1, 6).reduce((a, b) => a + b, 0);
-                
-                if (weekendCount + weekdayCount > 0) {
-                    if (weekendCount / 2 < weekdayCount / 5 * 0.7) {
-                        document.getElementById('weekdayInsight').innerHTML = 
-                            `💡 <strong>주말</strong>에 복약률이 낮습니다. 주말 알림을 확인하세요!`;
-                    } else {
-                        document.getElementById('weekdayInsight').innerHTML = 
-                            `💡 주중과 주말 모두 꾸준히 복약하고 계십니다. 훌륭합니다!`;
-                    }
-                }
-            } else {
-                document.getElementById('weekdayInsight').innerHTML = 
-                    `💡 해당 기간에 복약 기록이 없습니다.`;
-            }
         }
         
         function updateStatsHistory(history) {
