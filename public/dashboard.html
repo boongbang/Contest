@@ -2654,6 +2654,42 @@
                                 padding: 20, 
                                 usePointStyle: true,
                                 font: { size: 11 }
+                                    generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    if (data.labels.length && data.datasets.length) {
+                                        return data.labels.map(function(label, i) {
+                                            const meta = chart.getDatasetMeta(0);
+                                            const style = meta.controller.getStyle(i);
+
+                                            // 데이터 값과 퍼센트 계산
+                                            const value = data.datasets[0].data[i];
+                                            const percentage = totalMeds > 0 ? Math.round((value / totalMeds) * 100) : 0;
+
+                                            // 전체 텍스트 생성 (예: "아침 (6-10시) 5개 (20%)")
+                                            const fullText = `${label} ${value}개 (${percentage}%)`;
+
+                                            // 정규표현식을 사용하여 텍스트를 세 부분으로 분리합니다.
+                                            // 예: ["아침", "(6-10시)", "5개 (20%)"]
+                                            const match = fullText.match(/(.+)\s(\(.+\))\s(.+)/);
+
+                                            let textArray = [fullText]; // 기본값
+                                            if (match && match.length >= 4) {
+                                                // match[1]: 시간대명 (아침), match[2]: 시간범위 ((6-10시)), match[3]: 값 (5개 (20%))
+                                                textArray = [match[1].trim(), match[2].trim(), match[3].trim()];
+                                            }
+
+                                            return {
+                                                text: textArray, // 문자열 배열로 반환하여 줄바꿈 적용
+                                                fillStyle: style.backgroundColor,
+                                                strokeStyle: style.borderColor,
+                                                lineWidth: style.borderWidth,
+                                                hidden: isNaN(data.datasets[0].data[i]) || meta.data[i].hidden,
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                    return [];
+                                }
                             }
                         },
                         tooltip: {
