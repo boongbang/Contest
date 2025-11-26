@@ -57,7 +57,7 @@ let sensorData = {
         1: { id: 1, name: '아침 약', emoji: '🌅', value: 0, lastOpened: null, todayOpened: false, targetTime: '08:00', description: '혈압약', missedAlertSent: false },
         2: { id: 2, name: '점심 약', emoji: '☀️', value: 0, lastOpened: null, todayOpened: false, targetTime: '13:00', description: '비타민', missedAlertSent: false },
         3: { id: 3, name: '저녁 약', emoji: '🌙', value: 0, lastOpened: null, todayOpened: false, targetTime: '18:00', description: '관절약', missedAlertSent: false },
-        4: { id: 4, name: '자기전 약', emoji: '🛌', value: 0, lastOpened: null, todayOpened: false, targetTime: '22:00', description: '수면제', missedAlertSent: false }
+        4: { id: 4, name: '취침 약', emoji: '🛌', value: 0, lastOpened: null, todayOpened: false, targetTime: '22:00', description: '수면제', missedAlertSent: false }
     },
     history: [],
     dailyStats: {},
@@ -134,7 +134,7 @@ function initTestAccountData() {
     
     // 테스트용 7일치 히스토리 데이터 생성
     if (sensorData.history.length === 0) {
-        const sensorNames = ['아침 약', '점심 약', '저녁 약', '자기전 약'];
+        const sensorNames = ['아침 약', '점심 약', '저녁 약', '취침 약'];
         const targetTimes = ['08:00', '13:00', '18:00', '22:00'];
         
         for (let dayOffset = 6; dayOffset >= 0; dayOffset--) {
@@ -532,5 +532,6 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
+
 
 
