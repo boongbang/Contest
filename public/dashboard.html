@@ -1605,16 +1605,11 @@
                         <div class="section-header">
                             <div class="section-title">복약 시간 분포</div>
                         </div>
-                        <div class="chart-section">
-                            <div class="section-header">
-                                <div class="section-title">복약 시간 분포</div>
-                            </div>
-                            <div id="timeDistributionContainer" style="position: relative; height: 180px; width: 100%;">
-                                <canvas id="timeDistributionChart"></canvas>
-                            </div>
+                        <div id="timeDistributionContainer" style="position: relative; width: 100%;">
+                            <canvas id="timeDistributionChart"></canvas>
                         </div>
                     </div>
-                </section>
+                    </section>
 
                 <section class="page-section" id="reminderSection">
                     <div class="welcome-text">
@@ -2650,7 +2645,8 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
+                    maintainAspectRatio: true,
+                    aspectRatio: 1,
                     plugins: {
                         legend: {
                             position: 'bottom',
@@ -3688,7 +3684,7 @@
             }
 
             heartGeometry.attributes.position.needsUpdate = true;
-            heartRenderer.render(heartScene, heartCamera);heartRenderer.render(heartScene, heartCamera);
+            heartRenderer.render(heartScene, heartCamera);
         }
 
         // ========== 약 보충 관리 기능 ==========
