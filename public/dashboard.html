@@ -2846,6 +2846,7 @@
 
         function updateSensorDisplay(data) {
             const sensorArea = document.getElementById('sensorDataArea');
+            if (!sensorArea) return;  // 요소가 없으면 무시
             const stateClass = data.value === 1 ? 'detected' : 'clear';
             const stateText = data.value === 1 ? `${data.name} 복용 중` : '모든 약통 보관됨';
             const iconClass = data.value === 1 ? 'fa-box-open' : 'fa-box';
