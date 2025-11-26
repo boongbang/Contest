@@ -404,6 +404,12 @@ app.get('/api/refill/status', authenticateToken, (req, res) => res.json({
     isRefillMode: sensorData.isRefillMode,
     refillStartTime: sensorData.refillStartTime
 }));
+app.post('/api/refill/start', authenticateToken, (req, res) => { 
+    sensorData.isRefillMode = true; 
+    sensorData.refillStartTime = new Date().toISOString(); 
+    saveData(); 
+    res.json({ success: true, isRefillMode: true, refillStartTime: sensorData.refillStartTime }); 
+});
 app.post('/api/refill/end', authenticateToken, (req, res) => {
     const { refilledSlots, deleteRecordsDuringRefill } = req.body;
     let deletedCount = 0;
@@ -593,6 +599,7 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
+
 
 
 
