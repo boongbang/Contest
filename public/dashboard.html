@@ -3809,7 +3809,7 @@
         
         async function loadRefillStatus() {
             try {
-                const res = await fetch('/api/refill/status', {
+                const res = await fetch(`${API_URL}/api/refill/status`, {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 const data = await res.json();
@@ -3938,7 +3938,7 @@
                             ? `약 보충 완료! (${data.deletedCount}건 기록 삭제됨)`
                             : '약 보충이 완료되었습니다';
                         showToast(msg, 'success');
-                        loadDashboard();
+                        loadDashboardData();
                     }
                 } catch (e) {
                     console.error('리필 종료 실패:', e);
@@ -3956,7 +3956,7 @@
         
         async function loadRefillHistory() {
             try {
-                const res = await fetch('/api/reports/detailed', {
+                const res = await fetch(`${API_URL}/api/reports/detailed`, {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 const data = await res.json();
@@ -3992,7 +3992,7 @@
             if (!confirm('이 복용 기록을 삭제하시겠습니까?')) return;
             
             try {
-                const res = await fetch(`/api/history/${index}`, {
+                const res = await fetch(`${API_URL}/api/history/${index}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
