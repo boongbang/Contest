@@ -65,6 +65,8 @@ let sensorData = {
     userMedications: {},
     deviceInfo: { ipAddress: null, firmwareVersion: '1.0.0', lastHeartbeat: null, isOnline: false },
     isRefillMode: false,
+    isRefillMode: false,
+    refillStartTime: null,
     notificationSettings: { enabled: true, nightModeEnabled: false, nightStart: '22:00', nightEnd: '06:00' }
 };
 
@@ -283,6 +285,11 @@ app.post('/value', (req, res) => {
     if (firmwareVersion) sensorData.deviceInfo.firmwareVersion = firmwareVersion;
     sensorData.deviceInfo.lastHeartbeat = new Date().toISOString();
     sensorData.deviceInfo.isOnline = true;
+    // 리필 모드일 때는 복용 기록을 생성하지 않음
+    if (sensorData.isRefillMode) {
+        console.log('📦 리필 모드 - 복용 기록 건너뜀');
+        return;
+    }
     if (sensorData.isRefillMode) return res.json({ success: true, ignored: true });
     const finalSensorId = parseInt(sensorId, 10), finalValue = parseInt(value, 10);
     if (finalSensorId < 1 || finalSensorId > 4) return res.status(400).json({ error: 'Invalid sensor ID' });
@@ -394,14 +401,45 @@ app.post('/api/device/test-email', authenticateToken, async (req, res) => {
     else res.status(500).json({ error: '발송 실패' });
 });
 
-app.get('/api/refill/status', authenticateToken, (req, res) => res.json({ success: true, isRefillMode: sensorData.isRefillMode }));
-app.post('/api/refill/start', authenticateToken, (req, res) => { sensorData.isRefillMode = true; saveData(); res.json({ success: true, isRefillMode: true }); });
+app.get('/api/refill/status', authenticateToken, (req, res) => res.json({ 
+    success: true, 
+    isRefillMode: sensorData.isRefillMode,
+    refillStartTime: sensorData.refillStartTime
+}));
+app.post('/api/refill/start', authenticateToken, (req, res) => { 
+    sensorData.isRefillMode = true; 
+    sensorData.refillStartTime = new Date().toISOString();
+    saveData(); 
+    res.json({ success: true, isRefillMode: true, refillStartTime: sensorData.refillStartTime }); 
+});
 app.post('/api/refill/end', authenticateToken, (req, res) => {
-    const { refilledSlots } = req.body;
+    const { refilledSlots, deleteRecordsDuringRefill } = req.body;
+    
+    // 리필 기간 중 기록 삭제 옵션
+    let deletedCount = 0;
+    if (deleteRecordsDuringRefill && sensorData.refillStartTime) {
+        const refillStart = new Date(sensorData.refillStartTime).getTime();
+        const originalLength = sensorData.history.length;
+        sensorData.history = sensorData.history.filter(h => {
+            const recordTime = new Date(h.timestamp).getTime();
+            return recordTime < refillStart;
+        });
+        deletedCount = originalLength - sensorData.history.length;
+    }
+    
     sensorData.isRefillMode = false;
-    if (refilledSlots && Array.isArray(refilledSlots)) refilledSlots.forEach(slotId => { if (sensorData.sensors[slotId]) { sensorData.sensors[slotId].todayOpened = false; sensorData.sensors[slotId].missedAlertSent = false; } });
+    sensorData.refillStartTime = null;
+    
+    if (refilledSlots && Array.isArray(refilledSlots)) {
+        refilledSlots.forEach(slotId => { 
+            if (sensorData.sensors[slotId]) { 
+                sensorData.sensors[slotId].todayOpened = false; 
+                sensorData.sensors[slotId].missedAlertSent = false; 
+            } 
+        });
+    }
     saveData();
-    res.json({ success: true, isRefillMode: false });
+    res.json({ success: true, isRefillMode: false, deletedCount });
 });
 
 app.delete('/api/history/:index', authenticateToken, (req, res) => {
@@ -505,4 +543,5 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
+
 
