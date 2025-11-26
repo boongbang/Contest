@@ -1098,6 +1098,298 @@
             cursor: pointer;
             font-size: 0.85rem;
         }
+        /* ===== 약 보충 관리 UI ===== */
+        .refill-control-card {
+            background: linear-gradient(145deg, #4a6b4a 0%, #3c5a3c 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .refill-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .refill-title {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .refill-status {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .refill-status.active {
+            background: rgba(255,193,7,0.2);
+            border: 2px solid rgba(255,193,7,0.5);
+        }
+        
+        .refill-status-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .refill-status-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .refill-status-sub {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .refill-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .refill-btn.start {
+            background: linear-gradient(135deg, #FFB74D 0%, #FF9800 100%);
+            color: white;
+        }
+        
+        .refill-btn.end {
+            background: linear-gradient(135deg, #81C784 0%, #4CAF50 100%);
+            color: white;
+        }
+        
+        .refill-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .refill-options {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .refill-option-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        
+        .refill-option-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #FFB74D;
+        }
+        
+        .refill-option-text {
+            font-size: 0.85rem;
+        }
+        
+        .refill-history-section {
+            margin-top: 15px;
+        }
+        
+        .refill-history-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        
+        .refill-history-toggle i {
+            transition: transform 0.3s;
+        }
+        
+        .refill-history-toggle.open i {
+            transform: rotate(180deg);
+        }
+        
+        .refill-history-list {
+            display: none;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .refill-history-list.show {
+            display: block;
+        }
+        
+        .refill-history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .refill-history-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .refill-delete-btn {
+            background: rgba(244,67,54,0.2);
+            border: none;
+            color: #ff8a80;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        
+        .refill-delete-btn:hover {
+            background: rgba(244,67,54,0.4);
+        }
+        
+        /* ===== 약 보충 관리 UI ===== */
+        .refill-control-card {
+            background: linear-gradient(145deg, #4a6b4a 0%, #3c5a3c 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            color: white;
+        }
+        
+        .refill-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .refill-title {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .refill-status {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .refill-status.active {
+            background: rgba(255,193,7,0.2);
+            border: 2px solid rgba(255,193,7,0.5);
+        }
+        
+        .refill-status-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .refill-status-text { font-size: 1.1rem; font-weight: 600; margin-bottom: 5px; }
+        .refill-status-sub { font-size: 0.8rem; opacity: 0.8; }
+        
+        .refill-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .refill-btn.start { background: linear-gradient(135deg, #FFB74D 0%, #FF9800 100%); color: white; }
+        .refill-btn.end { background: linear-gradient(135deg, #81C784 0%, #4CAF50 100%); color: white; }
+        .refill-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        
+        .refill-options {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .refill-option-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        
+        .refill-option-toggle input[type="checkbox"] { width: 18px; height: 18px; accent-color: #FFB74D; }
+        .refill-option-text { font-size: 0.85rem; }
+        .refill-history-section { margin-top: 15px; }
+        
+        .refill-history-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        
+        .refill-history-toggle i { transition: transform 0.3s; }
+        .refill-history-toggle.open i { transform: rotate(180deg); }
+        .refill-history-list { display: none; margin-top: 10px; max-height: 200px; overflow-y: auto; }
+        .refill-history-list.show { display: block; }
+        
+        .refill-history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+        }
+        
+        .refill-history-item:hover { background: rgba(255,255,255,0.1); }
+        
+        .refill-delete-btn {
+            background: rgba(244,67,54,0.2);
+            border: none;
+            color: #ff8a80;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        
+        .refill-delete-btn:hover { background: rgba(244,67,54,0.4); }
     </style>
 </head>
 <body>
@@ -1180,16 +1472,43 @@
                         <p>오늘의 복약 상태를 확인하세요.</p>
                     </div>
 
-                    <div class="sensor-card">
-                        <div class="sensor-header">
-                            <div class="sensor-title">IR 센서 상태</div>
-                            <i class="fa-solid fa-wifi"></i>
+                    <div class="refill-control-card" id="refillControlCard">
+                        <div class="refill-header">
+                            <div class="refill-title">
+                                <i class="fa-solid fa-prescription-bottle-medical"></i>
+                                약 보충 관리
+                            </div>
+                            <div class="sensor-status" style="background: rgba(0,0,0,0.2);">
+                                <div class="status-dot" id="refillSensorDot"></div>
+                                <span id="refillSensorText">센서 확인중</span>
+                            </div>
                         </div>
-                        <div id="sensorDataArea">
-                            <div class="no-data-message">
-                                <i class="fa-solid fa-satellite-dish" style="font-size: 2rem; margin-bottom: 10px;"></i>
-                                <p>아직 데이터가 없습니다.</p>
-                                <p style="font-size: 0.8rem; margin-top: 10px;">Arduino가 연결되면 자동으로 표시됩니다.</p>
+                        
+                        <div class="refill-status" id="refillStatusArea">
+                            <div class="refill-status-icon" id="refillStatusIcon">💊</div>
+                            <div class="refill-status-text" id="refillStatusText">정상 모니터링 중</div>
+                            <div class="refill-status-sub" id="refillStatusSub">센서가 복용을 감지합니다</div>
+                        </div>
+                        
+                        <button class="refill-btn start" id="refillBtn" onclick="toggleRefillMode()">
+                            <i class="fa-solid fa-pills"></i>
+                            <span id="refillBtnText">약 보충 시작</span>
+                        </button>
+                        
+                        <div class="refill-options" id="refillOptions" style="display: none;">
+                            <label class="refill-option-toggle">
+                                <input type="checkbox" id="deleteRefillRecords" checked>
+                                <span class="refill-option-text">⚠️ 보충 중 잘못 기록된 복용 내역 삭제</span>
+                            </label>
+                        </div>
+                        
+                        <div class="refill-history-section">
+                            <div class="refill-history-toggle" onclick="toggleRefillHistory()">
+                                <span><i class="fa-solid fa-clock-rotate-left"></i> 최근 복용 기록 (수동 삭제)</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                            <div class="refill-history-list" id="refillHistoryList">
+                                <!-- 동적으로 채워짐 -->
                             </div>
                         </div>
                     </div>
@@ -1860,6 +2179,7 @@
             loadUserMedications();
             
             loadDashboardData();
+            loadRefillStatus();
             
             // 센서 데이터 확인 (실시간 상태)
             sensorCheckInterval = setInterval(checkSensorStatus, 1000);
@@ -3355,8 +3675,364 @@
             }
 
             heartGeometry.attributes.position.needsUpdate = true;
-            heartRenderer.render(heartScene, heartCamera);
+            heartRenderer.render(heartScene, heartCamera);heartRenderer.render(heartScene, heartCamera);
         }
+
+        // ========== 약 보충 관리 기능 ==========
+        let isRefillMode = false;
+        let refillStartTime = null;
+        
+        async function loadRefillStatus() {
+            try {
+                const res = await fetch('/api/refill/status', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    isRefillMode = data.isRefillMode;
+                    refillStartTime = data.refillStartTime;
+                    updateRefillUI();
+                }
+            } catch (e) { console.error('리필 상태 로드 실패:', e); }
+        }
+        
+        function updateRefillUI() {
+            const statusArea = document.getElementById('refillStatusArea');
+            const statusIcon = document.getElementById('refillStatusIcon');
+            const statusText = document.getElementById('refillStatusText');
+            const statusSub = document.getElementById('refillStatusSub');
+            const refillBtn = document.getElementById('refillBtn');
+            const refillBtnText = document.getElementById('refillBtnText');
+            const refillOptions = document.getElementById('refillOptions');
+            const sensorDot = document.getElementById('refillSensorDot');
+            const sensorText = document.getElementById('refillSensorText');
+            
+            if (isRefillMode) {
+                statusArea.classList.add('active');
+                statusIcon.textContent = '📦';
+                statusText.textContent = '약 보충 중...';
+                const startTime = refillStartTime ? new Date(refillStartTime).toLocaleTimeString('ko-KR', {hour: '2-digit', minute:'2-digit'}) : '';
+                statusSub.textContent = startTime ? `${startTime}부터 센서 일시 중단` : '센서 감지가 일시 중단됩니다';
+                refillBtn.className = 'refill-btn end';
+                refillBtnText.textContent = '약 보충 완료';
+                refillBtn.querySelector('i').className = 'fa-solid fa-check';
+                refillOptions.style.display = 'block';
+                sensorDot.className = 'status-dot';
+                sensorDot.style.background = '#FFC107';
+                sensorText.textContent = '일시중단';
+            } else {
+                statusArea.classList.remove('active');
+                statusIcon.textContent = '💊';
+                statusText.textContent = '정상 모니터링 중';
+                statusSub.textContent = '센서가 복용을 감지합니다';
+                refillBtn.className = 'refill-btn start';
+                refillBtnText.textContent = '약 보충 시작';
+                refillBtn.querySelector('i').className = 'fa-solid fa-pills';
+                refillOptions.style.display = 'none';
+                sensorDot.className = 'status-dot active';
+                sensorText.textContent = 'ON';
+            }
+            loadRefillHistory();
+        }
+        
+        async function toggleRefillMode() {
+            const token = localStorage.getItem('authToken');
+            
+            if (!isRefillMode) {
+                if (!confirm('약 보충을 시작합니다.\n보충 중에는 센서 감지가 일시 중단됩니다.')) return;
+                try {
+                    const res = await fetch('/api/refill/start', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        isRefillMode = true;
+                        refillStartTime = data.refillStartTime;
+                        updateRefillUI();
+                        showToast('약 보충 모드가 시작되었습니다', 'success');
+                    }
+                } catch (e) { console.error('리필 시작 실패:', e); showToast('오류가 발생했습니다', 'error'); }
+            } else {
+                const deleteRecords = document.getElementById('deleteRefillRecords').checked;
+                const confirmMsg = deleteRecords 
+                    ? '약 보충을 완료합니다.\n⚠️ 보충 중 기록된 복용 내역이 삭제됩니다.'
+                    : '약 보충을 완료합니다.';
+                if (!confirm(confirmMsg)) return;
+                try {
+                    const res = await fetch('/api/refill/end', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ deleteRecordsDuringRefill: deleteRecords, refilledSlots: [1, 2, 3, 4] })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        isRefillMode = false;
+                        refillStartTime = null;
+                        updateRefillUI();
+                        const msg = data.deletedCount > 0 ? `약 보충 완료! (${data.deletedCount}건 기록 삭제됨)` : '약 보충이 완료되었습니다';
+                        showToast(msg, 'success');
+                        loadDashboardData();
+                    }
+                } catch (e) { console.error('리필 종료 실패:', e); showToast('오류가 발생했습니다', 'error'); }
+            }
+        }
+        
+        function toggleRefillHistory() {
+            const toggle = document.querySelector('.refill-history-toggle');
+            const list = document.getElementById('refillHistoryList');
+            toggle.classList.toggle('open');
+            list.classList.toggle('show');
+        }
+        
+        async function loadRefillHistory() {
+            try {
+                const res = await fetch('/api/reports/detailed', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
+                });
+                const data = await res.json();
+                const historyList = document.getElementById('refillHistoryList');
+                
+                if (!data.history || data.history.length === 0) {
+                    historyList.innerHTML = '<div class="refill-history-item"><span>기록이 없습니다</span></div>';
+                    return;
+                }
+                
+                historyList.innerHTML = data.history.slice(0, 10).map((h, idx) => {
+                    const date = new Date(h.timestamp);
+                    const timeStr = date.toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    return `<div class="refill-history-item">
+                        <span>${h.sensorName || '약통 ' + h.sensorId} - ${timeStr}</span>
+                        <button class="refill-delete-btn" onclick="deleteHistoryItem(${idx})"><i class="fa-solid fa-trash"></i> 삭제</button>
+                    </div>`;
+                }).join('');
+            } catch (e) { console.error('히스토리 로드 실패:', e); }
+        }
+        
+        async function deleteHistoryItem(index) {
+            if (!confirm('이 복용 기록을 삭제하시겠습니까?')) return;
+            try {
+                const res = await fetch(`/api/history/${index}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken')}` }
+                });
+                const data = await res.json();
+                if (data.success) { showToast('기록이 삭제되었습니다', 'success'); loadRefillHistory(); loadDashboardData(); }
+            } catch (e) { console.error('삭제 실패:', e); showToast('삭제에 실패했습니다', 'error'); }
+        }
+        
+        function showToast(message, type = 'info') {
+            const existing = document.querySelector('.toast-message');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.style.cssText = `position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+                background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#F44336' : '#333'};
+                color: white; padding: 12px 24px; border-radius: 25px; font-size: 0.9rem; z-index: 9999; box-shadow: 0 4px 15px rgba(0,0,0,0.3);`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        // ========== 약 보충 관리 기능 ==========
+        let isRefillMode = false;
+        let refillStartTime = null;
+        
+        async function loadRefillStatus() {
+            try {
+                const res = await fetch('/api/refill/status', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    isRefillMode = data.isRefillMode;
+                    refillStartTime = data.refillStartTime;
+                    updateRefillUI();
+                }
+            } catch (e) {
+                console.error('리필 상태 로드 실패:', e);
+            }
+        }
+        
+        function updateRefillUI() {
+            const statusArea = document.getElementById('refillStatusArea');
+            const statusIcon = document.getElementById('refillStatusIcon');
+            const statusText = document.getElementById('refillStatusText');
+            const statusSub = document.getElementById('refillStatusSub');
+            const refillBtn = document.getElementById('refillBtn');
+            const refillBtnText = document.getElementById('refillBtnText');
+            const refillOptions = document.getElementById('refillOptions');
+            
+            if (isRefillMode) {
+                statusArea.classList.add('active');
+                statusIcon.textContent = '📦';
+                statusText.textContent = '약 보충 중...';
+                const startTime = refillStartTime ? new Date(refillStartTime).toLocaleTimeString('ko-KR', {hour: '2-digit', minute:'2-digit'}) : '';
+                statusSub.textContent = startTime ? `${startTime}부터 센서 일시 중단` : '센서 감지가 일시 중단됩니다';
+                refillBtn.className = 'refill-btn end';
+                refillBtnText.textContent = '약 보충 완료';
+                refillBtn.querySelector('i').className = 'fa-solid fa-check';
+                refillOptions.style.display = 'block';
+            } else {
+                statusArea.classList.remove('active');
+                statusIcon.textContent = '💊';
+                statusText.textContent = '정상 모니터링 중';
+                statusSub.textContent = '센서가 복용을 감지합니다';
+                refillBtn.className = 'refill-btn start';
+                refillBtnText.textContent = '약 보충 시작';
+                refillBtn.querySelector('i').className = 'fa-solid fa-pills';
+                refillOptions.style.display = 'none';
+            }
+            
+            loadRefillHistory();
+        }
+        
+        async function toggleRefillMode() {
+            const token = localStorage.getItem('token');
+            
+            if (!isRefillMode) {
+                // 리필 모드 시작
+                if (!confirm('약 보충을 시작합니다.\n보충 중에는 센서 감지가 일시 중단됩니다.')) return;
+                
+                try {
+                    const res = await fetch('/api/refill/start', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}` 
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        isRefillMode = true;
+                        refillStartTime = data.refillStartTime;
+                        updateRefillUI();
+                        showToast('약 보충 모드가 시작되었습니다', 'success');
+                    }
+                } catch (e) {
+                    console.error('리필 시작 실패:', e);
+                    showToast('오류가 발생했습니다', 'error');
+                }
+            } else {
+                // 리필 모드 종료
+                const deleteRecords = document.getElementById('deleteRefillRecords').checked;
+                const confirmMsg = deleteRecords 
+                    ? '약 보충을 완료합니다.\n⚠️ 보충 중 기록된 복용 내역이 삭제됩니다.'
+                    : '약 보충을 완료합니다.';
+                
+                if (!confirm(confirmMsg)) return;
+                
+                try {
+                    const res = await fetch('/api/refill/end', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}` 
+                        },
+                        body: JSON.stringify({
+                            deleteRecordsDuringRefill: deleteRecords,
+                            refilledSlots: [1, 2, 3, 4]
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        isRefillMode = false;
+                        refillStartTime = null;
+                        updateRefillUI();
+                        const msg = data.deletedCount > 0 
+                            ? `약 보충 완료! (${data.deletedCount}건 기록 삭제됨)`
+                            : '약 보충이 완료되었습니다';
+                        showToast(msg, 'success');
+                        loadDashboard();
+                    }
+                } catch (e) {
+                    console.error('리필 종료 실패:', e);
+                    showToast('오류가 발생했습니다', 'error');
+                }
+            }
+        }
+        
+        function toggleRefillHistory() {
+            const toggle = document.querySelector('.refill-history-toggle');
+            const list = document.getElementById('refillHistoryList');
+            toggle.classList.toggle('open');
+            list.classList.toggle('show');
+        }
+        
+        async function loadRefillHistory() {
+            try {
+                const res = await fetch('/api/reports/detailed', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await res.json();
+                const historyList = document.getElementById('refillHistoryList');
+                
+                if (!data.history || data.history.length === 0) {
+                    historyList.innerHTML = '<div class="refill-history-item"><span>기록이 없습니다</span></div>';
+                    return;
+                }
+                
+                const recentHistory = data.history.slice(0, 10);
+                historyList.innerHTML = recentHistory.map((h, idx) => {
+                    const date = new Date(h.timestamp);
+                    const timeStr = date.toLocaleString('ko-KR', { 
+                        month: 'numeric', day: 'numeric', 
+                        hour: '2-digit', minute: '2-digit' 
+                    });
+                    return `
+                        <div class="refill-history-item">
+                            <span>${h.sensorName || '약통 ' + h.sensorId} - ${timeStr}</span>
+                            <button class="refill-delete-btn" onclick="deleteHistoryItem(${idx})">
+                                <i class="fa-solid fa-trash"></i> 삭제
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error('히스토리 로드 실패:', e);
+            }
+        }
+        
+        async function deleteHistoryItem(index) {
+            if (!confirm('이 복용 기록을 삭제하시겠습니까?')) return;
+            
+            try {
+                const res = await fetch(`/api/history/${index}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('기록이 삭제되었습니다', 'success');
+                    loadRefillHistory();
+                    loadDashboard();
+                }
+            } catch (e) {
+                console.error('삭제 실패:', e);
+                showToast('삭제에 실패했습니다', 'error');
+            }
+        }
+        
+        function showToast(message, type = 'info') {
+            // 간단한 토스트 메시지 (기존에 있다면 재사용)
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+                background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#F44336' : '#333'};
+                color: white; padding: 12px 24px; border-radius: 25px;
+                font-size: 0.9rem; z-index: 9999; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        // 대시보드 로드 시 리필 상태도 함께 로드
+        const originalLoadDashboard = loadDashboard;
+        loadDashboard = async function() {
+            await originalLoadDashboard();
+            await loadRefillStatus();
+        };
+
         
     </script>
 </body>
