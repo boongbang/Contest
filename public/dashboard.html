@@ -1423,6 +1423,12 @@
             margin-top: 10px;
             max-height: 200px;
             overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .refill-history-list::-webkit-scrollbar {
+            display: none;
         }
         
         .refill-history-list.show {
