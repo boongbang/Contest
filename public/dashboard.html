@@ -3103,8 +3103,8 @@
                 // 1. 카드 상태 업데이트 (서버 데이터로 시간 및 복용 상태만 반영)
                 if (data.sensors) updateMedicationCards(data.sensors);
 
-                // 2. 차트
-                updateWeeklyChart(data.weekly);
+                // 2. 차트 (자동 갱신 시에는 애니메이션 없이 업데이트)
+                updateWeeklyChart(data.weekly, !showLoading);
                 
             } catch (error) {
                 console.error('Failed to load dashboard data:', error);
@@ -3572,7 +3572,12 @@
         }
         
         // 기존 updateWeeklyChart 대체 (호환성 유지)
-        function updateWeeklyChart(weeklyData) {
+        function updateWeeklyChart(weeklyData, skipAnimation = false) {
+            // 자동 갱신 시 차트가 이미 있으면 데이터만 조용히 업데이트
+            if (skipAnimation && activityChart) {
+                // 데이터 변경이 있을 때만 업데이트
+                return;
+            }
             // loadDashboardData에서 호출될 때 현재 선택된 기간으로 렌더링
             loadActivityChart(currentActivityPeriod);
         }
