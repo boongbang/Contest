@@ -132,77 +132,126 @@ function initTestAccountData() {
         };
     }
     
-    // 테스트용 7일치 히스토리 데이터 생성 (시연용 - 예쁜 그래프)
-    if (sensorData.history.length === 0) {
-        const sensorNames = ['아침 약', '점심 약', '저녁 약', '자기전 약'];
-        const targetTimes = ['08:00', '13:00', '18:00', '22:00'];
+    // 테스트 계정용 샘플 데이터가 이미 있는지 확인 (userId=1인 기록이 있으면 스킵)
+    const hasTestData = sensorData.history.some(h => h.userId === testUserId);
+    if (hasTestData) {
+        console.log('📊 테스트 계정 데이터 이미 존재');
+        return;
+    }
+    
+    // 테스트용 30일치 히스토리 데이터 생성 (일별/주별/월별 통계용)
+    const sensorNames = ['아침 약', '점심 약', '저녁 약', '자기전 약'];
+    const targetTimes = ['08:00', '13:00', '18:00', '22:00'];
+    
+    // 30일간의 복용 패턴 (일부 날짜는 비어있음 → 최장 미복용 기간 생성)
+    // null = 미복용일, 배열 = 복용한 슬롯
+    const dailyPattern = [
+        [1, 2],           // 29일전
+        [1, 2, 3],        // 28일전
+        null,             // 27일전: 미복용 (공백 시작)
+        null,             // 26일전: 미복용
+        null,             // 25일전: 미복용 (3일 연속 미복용 → maxGap = 3)
+        [1, 3],           // 24일전
+        [1, 2, 3, 4],     // 23일전: 완벽
+        [2, 3],           // 22일전
+        [1, 2],           // 21일전
+        null,             // 20일전: 미복용
+        null,             // 19일전: 미복용 (2일 연속)
+        [1, 2, 3],        // 18일전
+        [1, 2, 3, 4],     // 17일전: 완벽
+        [1, 3, 4],        // 16일전
+        [2, 3],           // 15일전
+        [1, 2, 3],        // 14일전 (2주전)
+        [1, 2, 3, 4],     // 13일전: 완벽
+        null,             // 12일전: 미복용
+        [1, 2],           // 11일전
+        [1, 2, 3],        // 10일전
+        [1, 2, 3, 4],     // 9일전: 완벽
+        [2, 3, 4],        // 8일전
+        [1, 2, 3],        // 7일전 (1주전)
+        [1, 2, 3, 4],     // 6일전: 완벽
+        [1, 3],           // 5일전
+        [1, 2, 3],        // 4일전
+        [1, 2, 3, 4],     // 3일전: 완벽
+        [1, 2, 3],        // 2일전
+        [1, 2, 3, 4],     // 1일전: 완벽
+        [1, 2]            // 오늘 (시연 시작점)
+    ];
+    
+    // 시간 편차 패턴 (분 단위) - 다양한 시간 정확도를 위해
+    const timeOffsets = [
+        5, -3, 45, 12, -8, 60, 3, -15, 25, 90,
+        -5, 8, 35, -10, 15, 50, 2, -20, 40, 70,
+        10, -7, 20, 55, -12, 30, 8, -5, 15, 5
+    ];
+    let offsetIndex = 0;
+    
+    for (let dayOffset = 29; dayOffset >= 0; dayOffset--) {
+        const patternIndex = 29 - dayOffset;
+        const slotsForDay = dailyPattern[patternIndex];
         
-        // 시연용 데이터: 점점 좋아지는 복약 패턴 (오늘 포함)
-        // [6일전, 5일전, 4일전, 3일전, 2일전, 1일전, 오늘]
-        const dailyPattern = [
-            [1, 2],           // 6일전: 아침, 점심 (2회)
-            [1, 2, 3],        // 5일전: 아침, 점심, 저녁 (3회)
-            [1, 3],           // 4일전: 아침, 저녁 (2회)
-            [1, 2, 3, 4],     // 3일전: 완벽! (4회)
-            [1, 2, 3],        // 2일전: 아침, 점심, 저녁 (3회)
-            [1, 2, 3, 4],     // 1일전: 완벽! (4회)
-            [1, 2]            // 오늘: 아침, 점심 복용 완료 (시연 시작점)
-        ];
+        // 미복용일은 건너뜀
+        if (!slotsForDay) continue;
         
-        for (let dayOffset = 6; dayOffset >= 0; dayOffset--) {
-            const date = new Date();
-            date.setDate(date.getDate() - dayOffset);
-            const dateKey = date.toISOString().split('T')[0];
-            
-            if (!sensorData.dailyStats[dateKey]) {
-                sensorData.dailyStats[dateKey] = { date: dateKey, sensors: {} };
-            }
-            
-            const slotsForDay = dailyPattern[6 - dayOffset];
-            
-            for (const slotId of slotsForDay) {
-                const [targetH, targetM] = targetTimes[slotId - 1].split(':').map(Number);
-                const recordTime = new Date(date);
-                
-                // 오늘인 경우 현재 시간 이전으로 설정
-                if (dayOffset === 0) {
-                    const currentHour = now.getHours();
-                    if (targetH > currentHour) continue; // 미래 시간은 건너뜀
-                    recordTime.setHours(targetH, targetM + Math.floor(Math.random() * 10), 0, 0);
-                } else {
-                    // 목표 시간 ±10분 내 랜덤
-                    recordTime.setHours(targetH, targetM + Math.floor(Math.random() * 20) - 10, 0, 0);
-                }
-                
-                sensorData.history.push({
-                    sensorId: slotId,
-                    sensorName: sensorNames[slotId - 1],
-                    action: 'removed',
-                    timestamp: recordTime.toISOString(),
-                    returnedAt: new Date(recordTime.getTime() + 5000).toISOString(),
-                    duration: 5
-                });
-                
-                if (!sensorData.dailyStats[dateKey].sensors[slotId]) {
-                    sensorData.dailyStats[dateKey].sensors[slotId] = { count: 0, times: [] };
-                }
-                sensorData.dailyStats[dateKey].sensors[slotId].count++;
-                sensorData.dailyStats[dateKey].sensors[slotId].times.push(recordTime.toISOString());
-                
-                // 오늘 복용한 약은 todayOpened 플래그 설정
-                if (dayOffset === 0 && sensorData.sensors[slotId]) {
-                    sensorData.sensors[slotId].todayOpened = true;
-                    sensorData.sensors[slotId].lastOpened = recordTime.toISOString();
-                }
-            }
+        const date = new Date();
+        date.setDate(date.getDate() - dayOffset);
+        const dateKey = date.toISOString().split('T')[0];
+        
+        if (!sensorData.dailyStats[dateKey]) {
+            sensorData.dailyStats[dateKey] = { date: dateKey, sensors: {}, userId: testUserId };
         }
         
-        // 히스토리를 최신순으로 정렬
-        sensorData.history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        
-        saveData();
-        console.log('📊 테스트 계정 시연용 데이터 생성 완료');
+        for (const slotId of slotsForDay) {
+            const [targetH, targetM] = targetTimes[slotId - 1].split(':').map(Number);
+            const recordTime = new Date(date);
+            
+            const offset = timeOffsets[offsetIndex % timeOffsets.length];
+            offsetIndex++;
+            
+            if (dayOffset === 0) {
+                const currentHour = now.getHours();
+                if (targetH > currentHour) continue;
+                recordTime.setHours(targetH, targetM + Math.min(offset, 10), 0, 0);
+            } else {
+                let newMinutes = targetM + offset;
+                let newHours = targetH;
+                if (newMinutes >= 60) {
+                    newHours += Math.floor(newMinutes / 60);
+                    newMinutes = newMinutes % 60;
+                } else if (newMinutes < 0) {
+                    newHours -= 1;
+                    newMinutes = 60 + newMinutes;
+                }
+                recordTime.setHours(Math.max(0, Math.min(23, newHours)), Math.max(0, Math.min(59, newMinutes)), 0, 0);
+            }
+            
+            sensorData.history.push({
+                userId: testUserId,
+                sensorId: slotId,
+                sensorName: sensorNames[slotId - 1],
+                action: 'removed',
+                timestamp: recordTime.toISOString(),
+                returnedAt: new Date(recordTime.getTime() + 5000).toISOString(),
+                duration: 5
+            });
+            
+            if (!sensorData.dailyStats[dateKey].sensors[slotId]) {
+                sensorData.dailyStats[dateKey].sensors[slotId] = { count: 0, times: [] };
+            }
+            sensorData.dailyStats[dateKey].sensors[slotId].count++;
+            sensorData.dailyStats[dateKey].sensors[slotId].times.push(recordTime.toISOString());
+            
+            if (dayOffset === 0 && sensorData.sensors[slotId]) {
+                sensorData.sensors[slotId].todayOpened = true;
+                sensorData.sensors[slotId].lastOpened = recordTime.toISOString();
+            }
+        }
     }
+    
+    sensorData.history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    saveData();
+    console.log('📊 테스트 계정 시연용 데이터 생성 완료 (30일치)');
 }
 
 loadData();
@@ -274,12 +323,25 @@ function calculateMaxStreak(dailyStats) {
     return maxStreak;
 }
 
-function calculateAdherenceMetrics() {
-    const totalDays = Object.keys(sensorData.dailyStats).length;
-    const totalCount = sensorData.history.filter(h => h.action === 'removed').length;
+function calculateAdherenceMetrics(userId = null) {
+    // 사용자별로 history 필터링 (userId가 일치하거나 userId가 없는 실시간 기록)
+    const userHistory = userId ? sensorData.history.filter(h => h.userId === userId || h.userId === undefined) : sensorData.history;
+    
+    // 사용자별로 dailyStats 필터링
+    const userDailyStats = {};
+    for (let dk in sensorData.dailyStats) {
+        const stat = sensorData.dailyStats[dk];
+        // userId가 일치하거나 userId가 없는 경우 포함
+        if (!userId || stat.userId === userId || stat.userId === undefined) {
+            userDailyStats[dk] = stat;
+        }
+    }
+    
+    const totalDays = Object.keys(userDailyStats).length;
+    const totalCount = userHistory.filter(h => h.action === 'removed').length;
     
     // 최장 미복용 기간 계산
-    const dates = Object.keys(sensorData.dailyStats).sort();
+    const dates = Object.keys(userDailyStats).sort();
     let maxGap = 0;
     let prevDate = null;
     for (let dk of dates) {
@@ -295,7 +357,7 @@ function calculateAdherenceMetrics() {
     // 시간 정확도 계산 (목표 시간 대비 실제 복용 시간 오차)
     let totalAccuracy = 0;
     let accuracyCount = 0;
-    for (let h of sensorData.history) {
+    for (let h of userHistory) {
         if (h.action === 'removed' && h.timestamp && h.sensorId) {
             const sensor = sensorData.sensors[h.sensorId];
             if (sensor && sensor.targetTime) {
@@ -317,8 +379,8 @@ function calculateAdherenceMetrics() {
         totalDays, 
         totalCount, 
         averagePerDay: totalDays > 0 ? totalCount / totalDays : 0, 
-        pdc: calculatePDC(sensorData.dailyStats), 
-        maxStreak: calculateMaxStreak(sensorData.dailyStats),
+        pdc: calculatePDC(userDailyStats), 
+        maxStreak: calculateMaxStreak(userDailyStats),
         maxGap,
         timeAccuracy
     };
@@ -516,23 +578,52 @@ app.post('/api/data/reset', authenticateToken, async (req, res) => {
 });
 
 app.get('/api/dashboard/stats', authenticateToken, (req, res) => {
+    const userId = req.user.id;
     const now = new Date(), today = now.toISOString().split('T')[0];
-    const todayStats = sensorData.dailyStats[today] || { sensors: {} };
+    
+    // 사용자별 dailyStats 필터링
+    const userDailyStats = {};
+    for (let dk in sensorData.dailyStats) {
+        const stat = sensorData.dailyStats[dk];
+        if (stat.userId === userId || stat.userId === undefined) {
+            userDailyStats[dk] = stat;
+        }
+    }
+    
+    const todayStats = userDailyStats[today] || { sensors: {} };
     const weekly = [];
     for (let i = 6; i >= 0; i--) {
         const d = new Date(); d.setDate(d.getDate() - i);
-        const k = d.toISOString().split('T')[0], s = sensorData.dailyStats[k];
+        const k = d.toISOString().split('T')[0], s = userDailyStats[k];
         let count = 0;
         if (s && s.sensors) Object.values(s.sensors).forEach(v => { if (v.count > 0) count++; });
         weekly.push({ date: k, completedCount: count, day: ['일', '월', '화', '수', '목', '금', '토'][d.getDay()] });
     }
-    res.json({ sensors: sensorData.sensors, today: todayStats, weekly, adherenceRate: calculateAdherenceMetrics().pdc, adherenceMetrics: calculateAdherenceMetrics(), lastAction: sensorData.history[0], isRefillMode: sensorData.isRefillMode });
+    
+    // 사용자별 history 필터링
+    const userHistory = sensorData.history.filter(h => h.userId === userId || h.userId === undefined);
+    
+    res.json({ sensors: sensorData.sensors, today: todayStats, weekly, adherenceRate: calculateAdherenceMetrics(userId).pdc, adherenceMetrics: calculateAdherenceMetrics(userId), lastAction: userHistory[0], isRefillMode: sensorData.isRefillMode });
 });
 
 app.get('/api/reports/detailed', authenticateToken, (req, res) => {
+    const userId = req.user.id;
+    
+    // 사용자별 history 필터링
+    const userHistory = sensorData.history.filter(h => h.userId === userId || h.userId === undefined);
+    
+    // 사용자별 dailyStats 필터링
+    const userDailyStats = {};
+    for (let dk in sensorData.dailyStats) {
+        const stat = sensorData.dailyStats[dk];
+        if (stat.userId === userId || stat.userId === undefined) {
+            userDailyStats[dk] = stat;
+        }
+    }
+    
     const hourlyDistribution = new Array(24).fill(0), weekdayDistribution = new Array(7).fill(0);
-    sensorData.history.forEach(h => { if (h.action === 'removed' && h.timestamp) { const d = new Date(h.timestamp); hourlyDistribution[d.getHours()]++; weekdayDistribution[d.getDay()]++; } });
-    res.json({ sensorStats: sensorData.sensors, history: sensorData.history.slice(0, 200), totalDays: Object.keys(sensorData.dailyStats).length, dailyStats: sensorData.dailyStats, adherenceMetrics: calculateAdherenceMetrics(), distributions: { hourly: hourlyDistribution, weekday: weekdayDistribution } });
+    userHistory.forEach(h => { if (h.action === 'removed' && h.timestamp) { const d = new Date(h.timestamp); hourlyDistribution[d.getHours()]++; weekdayDistribution[d.getDay()]++; } });
+    res.json({ sensorStats: sensorData.sensors, history: userHistory.slice(0, 200), totalDays: Object.keys(userDailyStats).length, dailyStats: userDailyStats, adherenceMetrics: calculateAdherenceMetrics(userId), distributions: { hourly: hourlyDistribution, weekday: weekdayDistribution } });
 });
 
 app.get('/api/medications', authenticateToken, (req, res) => res.json(Object.values(sensorData.sensors)));
@@ -587,4 +678,3 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
-
