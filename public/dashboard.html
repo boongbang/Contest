@@ -2393,7 +2393,7 @@
             
             // 대시보드 데이터 자동 갱신 (1초마다)
             setInterval(() => {
-                loadDashboardData();
+                loadDashboardData(false);
             }, 1000);
             
             // 사이드바 초기화
@@ -3087,9 +3087,9 @@
         }
 
         // ========== 대시보드 데이터 로드 ==========
-        async function loadDashboardData() {
+        async function loadDashboardData(showLoading = true) {
             const overlay = document.getElementById('loadingOverlay');
-            overlay.classList.add('show');
+            if (showLoading) overlay.classList.add('show');
             
             try {
                 const response = await fetch(`${API_URL}/api/dashboard/stats`, {
