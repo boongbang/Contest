@@ -3087,6 +3087,8 @@
         }
 
         // ========== 대시보드 데이터 로드 ==========
+        let lastDashboardDataHash = ''; // 데이터 변경 감지용
+        
         async function loadDashboardData(showLoading = true) {
             const overlay = document.getElementById('loadingOverlay');
             if (showLoading) overlay.classList.add('show');
@@ -3100,17 +3102,24 @@
                 
                 const data = await response.json();
                 
+                // 데이터 해시 계산 (변경 감지용)
+                const currentHash = JSON.stringify(data.weekly) + JSON.stringify(data.sensors);
+                const dataChanged = currentHash !== lastDashboardDataHash;
+                lastDashboardDataHash = currentHash;
+                
                 // 1. 카드 상태 업데이트 (서버 데이터로 시간 및 복용 상태만 반영)
                 if (data.sensors) updateMedicationCards(data.sensors);
 
-                // 2. 차트 (자동 갱신 시에는 애니메이션 없이 업데이트)
-                updateWeeklyChart(data.weekly, !showLoading);
+                // 2. 차트 (데이터가 변경된 경우에만 업데이트)
+                if (dataChanged || showLoading) {
+                    updateWeeklyChart(data.weekly, !showLoading);
+                }
                 
             } catch (error) {
                 console.error('Failed to load dashboard data:', error);
-                showNotification('데이터를 불러오는데 실패했습니다.', 'error');
+                if (showLoading) showNotification('데이터를 불러오는데 실패했습니다.', 'error');
             } finally {
-                overlay.classList.remove('show');
+                if (showLoading) overlay.classList.remove('show');
             }
         }
 
@@ -3161,10 +3170,10 @@
             if (statsTitle) statsTitle.textContent = titles[period];
             
             // 차트 다시 로드
-            loadActivityChart(period);
+            loadActivityChart(period, false);
         }
         
-        async function loadActivityChart(period) {
+        async function loadActivityChart(period, skipAnimation = false) {
             try {
                 const response = await fetch(`${API_URL}/api/reports/detailed`, {
                     headers: { 'Authorization': `Bearer ${authToken}` }
@@ -3173,13 +3182,13 @@
                 
                 switch (period) {
                     case 'daily':
-                        renderDailyActivityChart(data);
+                        renderDailyActivityChart(data, skipAnimation);
                         break;
                     case 'weekly':
-                        renderWeeklyActivityChart(data);
+                        renderWeeklyActivityChart(data, skipAnimation);
                         break;
                     case 'monthly':
-                        renderMonthlyActivityChart(data);
+                        renderMonthlyActivityChart(data, skipAnimation);
                         break;
                 }
             } catch (e) {
@@ -3188,12 +3197,10 @@
         }
         
         // 일별 차트: 오늘 24시간 시간대별 복용 현황 (바 차트)
-        function renderDailyActivityChart(data) {
+        function renderDailyActivityChart(data, skipAnimation = false) {
             // 대시보드 차트
             const ctx = document.getElementById('activityChart');
             const ctxStats = document.getElementById('statsActivityChart');
-            if (activityChart) activityChart.destroy();
-            if (statsActivityChart) statsActivityChart.destroy();
             
             // 오늘 날짜 필터링
             const today = new Date();
@@ -3224,57 +3231,77 @@
                 return 'rgba(107, 142, 107, 0.3)';
             });
             
-            const chartConfig = {
-                type: 'bar',
-                data: {
-                    labels: Array.from({length: 24}, (_, i) => `${i}시`),
-                    datasets: [{
-                        label: '복용 횟수',
-                        data: hourlyCount,
-                        backgroundColor: backgroundColors,
-                        borderRadius: 4,
-                        barThickness: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                title: (items) => `${items[0].label}`,
-                                label: (item) => `복용: ${item.raw}회`
-                            }
-                        }
+            // skipAnimation이 true이고 차트가 이미 있으면 데이터만 업데이트
+            if (skipAnimation && activityChart && activityChart.config.type === 'bar') {
+                activityChart.data.datasets[0].data = hourlyCount;
+                activityChart.data.datasets[0].backgroundColor = backgroundColors;
+                activityChart.update('none'); // 애니메이션 없이 업데이트
+                
+                if (statsActivityChart && statsActivityChart.config.type === 'bar') {
+                    statsActivityChart.data.datasets[0].data = hourlyCount;
+                    statsActivityChart.data.datasets[0].backgroundColor = backgroundColors;
+                    statsActivityChart.update('none');
+                }
+            } else {
+                // 차트가 없거나 타입이 다르면 새로 생성
+                if (activityChart) activityChart.destroy();
+                if (statsActivityChart) statsActivityChart.destroy();
+                
+                const chartConfig = {
+                    type: 'bar',
+                    data: {
+                        labels: Array.from({length: 24}, (_, i) => `${i}시`),
+                        datasets: [{
+                            label: '복용 횟수',
+                            data: hourlyCount,
+                            backgroundColor: backgroundColors,
+                            borderRadius: 4,
+                            barThickness: 8
+                        }]
                     },
-                    scales: {
-                        y: { 
-                            beginAtZero: true, 
-                            ticks: { stepSize: 1, color: '#999', font: { size: 10 } },
-                            grid: { color: '#f0f0f0' }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: skipAnimation ? false : { duration: 750 },
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    title: (items) => `${items[0].label}`,
+                                    label: (item) => `복용: ${item.raw}회`
+                                }
+                            }
                         },
-                        x: { 
-                            grid: { display: false },
-                            ticks: { 
-                                color: '#999', 
-                                font: { size: 9 },
-                                maxRotation: 0,
-                                callback: (val, idx) => idx % 4 === 0 ? `${idx}시` : ''
+                        scales: {
+                            y: { 
+                                beginAtZero: true, 
+                                ticks: { stepSize: 1, color: '#999', font: { size: 10 } },
+                                grid: { color: '#f0f0f0' }
+                            },
+                            x: { 
+                                grid: { display: false },
+                                ticks: { 
+                                    color: '#999', 
+                                    font: { size: 9 },
+                                    maxRotation: 0,
+                                    callback: (val, idx) => idx % 4 === 0 ? `${idx}시` : ''
+                                }
                             }
                         }
                     }
+                };
+                
+                // 대시보드 차트 생성
+                if (ctx) {
+                    activityChart = new Chart(ctx.getContext('2d'), chartConfig);
                 }
-            };
-            
-            // 대시보드 차트 생성
-            if (ctx) {
-                activityChart = new Chart(ctx.getContext('2d'), chartConfig);
-            }
-            
-            // 통계 차트 생성 (동일한 설정 사용)
-            if (ctxStats) {
-                statsActivityChart = new Chart(ctxStats.getContext('2d'), JSON.parse(JSON.stringify(chartConfig)));
+                
+                // 통계 차트 생성 (동일한 설정 사용)
+                if (ctxStats) {
+                    const statsConfig = JSON.parse(JSON.stringify(chartConfig));
+                    statsConfig.options.animation = skipAnimation ? false : { duration: 750 };
+                    statsActivityChart = new Chart(ctxStats.getContext('2d'), statsConfig);
+                }
             }
             
             // 요약 표시
@@ -3302,11 +3329,9 @@
         }
         
         // 주별 차트: 최근 7일 일별 복용 횟수 (라인 차트)
-        function renderWeeklyActivityChart(data) {
+        function renderWeeklyActivityChart(data, skipAnimation = false) {
             const ctx = document.getElementById('activityChart');
             const ctxStats = document.getElementById('statsActivityChart');
-            if (activityChart) activityChart.destroy();
-            if (statsActivityChart) statsActivityChart.destroy();
             
             // 최근 7일 날짜 생성
             const days = [];
@@ -3339,74 +3364,93 @@
                 return dayLabels[d.getDay()];
             });
             
-            const chartConfig = {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: '복용 횟수',
-                        data: dayCounts,
-                        borderColor: '#6B8E6B',
-                        backgroundColor: null,
-                        borderWidth: 3,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#6B8E6B',
-                        pointBorderWidth: 2,
-                        pointRadius: 5,
-                        pointHoverRadius: 7,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                title: (items) => {
-                                    const idx = items[0].dataIndex;
-                                    const d = new Date(days[idx]);
-                                    return `${d.getMonth()+1}월 ${d.getDate()}일 (${labels[idx]})`;
-                                },
-                                label: (item) => `복용: ${item.raw}회`
+            // skipAnimation이 true이고 차트가 이미 있으면 데이터만 업데이트
+            if (skipAnimation && activityChart && activityChart.config.type === 'line') {
+                activityChart.data.datasets[0].data = dayCounts;
+                activityChart.data.labels = labels;
+                activityChart.update('none'); // 애니메이션 없이 업데이트
+                
+                if (statsActivityChart && statsActivityChart.config.type === 'line') {
+                    statsActivityChart.data.datasets[0].data = dayCounts;
+                    statsActivityChart.data.labels = labels;
+                    statsActivityChart.update('none');
+                }
+            } else {
+                // 차트가 없거나 타입이 다르면 새로 생성
+                if (activityChart) activityChart.destroy();
+                if (statsActivityChart) statsActivityChart.destroy();
+                
+                const chartConfig = {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '복용 횟수',
+                            data: dayCounts,
+                            borderColor: '#6B8E6B',
+                            backgroundColor: null,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#6B8E6B',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: skipAnimation ? false : { duration: 750 },
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    title: (items) => {
+                                        const idx = items[0].dataIndex;
+                                        const d = new Date(days[idx]);
+                                        return `${d.getMonth()+1}월 ${d.getDate()}일 (${labels[idx]})`;
+                                    },
+                                    label: (item) => `복용: ${item.raw}회`
+                                }
+                            }
+                        },
+                        scales: {
+                            y: { 
+                                beginAtZero: true, 
+                                ticks: { stepSize: 1, color: '#999' },
+                                grid: { color: '#f0f0f0', borderDash: [5, 5] }
+                            },
+                            x: { 
+                                grid: { display: false },
+                                ticks: { color: '#999' }
                             }
                         }
-                    },
-                    scales: {
-                        y: { 
-                            beginAtZero: true, 
-                            ticks: { stepSize: 1, color: '#999' },
-                            grid: { color: '#f0f0f0', borderDash: [5, 5] }
-                        },
-                        x: { 
-                            grid: { display: false },
-                            ticks: { color: '#999' }
-                        }
                     }
+                };
+                
+                // 대시보드 차트 생성
+                if (ctx) {
+                    const ctxDashboard = ctx.getContext('2d');
+                    let gradient = ctxDashboard.createLinearGradient(0, 0, 0, 200);
+                    gradient.addColorStop(0, 'rgba(107, 142, 107, 0.3)');
+                    gradient.addColorStop(1, 'rgba(107, 142, 107, 0)');
+                    chartConfig.data.datasets[0].backgroundColor = gradient;
+                    activityChart = new Chart(ctxDashboard, chartConfig);
                 }
-            };
-            
-            // 대시보드 차트 생성
-            if (ctx) {
-                const ctxDashboard = ctx.getContext('2d');
-                let gradient = ctxDashboard.createLinearGradient(0, 0, 0, 200);
-                gradient.addColorStop(0, 'rgba(107, 142, 107, 0.3)');
-                gradient.addColorStop(1, 'rgba(107, 142, 107, 0)');
-                chartConfig.data.datasets[0].backgroundColor = gradient;
-                activityChart = new Chart(ctxDashboard, chartConfig);
-            }
-            
-            // 통계 차트 생성
-            if (ctxStats) {
-                const ctxStatsCanvas = ctxStats.getContext('2d');
-                let gradientStats = ctxStatsCanvas.createLinearGradient(0, 0, 0, 200);
-                gradientStats.addColorStop(0, 'rgba(107, 142, 107, 0.3)');
-                gradientStats.addColorStop(1, 'rgba(107, 142, 107, 0)');
-                const statsConfig = JSON.parse(JSON.stringify(chartConfig));
-                statsConfig.data.datasets[0].backgroundColor = gradientStats;
-                statsActivityChart = new Chart(ctxStatsCanvas, statsConfig);
+                
+                // 통계 차트 생성
+                if (ctxStats) {
+                    const ctxStatsCanvas = ctxStats.getContext('2d');
+                    let gradientStats = ctxStatsCanvas.createLinearGradient(0, 0, 0, 200);
+                    gradientStats.addColorStop(0, 'rgba(107, 142, 107, 0.3)');
+                    gradientStats.addColorStop(1, 'rgba(107, 142, 107, 0)');
+                    const statsConfig = JSON.parse(JSON.stringify(chartConfig));
+                    statsConfig.data.datasets[0].backgroundColor = gradientStats;
+                    statsConfig.options.animation = skipAnimation ? false : { duration: 750 };
+                    statsActivityChart = new Chart(ctxStatsCanvas, statsConfig);
+                }
             }
             
             const totalWeek = dayCounts.reduce((a, b) => a + b, 0);
@@ -3443,11 +3487,9 @@
         }
         
         // 월별 차트: 최근 30일 주차별 복용 현황 (가로 바 차트)
-        function renderMonthlyActivityChart(data) {
+        function renderMonthlyActivityChart(data, skipAnimation = false) {
             const ctx = document.getElementById('activityChart');
             const ctxStats = document.getElementById('statsActivityChart');
-            if (activityChart) activityChart.destroy();
-            if (statsActivityChart) statsActivityChart.destroy();
             
             // 최근 4주 데이터 계산
             const weeks = [
@@ -3490,53 +3532,75 @@
                 c === maxCount && c > 0 ? 'rgba(107, 142, 107, 1)' : 'rgba(107, 142, 107, 0.6)'
             );
             
-            // [변경 후] 설정 객체(chartConfig)를 먼저 정의합니다.
-            const chartConfig = {
-                type: 'bar',
-                data: {
-                    labels: weekLabels,
-                    datasets: [{
-                        label: '복용 횟수',
-                        data: weekCounts,
-                        backgroundColor: backgroundColors,
-                        borderRadius: 8,
-                        barThickness: 25
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (item) => `복용: ${item.raw}회`
+            // skipAnimation이 true이고 차트가 이미 있으면 데이터만 업데이트
+            // 월별 차트는 indexAxis: 'y'인 bar 타입
+            if (skipAnimation && activityChart && activityChart.config.type === 'bar' && activityChart.config.options.indexAxis === 'y') {
+                activityChart.data.datasets[0].data = weekCounts;
+                activityChart.data.datasets[0].backgroundColor = backgroundColors;
+                activityChart.data.labels = weekLabels;
+                activityChart.update('none');
+                
+                if (statsActivityChart && statsActivityChart.config.type === 'bar' && statsActivityChart.config.options.indexAxis === 'y') {
+                    statsActivityChart.data.datasets[0].data = weekCounts;
+                    statsActivityChart.data.datasets[0].backgroundColor = backgroundColors;
+                    statsActivityChart.data.labels = weekLabels;
+                    statsActivityChart.update('none');
+                }
+            } else {
+                // 차트가 없거나 타입이 다르면 새로 생성
+                if (activityChart) activityChart.destroy();
+                if (statsActivityChart) statsActivityChart.destroy();
+                
+                const chartConfig = {
+                    type: 'bar',
+                    data: {
+                        labels: weekLabels,
+                        datasets: [{
+                            label: '복용 횟수',
+                            data: weekCounts,
+                            backgroundColor: backgroundColors,
+                            borderRadius: 8,
+                            barThickness: 25
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: skipAnimation ? false : { duration: 750 },
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (item) => `복용: ${item.raw}회`
+                                }
+                            }
+                        },
+                        scales: {
+                            x: { 
+                                beginAtZero: true,
+                                ticks: { stepSize: 5, color: '#999' },
+                                grid: { color: '#f0f0f0' }
+                            },
+                            y: { 
+                                grid: { display: false },
+                                ticks: { color: '#666', font: { size: 11 } }
                             }
                         }
-                    },
-                    scales: {
-                        x: { 
-                            beginAtZero: true,
-                            ticks: { stepSize: 5, color: '#999' },
-                            grid: { color: '#f0f0f0' }
-                        },
-                        y: { 
-                            grid: { display: false },
-                            ticks: { color: '#666', font: { size: 11 } }
-                        }
                     }
-                }
-            };
+                };
 
-            // 대시보드 차트 생성 (위에서 정의한 chartConfig 사용)
-            if (ctx) {
-                activityChart = new Chart(ctx.getContext('2d'), chartConfig);
-            }
-            
-            // 통계 차트 생성
-            if (ctxStats) {
-                statsActivityChart = new Chart(ctxStats.getContext('2d'), JSON.parse(JSON.stringify(chartConfig)));
+                // 대시보드 차트 생성
+                if (ctx) {
+                    activityChart = new Chart(ctx.getContext('2d'), chartConfig);
+                }
+                
+                // 통계 차트 생성
+                if (ctxStats) {
+                    const statsConfig = JSON.parse(JSON.stringify(chartConfig));
+                    statsConfig.options.animation = skipAnimation ? false : { duration: 750 };
+                    statsActivityChart = new Chart(ctxStats.getContext('2d'), statsConfig);
+                }
             }
             
             const totalMonth = weekCounts.reduce((a, b) => a + b, 0);
@@ -3573,13 +3637,9 @@
         
         // 기존 updateWeeklyChart 대체 (호환성 유지)
         function updateWeeklyChart(weeklyData, skipAnimation = false) {
-            // 자동 갱신 시 차트가 이미 있으면 데이터만 조용히 업데이트
-            if (skipAnimation && activityChart) {
-                // 데이터 변경이 있을 때만 업데이트
-                return;
-            }
             // loadDashboardData에서 호출될 때 현재 선택된 기간으로 렌더링
-            loadActivityChart(currentActivityPeriod);
+            // skipAnimation이 true면 차트가 있을 경우 데이터만 부드럽게 업데이트
+            loadActivityChart(currentActivityPeriod, skipAnimation);
         }
 
         // ========== 사이드바 및 네비게이션 ==========
