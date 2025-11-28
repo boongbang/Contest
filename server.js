@@ -277,7 +277,51 @@ function calculateMaxStreak(dailyStats) {
 function calculateAdherenceMetrics() {
     const totalDays = Object.keys(sensorData.dailyStats).length;
     const totalCount = sensorData.history.filter(h => h.action === 'removed').length;
-    return { totalDays, totalCount, averagePerDay: totalDays > 0 ? totalCount / totalDays : 0, pdc: calculatePDC(sensorData.dailyStats), maxStreak: calculateMaxStreak(sensorData.dailyStats) };
+    
+    // 최장 미복용 기간 계산
+    const dates = Object.keys(sensorData.dailyStats).sort();
+    let maxGap = 0;
+    let prevDate = null;
+    for (let dk of dates) {
+        if (prevDate) {
+            const diff = Math.round((new Date(dk) - new Date(prevDate)) / (1000 * 60 * 60 * 24));
+            if (diff > 1) {
+                maxGap = Math.max(maxGap, diff - 1);
+            }
+        }
+        prevDate = dk;
+    }
+    
+    // 시간 정확도 계산 (목표 시간 대비 실제 복용 시간 오차)
+    let totalAccuracy = 0;
+    let accuracyCount = 0;
+    for (let h of sensorData.history) {
+        if (h.action === 'removed' && h.timestamp && h.sensorId) {
+            const sensor = sensorData.sensors[h.sensorId];
+            if (sensor && sensor.targetTime) {
+                const [targetH, targetM] = sensor.targetTime.split(':').map(Number);
+                const actualTime = new Date(h.timestamp);
+                const targetMinutes = targetH * 60 + targetM;
+                const actualMinutes = actualTime.getHours() * 60 + actualTime.getMinutes();
+                const diffMinutes = Math.abs(actualMinutes - targetMinutes);
+                // 30분 이내면 100%, 60분이면 50%, 120분 이상이면 0%
+                const accuracy = Math.max(0, 100 - (diffMinutes / 1.2));
+                totalAccuracy += accuracy;
+                accuracyCount++;
+            }
+        }
+    }
+    const timeAccuracy = accuracyCount > 0 ? Math.round(totalAccuracy / accuracyCount) : 0;
+    
+    return { 
+        totalDays, 
+        totalCount, 
+        averagePerDay: totalDays > 0 ? totalCount / totalDays : 0, 
+        pdc: calculatePDC(sensorData.dailyStats), 
+        maxStreak: calculateMaxStreak(sensorData.dailyStats),
+        maxGap,
+        timeAccuracy
+    };
 }
 
 function authenticateToken(req, res, next) {
@@ -543,3 +587,4 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
+
