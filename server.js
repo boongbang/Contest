@@ -540,17 +540,27 @@ app.get('/api/medications', authenticateToken, (req, res) => res.json(Object.val
 
 app.get('/api/notifications/check', authenticateToken, (req, res) => {
     const now = new Date(), alerts = [];
+    const nowKST = now.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+    console.log(`[알람체크] 서버시간: ${nowKST}`);
+    
     if (!sensorData.notificationSettings.enabled) return res.json({ alerts: [] });
     for (let id in sensorData.sensors) {
         const sensor = sensorData.sensors[id];
         // 이미 복용했거나 알람을 확인(dismiss)한 경우 건너뜀
-        if (sensor.todayOpened || sensor.alarmDismissed) continue;
+        if (sensor.todayOpened || sensor.alarmDismissed) {
+            console.log(`[알람체크] 센서${id} 건너뜀 (todayOpened: ${sensor.todayOpened}, alarmDismissed: ${sensor.alarmDismissed})`);
+            continue;
+        }
         const [tHour, tMin] = sensor.targetTime.split(':').map(Number);
         const targetDate = new Date(now); targetDate.setHours(tHour, tMin, 0, 0);
         const diffMinutes = Math.round((now - targetDate) / 1000 / 60);
+        console.log(`[알람체크] 센서${id} "${sensor.name}" 목표시간: ${sensor.targetTime}, 차이: ${diffMinutes}분`);
         // diffMinutes가 양수이고 30분 이내일 때만 알람 (현재 시간이 목표 시간을 지났을 때)
         // 추가: 현재 시간이 목표 시간보다 이전이면 알람 안 함 (예: 07:00에 22:00 알람 방지)
-        if (diffMinutes > 0 && diffMinutes <= 30) alerts.push({ sensorId: id, type: 'warning', message: `🔔 ${sensor.emoji} ${sensor.name} 복용 시간입니다! (${diffMinutes}분 지남)`, playSound: true });
+        if (diffMinutes > 0 && diffMinutes <= 30) {
+            console.log(`[알람체크] ⏰ 센서${id} 알람 발생!`);
+            alerts.push({ sensorId: id, type: 'warning', message: `🔔 ${sensor.emoji} ${sensor.name} 복용 시간입니다! (${diffMinutes}분 지남)`, playSound: true });
+        }
     }
     res.json({ alerts });
 });
@@ -594,7 +604,12 @@ setInterval(checkMissedMedication, 60000);
 setInterval(checkDeviceStatus, 10000);
 resetDailyFlags();
 
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/health', (req, res) => res.json({ 
+    status: 'ok',
+    serverTime: new Date().toISOString(),
+    serverTimeKST: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+}));
 
 app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
