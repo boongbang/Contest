@@ -57,13 +57,13 @@ let sensorData = {
         1: { id: 1, name: '아침 약', emoji: '🌅', value: 0, lastOpened: null, todayOpened: false, targetTime: '08:00', description: '혈압약', missedAlertSent: false },
         2: { id: 2, name: '점심 약', emoji: '☀️', value: 0, lastOpened: null, todayOpened: false, targetTime: '13:00', description: '비타민', missedAlertSent: false },
         3: { id: 3, name: '저녁 약', emoji: '🌙', value: 0, lastOpened: null, todayOpened: false, targetTime: '18:00', description: '관절약', missedAlertSent: false },
-        4: { id: 4, name: '취침 약', emoji: '🛌', value: 0, lastOpened: null, todayOpened: false, targetTime: '22:00', description: '수면제', missedAlertSent: false }
+        4: { id: 4, name: '자기전 약', emoji: '🛌', value: 0, lastOpened: null, todayOpened: false, targetTime: '22:00', description: '수면제', missedAlertSent: false }
     },
     history: [],
     dailyStats: {},
     users: [{ id: 1, email: 'user@coss.com', password: '', name: '홍길동', guardianEmail: '', profileIcon: 'user', profileColor: '#6B8E6B' }],
     userMedications: {},
-    deviceInfo: { ipAddress: null, firmwareVersion: '1.0.0', lastHeartbeat: null, isOnline: false, batteryLevel: null },
+    deviceInfo: { ipAddress: null, firmwareVersion: '1.0.0', lastHeartbeat: null, isOnline: false },
     isRefillMode: false,
     refillStartTime: null,
     notificationSettings: { enabled: true, nightModeEnabled: false, nightStart: '22:00', nightEnd: '06:00' }
@@ -82,7 +82,7 @@ function loadData() {
             const loaded = JSON.parse(fs.readFileSync(DATA_FILE));
             sensorData = { ...sensorData, ...loaded };
             if (!sensorData.userMedications) sensorData.userMedications = {};
-            if (!sensorData.deviceInfo) sensorData.deviceInfo = { ipAddress: null, firmwareVersion: '1.0.0', lastHeartbeat: null, isOnline: false, batteryLevel: null };
+            if (!sensorData.deviceInfo) sensorData.deviceInfo = { ipAddress: null, firmwareVersion: '1.0.0', lastHeartbeat: null, isOnline: false };
             if (sensorData.isRefillMode === undefined) sensorData.isRefillMode = false;
             if (!sensorData.notificationSettings) sensorData.notificationSettings = { enabled: true, nightModeEnabled: false, nightStart: '22:00', nightEnd: '06:00' };
             for (let id in sensorData.sensors) {
@@ -132,66 +132,67 @@ function initTestAccountData() {
         };
     }
     
-    // 테스트용 30일치 히스토리 데이터 생성 (일별/주별/월별 패턴 다양화)
+    // 테스트용 7일치 히스토리 데이터 생성 (시연용 - 예쁜 그래프)
     if (sensorData.history.length === 0) {
         const sensorNames = ['아침 약', '점심 약', '저녁 약', '자기전 약'];
         const targetTimes = ['08:00', '13:00', '18:00', '22:00'];
         
-        for (let dayOffset = 29; dayOffset >= 0; dayOffset--) {
+        // 시연용 데이터: 점점 좋아지는 복약 패턴 (오늘 포함)
+        // [6일전, 5일전, 4일전, 3일전, 2일전, 1일전, 오늘]
+        const dailyPattern = [
+            [1, 2],           // 6일전: 아침, 점심 (2회)
+            [1, 2, 3],        // 5일전: 아침, 점심, 저녁 (3회)
+            [1, 3],           // 4일전: 아침, 저녁 (2회)
+            [1, 2, 3, 4],     // 3일전: 완벽! (4회)
+            [1, 2, 3],        // 2일전: 아침, 점심, 저녁 (3회)
+            [1, 2, 3, 4],     // 1일전: 완벽! (4회)
+            [1, 2]            // 오늘: 아침, 점심 복용 완료 (시연 시작점)
+        ];
+        
+        for (let dayOffset = 6; dayOffset >= 0; dayOffset--) {
             const date = new Date();
             date.setDate(date.getDate() - dayOffset);
             const dateKey = date.toISOString().split('T')[0];
-            const dayOfWeek = date.getDay(); // 0=일, 6=토
-            const weekOfMonth = Math.floor(date.getDate() / 7); // 0~4주차
             
             if (!sensorData.dailyStats[dateKey]) {
                 sensorData.dailyStats[dateKey] = { date: dateKey, sensors: {} };
             }
             
-            // 요일별/주차별 패턴 다양화
-            let numRecords;
-            if (dayOfWeek === 0 || dayOfWeek === 6) {
-                // 주말: 복약률 낮음 (1~3개)
-                numRecords = Math.floor(Math.random() * 3) + 1;
-            } else if (weekOfMonth === 0) {
-                // 첫째 주: 복약률 높음 (3~4개)
-                numRecords = Math.floor(Math.random() * 2) + 3;
-            } else if (weekOfMonth >= 3) {
-                // 넷째 주 이후: 복약률 중간 (2~3개)
-                numRecords = Math.floor(Math.random() * 2) + 2;
-            } else {
-                // 그 외: 랜덤 (1~4개)
-                numRecords = Math.floor(Math.random() * 4) + 1;
-            }
-            const usedSlots = new Set();
+            const slotsForDay = dailyPattern[6 - dayOffset];
             
-            for (let i = 0; i < numRecords; i++) {
-                let slotId;
-                do {
-                    slotId = Math.floor(Math.random() * 4) + 1;
-                } while (usedSlots.has(slotId));
-                usedSlots.add(slotId);
-                
+            for (const slotId of slotsForDay) {
                 const [targetH, targetM] = targetTimes[slotId - 1].split(':').map(Number);
                 const recordTime = new Date(date);
-                recordTime.setHours(targetH, targetM + Math.floor(Math.random() * 20) - 5, 0, 0);
                 
-                // 오늘이 아닌 경우에만 히스토리 추가
-                if (dayOffset > 0) {
-                    sensorData.history.push({
-                        sensorId: slotId,
-                        sensorName: sensorNames[slotId - 1],
-                        action: 'removed',
-                        timestamp: recordTime.toISOString(),
-                        returnedAt: new Date(recordTime.getTime() + 5000).toISOString(),
-                        duration: 5
-                    });
-                    
-                    if (!sensorData.dailyStats[dateKey].sensors[slotId]) {
-                        sensorData.dailyStats[dateKey].sensors[slotId] = { count: 0, times: [] };
-                    }
-                    sensorData.dailyStats[dateKey].sensors[slotId].count++;
-                    sensorData.dailyStats[dateKey].sensors[slotId].times.push(recordTime.toISOString());
+                // 오늘인 경우 현재 시간 이전으로 설정
+                if (dayOffset === 0) {
+                    const currentHour = now.getHours();
+                    if (targetH > currentHour) continue; // 미래 시간은 건너뜀
+                    recordTime.setHours(targetH, targetM + Math.floor(Math.random() * 10), 0, 0);
+                } else {
+                    // 목표 시간 ±10분 내 랜덤
+                    recordTime.setHours(targetH, targetM + Math.floor(Math.random() * 20) - 10, 0, 0);
+                }
+                
+                sensorData.history.push({
+                    sensorId: slotId,
+                    sensorName: sensorNames[slotId - 1],
+                    action: 'removed',
+                    timestamp: recordTime.toISOString(),
+                    returnedAt: new Date(recordTime.getTime() + 5000).toISOString(),
+                    duration: 5
+                });
+                
+                if (!sensorData.dailyStats[dateKey].sensors[slotId]) {
+                    sensorData.dailyStats[dateKey].sensors[slotId] = { count: 0, times: [] };
+                }
+                sensorData.dailyStats[dateKey].sensors[slotId].count++;
+                sensorData.dailyStats[dateKey].sensors[slotId].times.push(recordTime.toISOString());
+                
+                // 오늘 복용한 약은 todayOpened 플래그 설정
+                if (dayOffset === 0 && sensorData.sensors[slotId]) {
+                    sensorData.sensors[slotId].todayOpened = true;
+                    sensorData.sensors[slotId].lastOpened = recordTime.toISOString();
                 }
             }
         }
@@ -200,7 +201,7 @@ function initTestAccountData() {
         sensorData.history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         
         saveData();
-        console.log('📊 테스트 계정 샘플 데이터 생성 완료');
+        console.log('📊 테스트 계정 시연용 데이터 생성 완료');
     }
 }
 
@@ -391,10 +392,9 @@ app.get('/api/device/status', authenticateToken, (req, res) => {
 });
 
 app.post('/api/device/heartbeat', (req, res) => {
-    const { ipAddress, firmwareVersion, batteryLevel } = req.body;
+    const { ipAddress, firmwareVersion } = req.body;
     if (ipAddress) sensorData.deviceInfo.ipAddress = ipAddress;
     if (firmwareVersion) sensorData.deviceInfo.firmwareVersion = firmwareVersion;
-    if (batteryLevel !== undefined) sensorData.deviceInfo.batteryLevel = batteryLevel;
     sensorData.deviceInfo.lastHeartbeat = new Date().toISOString();
     sensorData.deviceInfo.isOnline = true;
     res.json({ success: true, serverTime: new Date().toISOString() });
@@ -494,18 +494,14 @@ app.get('/api/reports/detailed', authenticateToken, (req, res) => {
 app.get('/api/medications', authenticateToken, (req, res) => res.json(Object.values(sensorData.sensors)));
 
 app.get('/api/notifications/check', authenticateToken, (req, res) => {
-    // 한국 시간 기준으로 계산
-    const now = new Date();
-    const kstOffset = 9 * 60; // UTC+9
-    const kstNow = new Date(now.getTime() + (kstOffset + now.getTimezoneOffset()) * 60000);
-    const alerts = [];
+    const now = new Date(), alerts = [];
     if (!sensorData.notificationSettings.enabled) return res.json({ alerts: [] });
     for (let id in sensorData.sensors) {
         const sensor = sensorData.sensors[id];
         if (sensor.todayOpened) continue;
         const [tHour, tMin] = sensor.targetTime.split(':').map(Number);
-        const targetDate = new Date(kstNow); targetDate.setHours(tHour, tMin, 0, 0);
-        const diffMinutes = Math.round((kstNow - targetDate) / 1000 / 60);
+        const targetDate = new Date(now); targetDate.setHours(tHour, tMin, 0, 0);
+        const diffMinutes = Math.round((now - targetDate) / 1000 / 60);
         if (diffMinutes > 0 && diffMinutes <= 30) alerts.push({ sensorId: id, type: 'warning', message: `🔔 ${sensor.emoji} ${sensor.name} 복용 시간입니다! (${diffMinutes}분 지남)`, playSound: true });
     }
     res.json({ alerts });
@@ -547,7 +543,3 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
-
-
-
-
