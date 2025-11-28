@@ -2391,6 +2391,11 @@
             alarmCheckInterval = setInterval(checkAlarmLogic, 10000);
             checkAlarmLogic();
             
+            // 대시보드 데이터 자동 갱신 (1초마다)
+            setInterval(() => {
+                loadDashboardData();
+            }, 1000);
+            
             // 사이드바 초기화
             const sidebarItems = document.querySelectorAll('.sidebar-item');
             let activeIndex = 0;
