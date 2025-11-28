@@ -2341,6 +2341,7 @@
         let sensorCheckInterval = null;
         let alarmCheckInterval = null;
         let isAlarmPlaying = false;
+        let currentAlarmSensorId = null; // 현재 울리고 있는 알람의 센서 ID
 
         // ========== 카드 데이터 (초기값: 빈 배열) ==========
         let cardData = {
@@ -2933,7 +2934,7 @@
                 if (data.alerts && data.alerts.length > 0) {
                     for (const alert of data.alerts) {
                         if (alert.playSound && !isAlarmPlaying) {
-                            playAlarm(alert.message);
+                            playAlarm(alert.message, alert.sensorId);
                             break;
                         }
                     }
@@ -2994,7 +2995,7 @@
             }
         }
 
-        function playAlarm(msg) {
+        function playAlarm(msg, sensorId) {
             const audio = document.getElementById('alarmSound');
             const banner = document.getElementById('alarmBanner');
             const message = document.getElementById('alarmMessage');
@@ -3004,16 +3005,36 @@
             message.textContent = msg;
             banner.classList.add('show');
             isAlarmPlaying = true;
+            currentAlarmSensorId = sensorId; // 현재 알람의 센서 ID 저장
         }
 
-        function stopAlarm() {
+        async function stopAlarm() {
             const audio = document.getElementById('alarmSound');
             const banner = document.getElementById('alarmBanner');
             
             audio.pause();
             audio.currentTime = 0;
             banner.classList.remove('show');
+            
+            // 서버에 알람 확인(dismiss) 요청 - 오늘 하루 동안 해당 알람 끄기
+            if (currentAlarmSensorId) {
+                try {
+                    await fetch(`${API_URL}/api/notifications/dismiss`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify({ sensorId: currentAlarmSensorId })
+                    });
+                    console.log(`센서 ${currentAlarmSensorId} 알람이 오늘 하루 동안 꺼졌습니다.`);
+                } catch (e) {
+                    console.error('알람 dismiss 실패:', e);
+                }
+            }
+            
             isAlarmPlaying = false;
+            currentAlarmSensorId = null;
         }
 
         // ========== 센서 상태 확인 ==========
