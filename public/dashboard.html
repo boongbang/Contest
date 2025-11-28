@@ -4050,6 +4050,7 @@
             
             document.getElementById('statsPDC').textContent = (metrics.pdc || 0) + '%';
             document.getElementById('statsStreak').textContent = (metrics.maxStreak || 0) + '일';
+            document.getElementById('statsAccuracy').textContent = (metrics.timeAccuracy || 0) + '%';
             document.getElementById('statsGap').textContent = (metrics.maxGap || 0) + '일';
             
             const totalCount = data.history?.length || 0;
