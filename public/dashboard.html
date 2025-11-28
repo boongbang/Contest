@@ -4036,12 +4036,36 @@
                 prevDate = dk;
             }
             
+            // 시간 정확도 계산
+            const targetTimes = { 1: '08:00', 2: '13:00', 3: '18:00', 4: '22:00' };
+            let totalAccuracy = 0;
+            let accuracyCount = 0;
+        
+            history.forEach(h => {
+                if (h.timestamp && h.sensorId) {
+                    const target = targetTimes[h.sensorId];
+                    if (target) {
+                        const [targetH, targetM] = target.split(':').map(Number);
+                        const actualTime = new Date(h.timestamp);
+                        const targetMinutes = targetH * 60 + targetM;
+                        const actualMinutes = actualTime.getHours() * 60 + actualTime.getMinutes();
+                        const diffMinutes = Math.abs(actualMinutes - targetMinutes);
+                        const accuracy = Math.max(0, 100 - (diffMinutes / 1.2));
+                        totalAccuracy += accuracy;
+                        accuracyCount++;
+                    }
+                }
+            });
+        
+            const timeAccuracy = accuracyCount > 0 ? Math.round(totalAccuracy / accuracyCount) : 0;
+            
             return {
                 pdc: Math.min(pdc, 100),
                 maxStreak,
                 maxGap,
                 totalCount,
-                averagePerDay: totalDays > 0 ? totalCount / totalDays : 0
+                averagePerDay: totalDays > 0 ? totalCount / totalDays : 0,
+                timeAccuracy
             };
         }
         
