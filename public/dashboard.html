@@ -2766,11 +2766,9 @@
         // ========== 약물관리 탭 - 복약 시간 분포 차트 ==========
         let timeDistributionChart = null;
         
-        function renderTimeDistributionChart() {
+        function renderTimeDistributionChart(skipAnimation = false) {
             const ctx = document.getElementById('timeDistributionChart');
             if (!ctx) return;
-            
-            if (timeDistributionChart) timeDistributionChart.destroy();
             
             // 등록된 약의 시간대별 분포 계산
             const timeSlots = {
@@ -2828,61 +2826,83 @@
             if (oldMsg) oldMsg.remove();
             ctx.style.display = 'block';
             
-            timeDistributionChart = new Chart(ctx.getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: values,
-                        backgroundColor: [
-                            'rgba(136, 176, 136, 0.9)',  // 아침 - 연한 초록
-                            'rgba(107, 142, 107, 0.9)',  // 점심 - 초록
-                            'rgba(85, 112, 85, 0.9)',    // 저녁 - 진한 초록
-                            'rgba(62, 82, 62, 0.9)'      // 취침 - 더 진한 초록
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#fff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    // 수정 후
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 15, 
-                                usePointStyle: true,
-                                font: { size: 10 },
-                                generateLabels: function(chart) {
-                                    const data = chart.data;
-                                    const timeRanges = ['(6-10시)', '(11-14시)', '(17-20시)', '(21-24시)'];
-                                    return data.labels.map((label, i) => ({
-                                        text: label + '\n' + timeRanges[i],
-                                        fillStyle: data.datasets[0].backgroundColor[i],
-                                        strokeStyle: data.datasets[0].borderColor,
-                                        lineWidth: data.datasets[0].borderWidth,
-                                        pointStyle: 'circle',
-                                        hidden: false,
-                                        index: i
-                                    }));
-                                }
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const value = context.raw;
-                                    const percentage = totalMeds > 0 ? Math.round((value / totalMeds) * 100) : 0;
-                                    return ` ${value}개 (${percentage}%)`;
-                                }
-                            }
-                        }
-                    },
-                    cutout: '45%'
+            // 차트가 이미 있고 skipAnimation이 true면 데이터만 업데이트
+if (skipAnimation && timeDistributionChart) {
+    timeDistributionChart.data.labels = labels;
+    timeDistributionChart.data.datasets[0].data = values;
+    timeDistributionChart.update('none'); // 애니메이션 없이 업데이트
+    return;
+}
+
+// 차트가 있으면 삭제 후 새로 생성
+if (timeDistributionChart) timeDistributionChart.destroy();
+
+// 차트가 이미 있고 skipAnimation이 true면 데이터만 업데이트
+if (skipAnimation && timeDistributionChart) {
+    timeDistributionChart.data.labels = labels;
+    timeDistributionChart.data.datasets[0].data = values;
+    timeDistributionChart.update('none'); // 애니메이션 없이 업데이트
+    return;
+}
+
+// 차트가 있으면 삭제 후 새로 생성
+if (timeDistributionChart) timeDistributionChart.destroy();
+
+timeDistributionChart = new Chart(ctx.getContext('2d'), {
+    type: 'doughnut',
+    data: {
+        labels: labels,
+        datasets: [{
+            data: values,
+            backgroundColor: [
+                'rgba(136, 176, 136, 0.9)',
+                'rgba(107, 142, 107, 0.9)',
+                'rgba(85, 112, 85, 0.9)',
+                'rgba(62, 82, 62, 0.9)'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: skipAnimation ? false : { duration: 750 },
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 15, 
+                    usePointStyle: true,
+                    font: { size: 10 },
+                    generateLabels: function(chart) {
+                        const data = chart.data;
+                        const timeRanges = ['(6-10시)', '(11-14시)', '(17-20시)', '(21-24시)'];
+                        return data.labels.map((label, i) => ({
+                            text: label + '\n' + timeRanges[i],
+                            fillStyle: data.datasets[0].backgroundColor[i],
+                            strokeStyle: data.datasets[0].borderColor,
+                            lineWidth: data.datasets[0].borderWidth,
+                            pointStyle: 'circle',
+                            hidden: false,
+                            index: i
+                        }));
+                    }
                 }
-            });
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const value = context.raw;
+                        const percentage = totalMeds > 0 ? Math.round((value / totalMeds) * 100) : 0;
+                        return ` ${value}개 (${percentage}%)`;
+                    }
+                }
+            }
+        },
+        cutout: '45%'
+    }
+});
         }
 
         // ========== 약물관리 탭에서 수정/삭제 ==========
@@ -3700,9 +3720,18 @@
             // 약물관리 섹션 진입 시 차트 렌더링
             if (section === 'medication') {
                 setTimeout(() => {
-                    renderTimeDistributionChart();
+                    renderTimeDistributionChart(false);  // 섹션 처음 진입 시에만 애니메이션
                 }, 100);
             }
+            ```
+            
+            ---
+            
+            ### **문제 2: 알람이 추가해도 해당 시간에 울리지 않음**
+            
+            **원인 분석** (서버 로그 기반):
+            ```
+            [알람체크] 센서3 "저녁 약" 목표시간: 18:00, 차이: 270분
         }
         function toggleUserMenu() {
             document.getElementById('userDropdown').classList.toggle('show');
