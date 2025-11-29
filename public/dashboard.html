@@ -2826,17 +2826,6 @@
             if (oldMsg) oldMsg.remove();
             ctx.style.display = 'block';
             
-            // 차트가 이미 있고 skipAnimation이 true면 데이터만 업데이트
-if (skipAnimation && timeDistributionChart) {
-    timeDistributionChart.data.labels = labels;
-    timeDistributionChart.data.datasets[0].data = values;
-    timeDistributionChart.update('none'); // 애니메이션 없이 업데이트
-    return;
-}
-
-// 차트가 있으면 삭제 후 새로 생성
-if (timeDistributionChart) timeDistributionChart.destroy();
-
 // 차트가 이미 있고 skipAnimation이 true면 데이터만 업데이트
 if (skipAnimation && timeDistributionChart) {
     timeDistributionChart.data.labels = labels;
@@ -3723,16 +3712,8 @@ timeDistributionChart = new Chart(ctx.getContext('2d'), {
                     renderTimeDistributionChart(false);  // 섹션 처음 진입 시에만 애니메이션
                 }, 100);
             }
-            ```
-            
-            ---
-            
-            ### **문제 2: 알람이 추가해도 해당 시간에 울리지 않음**
-            
-            **원인 분석** (서버 로그 기반):
-            ```
-            [알람체크] 센서3 "저녁 약" 목표시간: 18:00, 차이: 270분
         }
+        function toggleUserMenu() {
         function toggleUserMenu() {
             document.getElementById('userDropdown').classList.toggle('show');
         }
