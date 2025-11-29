@@ -422,7 +422,15 @@ app.post('/api/medications/user', authenticateToken, (req, res) => {
     const { cardData } = req.body;
     if (!cardData) return res.status(400).json({ error: 'cardData required' });
     sensorData.userMedications[req.user.id] = cardData;
-    for (let id in cardData) { if (sensorData.sensors[id] && cardData[id].time) sensorData.sensors[id].targetTime = cardData[id].time; }
+for (let id in cardData) { 
+        if (sensorData.sensors[id] && cardData[id].time) {
+            // 시간이 변경되었으면 alarmDismissed 리셋
+            if (sensorData.sensors[id].targetTime !== cardData[id].time) {
+                sensorData.sensors[id].alarmDismissed = false;
+            }
+            sensorData.sensors[id].targetTime = cardData[id].time; 
+        }
+    }
     saveData();
     res.json({ success: true, message: '저장됨' });
 });
@@ -617,5 +625,6 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
+
 
 
