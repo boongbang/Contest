@@ -176,6 +176,7 @@ function initTestAccountData() {
                 }
                 
                 sensorData.history.push({
+                    userId: testUserId,  // 사용자별 데이터 분리
                     sensorId: slotId,
                     sensorName: sensorNames[slotId - 1],
                     action: 'removed',
@@ -275,12 +276,29 @@ function calculateMaxStreak(dailyStats) {
     return maxStreak;
 }
 
-function calculateAdherenceMetrics() {
-    const totalDays = Object.keys(sensorData.dailyStats).length;
-    const totalCount = sensorData.history.filter(h => h.action === 'removed').length;
+function calculateAdherenceMetrics(userId = null) {
+    // 사용자별 히스토리 필터링
+    const userHistory = userId 
+        ? sensorData.history.filter(h => h.userId === userId)
+        : sensorData.history;
+    
+    // 사용자별 일별 통계 계산
+    const userDailyStats = {};
+    userHistory.forEach(h => {
+        if (h.action === 'removed' && h.timestamp) {
+            const dateKey = h.timestamp.split('T')[0];
+            if (!userDailyStats[dateKey]) userDailyStats[dateKey] = { date: dateKey, sensors: {} };
+            if (!userDailyStats[dateKey].sensors[h.sensorId]) userDailyStats[dateKey].sensors[h.sensorId] = { count: 0, times: [] };
+            userDailyStats[dateKey].sensors[h.sensorId].count++;
+            userDailyStats[dateKey].sensors[h.sensorId].times.push(h.timestamp);
+        }
+    });
+    
+    const totalDays = Object.keys(userDailyStats).length;
+    const totalCount = userHistory.filter(h => h.action === 'removed').length;
     
     // 최장 미복용 기간 계산
-    const dates = Object.keys(sensorData.dailyStats).sort();
+    const dates = Object.keys(userDailyStats).sort();
     let maxGap = 0;
     let prevDate = null;
     for (let dk of dates) {
@@ -296,7 +314,7 @@ function calculateAdherenceMetrics() {
     // 시간 정확도 계산 (목표 시간 대비 실제 복용 시간 오차)
     let totalAccuracy = 0;
     let accuracyCount = 0;
-    for (let h of sensorData.history) {
+    for (let h of userHistory) {
         if (h.action === 'removed' && h.timestamp && h.sensorId) {
             const sensor = sensorData.sensors[h.sensorId];
             if (sensor && sensor.targetTime) {
@@ -318,8 +336,8 @@ function calculateAdherenceMetrics() {
         totalDays, 
         totalCount, 
         averagePerDay: totalDays > 0 ? totalCount / totalDays : 0, 
-        pdc: calculatePDC(sensorData.dailyStats), 
-        maxStreak: calculateMaxStreak(sensorData.dailyStats),
+        pdc: calculatePDC(userDailyStats), 
+        maxStreak: calculateMaxStreak(userDailyStats),
         maxGap,
         timeAccuracy
     };
@@ -369,7 +387,7 @@ app.post('/value', (req, res) => {
             if (!sensorData.dailyStats[today].sensors[finalSensorId]) sensorData.dailyStats[today].sensors[finalSensorId] = { count: 0, times: [] };
             sensorData.dailyStats[today].sensors[finalSensorId].count++;
             sensorData.dailyStats[today].sensors[finalSensorId].times.push(now.toISOString());
-            sensorData.history.unshift({ sensorId: finalSensorId, sensorName: sensor.name, action: 'removed', timestamp: pendingRemoval[finalSensorId].startTime, returnedAt: now.toISOString(), duration: Math.round(elapsedMs / 1000) });
+            sensorData.history.unshift({ userId: 1, sensorId: finalSensorId, sensorName: sensor.name, action: 'removed', timestamp: pendingRemoval[finalSensorId].startTime, returnedAt: now.toISOString(), duration: Math.round(elapsedMs / 1000) });
             if (sensorData.history.length > 500) sensorData.history.pop();
             console.log(`[Sensor ${finalSensorId}] ✅ RECORDED`);
             saveData();
@@ -516,32 +534,69 @@ app.put('/api/notifications/settings', authenticateToken, (req, res) => {
 
 app.post('/api/data/reset', authenticateToken, async (req, res) => {
     if (req.body.confirmText !== '초기화') return res.status(400).json({ error: '"초기화"를 입력하세요' });
+    const userId = req.user.id;
+    // 센서 상태 초기화 (전역 - 하드웨어 연동)
     for (let id in sensorData.sensors) { sensorData.sensors[id].value = 0; sensorData.sensors[id].todayOpened = false; sensorData.sensors[id].lastOpened = null; sensorData.sensors[id].missedAlertSent = false; sensorData.sensors[id].alarmDismissed = false; }
-    sensorData.history = [];
-    sensorData.dailyStats = {};
-    sensorData.userMedications[req.user.id] = null;
+    // 사용자별 히스토리만 삭제
+    sensorData.history = sensorData.history.filter(h => h.userId !== userId);
+    // 사용자 약물 설정 초기화
+    sensorData.userMedications[userId] = null;
     saveData();
     res.json({ success: true, message: '초기화 완료' });
 });
 
 app.get('/api/dashboard/stats', authenticateToken, (req, res) => {
+    const userId = req.user.id;
     const now = new Date(), today = now.toISOString().split('T')[0];
-    const todayStats = sensorData.dailyStats[today] || { sensors: {} };
+    
+    // 사용자별 히스토리 필터링
+    const userHistory = sensorData.history.filter(h => h.userId === userId);
+    
+    // 사용자별 일별 통계 계산
+    const userDailyStats = {};
+    userHistory.forEach(h => {
+        if (h.action === 'removed' && h.timestamp) {
+            const dateKey = h.timestamp.split('T')[0];
+            if (!userDailyStats[dateKey]) userDailyStats[dateKey] = { date: dateKey, sensors: {} };
+            if (!userDailyStats[dateKey].sensors[h.sensorId]) userDailyStats[dateKey].sensors[h.sensorId] = { count: 0, times: [] };
+            userDailyStats[dateKey].sensors[h.sensorId].count++;
+            userDailyStats[dateKey].sensors[h.sensorId].times.push(h.timestamp);
+        }
+    });
+    
+    const todayStats = userDailyStats[today] || { sensors: {} };
     const weekly = [];
     for (let i = 6; i >= 0; i--) {
         const d = new Date(); d.setDate(d.getDate() - i);
-        const k = d.toISOString().split('T')[0], s = sensorData.dailyStats[k];
+        const k = d.toISOString().split('T')[0], s = userDailyStats[k];
         let count = 0;
         if (s && s.sensors) Object.values(s.sensors).forEach(v => { if (v.count > 0) count++; });
         weekly.push({ date: k, completedCount: count, day: ['일', '월', '화', '수', '목', '금', '토'][d.getDay()] });
     }
-    res.json({ sensors: sensorData.sensors, today: todayStats, weekly, adherenceRate: calculateAdherenceMetrics().pdc, adherenceMetrics: calculateAdherenceMetrics(), lastAction: sensorData.history[0], isRefillMode: sensorData.isRefillMode });
+    res.json({ sensors: sensorData.sensors, today: todayStats, weekly, adherenceRate: calculateAdherenceMetrics(userId).pdc, adherenceMetrics: calculateAdherenceMetrics(userId), lastAction: userHistory[0], isRefillMode: sensorData.isRefillMode });
 });
 
 app.get('/api/reports/detailed', authenticateToken, (req, res) => {
+    const userId = req.user.id;
+    
+    // 사용자별 히스토리 필터링
+    const userHistory = sensorData.history.filter(h => h.userId === userId);
+    
+    // 사용자별 일별 통계 계산
+    const userDailyStats = {};
+    userHistory.forEach(h => {
+        if (h.action === 'removed' && h.timestamp) {
+            const dateKey = h.timestamp.split('T')[0];
+            if (!userDailyStats[dateKey]) userDailyStats[dateKey] = { date: dateKey, sensors: {} };
+            if (!userDailyStats[dateKey].sensors[h.sensorId]) userDailyStats[dateKey].sensors[h.sensorId] = { count: 0, times: [] };
+            userDailyStats[dateKey].sensors[h.sensorId].count++;
+            userDailyStats[dateKey].sensors[h.sensorId].times.push(h.timestamp);
+        }
+    });
+    
     const hourlyDistribution = new Array(24).fill(0), weekdayDistribution = new Array(7).fill(0);
-    sensorData.history.forEach(h => { if (h.action === 'removed' && h.timestamp) { const d = new Date(h.timestamp); hourlyDistribution[d.getHours()]++; weekdayDistribution[d.getDay()]++; } });
-    res.json({ sensorStats: sensorData.sensors, history: sensorData.history.slice(0, 200), totalDays: Object.keys(sensorData.dailyStats).length, dailyStats: sensorData.dailyStats, adherenceMetrics: calculateAdherenceMetrics(), distributions: { hourly: hourlyDistribution, weekday: weekdayDistribution } });
+    userHistory.forEach(h => { if (h.action === 'removed' && h.timestamp) { const d = new Date(h.timestamp); hourlyDistribution[d.getHours()]++; weekdayDistribution[d.getDay()]++; } });
+    res.json({ sensorStats: sensorData.sensors, history: userHistory.slice(0, 200), totalDays: Object.keys(userDailyStats).length, dailyStats: userDailyStats, adherenceMetrics: calculateAdherenceMetrics(userId), distributions: { hourly: hourlyDistribution, weekday: weekdayDistribution } });
 });
 
 app.get('/api/medications', authenticateToken, (req, res) => res.json(Object.values(sensorData.sensors)));
@@ -625,6 +680,3 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
-
-
-
