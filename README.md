@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white" alt="Chart.js"/>
 </p>
 
-<h1 align="center">💊 COSS - Care Of Smart Seniors</h1>
+<h1 align="center">🟢 COSS - Smart Pillcase</h1>
 
 <p align="center">
   <strong>IoT 기반 스마트 복약 관리 시스템</strong><br>
