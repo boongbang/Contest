@@ -662,8 +662,8 @@ coss/
 
 프로젝트 관련 문의사항은 아래로 연락해 주세요.
 
-- **이메일**: user@coss.com (테스트 계정)
-- **데모**: https://port-0-coss-mi0kk25df8c7e306.sel3.cloudtype.app
+- **이메일**: sean3124@naver.com (테스트 계정)
+- **주소**: https://port-0-coss-mi0kk25df8c7e306.sel3.cloudtype.app
 
 ---
 
