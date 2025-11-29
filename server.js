@@ -600,7 +600,7 @@ function checkDeviceStatus() {
 }
 
 setInterval(resetDailyFlags, 60000);
-setInterval(checkMissedMedication, 60000);
+setInterval(checkMissedMedication, 5000);
 setInterval(checkDeviceStatus, 10000);
 resetDailyFlags();
 
@@ -617,4 +617,5 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
+
 
