@@ -180,7 +180,14 @@
             border-top-right-radius: var(--curve-radius); 
             padding-top: 20px; 
             position: relative;
-            overflow: hidden; 
+            overflow-y: auto;
+            overflow-x: hidden;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .sidebar-container::-webkit-scrollbar {
+            display: none;
         }
 
         .active-indicator {
