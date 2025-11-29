@@ -234,7 +234,7 @@ async function checkMissedMedication() {
         const [tHour, tMin] = sensor.targetTime.split(':').map(Number);
         const targetDate = new Date(now); targetDate.setHours(tHour, tMin, 0, 0);
         const diffMinutes = Math.round((now - targetDate) / 1000 / 60);
-        if (diffMinutes > 30 && mailTransporter) {
+        if (diffMinutes > 0.17 && mailTransporter) {  // 0.17분 = 약 10초
             const user = sensorData.users[0];
             if (user && user.guardianEmail) {
                 const subject = `[긴급] ${user.name}님이 ${sensor.name}을 복용하지 않았습니다.`;
@@ -617,3 +617,4 @@ app.listen(PORT, () => {
     if (mailTransporter) console.log('📧 Email enabled');
     else console.log('📧 Email disabled (nodemailer not installed or env vars missing)');
 });
+
