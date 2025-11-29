@@ -3049,6 +3049,15 @@
                 const response = await fetch(`${API_URL}/value`);
                 const sensors = await response.json();
                 
+                // 알람 울리는 중에 해당 약통이 복용 완료되면 자동 정지
+                if (isAlarmPlaying && currentAlarmSensorId) {
+                    const alarmSensor = sensors[currentAlarmSensorId];
+                    if (alarmSensor && alarmSensor.todayOpened) {
+                        console.log(`센서 ${currentAlarmSensorId} 복용 완료 - 알람 자동 정지`);
+                        stopAlarm();
+                    }
+                }
+                
                 let targetData = sensors[1]; 
                 for (let id in sensors) {
                     if (sensors[id].value === 1) {
