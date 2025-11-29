@@ -300,8 +300,11 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            flex-wrap: nowrap;
+            gap: 10px;
         }
-        .sensor-title { font-size: 1.1rem; opacity: 0.9; }
+        
+        .sensor-title { font-size: 1.1rem; opacity: 0.9; white-space: nowrap; }
         .sensor-value-display {
             display: flex;
             align-items: baseline;
@@ -1052,14 +1055,18 @@
         .sensor-raw-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            gap: 8px;
             margin: 15px 0;
         }
         .sensor-raw-item {
             background: #f8f9fa;
-            padding: 15px 10px;
+            padding: 15px 8px;
             border-radius: 12px;
             text-align: center;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .sensor-raw-item .sensor-label {
             font-size: 0.75rem;
@@ -1118,6 +1125,8 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 0.85rem;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         /* ===== 리필 확인 모달 ===== */
