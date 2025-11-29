@@ -180,10 +180,7 @@
             border-top-right-radius: var(--curve-radius); 
             padding-top: 20px; 
             position: relative;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            overflow: hidden;
         }
 
         .sidebar-container::-webkit-scrollbar {
@@ -1003,6 +1000,8 @@
         .refresh-btn {
             width: 100%;
             height: 60px;
+            min-height: 60px;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1015,6 +1014,7 @@
             z-index: 2;
             background: var(--sidebar-bg);
         }
+        
         .refresh-btn:hover {
             color: #888;
         }
@@ -1022,6 +1022,19 @@
             transform: rotate(180deg);
             color: var(--app-bg);
         }
+
+        @media (max-width: 425px) {
+            .sidebar-container {
+                overflow-y: auto;
+                overflow-x: hidden;
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .sidebar-container::-webkit-scrollbar {
+                display: none;
+            }
+        }
+        
         /* ===== 장치 섹션 스타일 ===== */
         .device-status-badge {
             display: inline-flex;
