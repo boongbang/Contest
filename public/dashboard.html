@@ -2770,8 +2770,6 @@
             const ctx = document.getElementById('timeDistributionChart');
             if (!ctx) return;
             
-            if (timeDistributionChart) timeDistributionChart.destroy();
-            
             // 등록된 약의 시간대별 분포 계산
             const timeSlots = {
                 '아침': 0,
@@ -2827,6 +2825,14 @@
             const oldMsg = document.getElementById('noTimeDataMsg');
             if (oldMsg) oldMsg.remove();
             ctx.style.display = 'block';
+            
+            // 기존 차트가 있으면 데이터만 업데이트, 없으면 새로 생성
+            if (timeDistributionChart) {
+                timeDistributionChart.data.labels = labels;
+                timeDistributionChart.data.datasets[0].data = values;
+                timeDistributionChart.update('none'); // 애니메이션 없이 업데이트
+                return;
+            }
             
             timeDistributionChart = new Chart(ctx.getContext('2d'), {
                 type: 'doughnut',
