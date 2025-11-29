@@ -2827,28 +2827,17 @@
             ctx.style.display = 'block';
             
             // 차트가 이미 있고 skipAnimation이 true면 데이터만 업데이트
-if (skipAnimation && timeDistributionChart) {
-    timeDistributionChart.data.labels = labels;
-    timeDistributionChart.data.datasets[0].data = values;
-    timeDistributionChart.update('none'); // 애니메이션 없이 업데이트
-    return;
-}
+            if (skipAnimation && timeDistributionChart) {
+                timeDistributionChart.data.labels = labels;
+                timeDistributionChart.data.datasets[0].data = values;
+                timeDistributionChart.update('none');
+                return;
+            }
 
-// 차트가 있으면 삭제 후 새로 생성
-if (timeDistributionChart) timeDistributionChart.destroy();
+            // 차트가 있으면 삭제 후 새로 생성
+            if (timeDistributionChart) timeDistributionChart.destroy();
 
-// 차트가 이미 있고 skipAnimation이 true면 데이터만 업데이트
-if (skipAnimation && timeDistributionChart) {
-    timeDistributionChart.data.labels = labels;
-    timeDistributionChart.data.datasets[0].data = values;
-    timeDistributionChart.update('none'); // 애니메이션 없이 업데이트
-    return;
-}
-
-// 차트가 있으면 삭제 후 새로 생성
-if (timeDistributionChart) timeDistributionChart.destroy();
-
-timeDistributionChart = new Chart(ctx.getContext('2d'), {
+            timeDistributionChart = new Chart(ctx.getContext('2d'), {
     type: 'doughnut',
     data: {
         labels: labels,
